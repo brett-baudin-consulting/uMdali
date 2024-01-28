@@ -84,7 +84,7 @@ Our chat application is designed with flexibility in mind, catering to both ente
     - Run `docker-compose up` to build and start the application containers.
 
 4. **Accessing the Application**
-    - Open your web browser and navigate to `https://localhost:8443` or the Docker-provided IP. Note using self signed certs so you will have to by pass the browser warnings.
+    - Open your web browser and navigate to `http://localhost:8080` or the Docker-provided IP.
     - The default configuration is to disable Auth. However you still need to login with any username and password. Password is ignored but must be there.
 
 5. **Shutting Down**
