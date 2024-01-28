@@ -53,7 +53,7 @@ $map($, function($message) {
           })
       ]
   }
-})
+})[]
 `;
 const transformWithoutVision = `
 $map($, function($message) {
@@ -63,7 +63,7 @@ $map($, function($message) {
               $message.role,
       "content": $message.content
   }
-})
+})[]
 `;
 async function messageToOpenAIFormat(messages, isSupportsVision) {
   if (!isSupportsVision) {
