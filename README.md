@@ -154,11 +154,15 @@ You're almost there! Let's start the application:
 
 - **Start the Server and Client**: Go back to your terminal and make sure you're in the project directory. Run this command to start the application:
 
-  ```
-  npm run
-  ```
+in the backend directory
+```
+npm run server
+```
 
-  This starts both the 'server' (the part of the application that handles data) and the 'client' (the part you interact with).
+in the frontend directory
+```
+npm run client
+```
 
 ### Step 5: Accessing the Application
 
@@ -192,9 +196,9 @@ Visual Studio Code (VS Code) is a popular, lightweight code editor that can also
 
 1. **Clone the Repository**: Use the integrated terminal in VS Code (`Ctrl+``) to clone the repository to your local system:
 
-   ```bash
-   git clone https://github.com/brett-baudin-consulting/uMdali
-   ```
+```
+git clone https://github.com/brett-baudin-consulting/uMdali
+```
 
 2. **Open the Project**: Open the folder containing the cloned repository in VS Code.
 
@@ -206,17 +210,17 @@ Visual Studio Code (VS Code) is a popular, lightweight code editor that can also
 
 2. **Navigate to the Backend**: Change directory to the `backend` folder and install npm packages:
 
-   ```bash
-   cd umdali-backend
-   npm install
-   ```
+```
+cd backend
+npm install
+```
 
 3. **Configure the .env file**: Run the backend with nodemon for automatic reloading:
 
-   ```bash
-   in the umdali-backend directory
-   cp sample_env.txt .env
-   ```
+in the backend directory
+```
+cp sample_env.txt .env
+```
     - Open the `.env` file in a text editor and change the settings like:
     - your MongoDB URL
     - any API keys that you have for models you want to use
@@ -224,26 +228,26 @@ Visual Studio Code (VS Code) is a popular, lightweight code editor that can also
 
 4. **Start the Backend**: Run the backend with nodemon for automatic reloading:
 
-   ```bash
-   in the umdali-backend directory
+```
+   in the backend directory
    npm run server
-   ```
+```
 
 5. **Open a New Terminal**: For the frontend, open a new terminal tab in VS Code.
 
 6. **Navigate to the Frontend**: Change directory to the `frontend` folder and install npm packages:
 
-   ```bash
-   cd umdali-frontend
-   npm install
-   ```
+```
+cd frontend
+npm install
+```
 
 7. **Start the Frontend**: Run the frontend development server:
 
-   ```bash
-   in the umdali-backend directory
-   npm run client
-   ```
+in the backend directory
+```
+npm run client
+```
 
 ### Accessing the Application
 
@@ -289,7 +293,7 @@ A: We currently support integration with
     - Open AI chat models including vision (Requires API key)
     - Mistral chat models (Requires API key)
     - Google Gemini chat models (Requires API key)
-    - [Ollama](https://ollama.ai/) frontended models running locally.
+    - [Ollama](https://ollama.ai/). frontended models running locally.
 
 ### Q: I am using an LLM that has a REST API that is not on the list. Will I be able to access it? 
 A: 
