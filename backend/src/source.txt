@@ -1,0 +1,1979 @@
+`config/ldapOpts.mjs`
+export default {
+    server: {
+      url: process.env.LDAP_URL,
+      bindDN: process.env.BIND_DN,
+      bindCredentials: process.env.BIND_CREDENTIALS,
+      searchBase: process.env.SEARCH_BASE,
+      searchFilter: process.env.SEARCH_FILTER,
+    }
+  };
+`config/loadModels.mjs`
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { upsertModel } from '../controllers/modelController.mjs';
+import { logger } from '../logger.mjs';
+
+
+export default async function loadModels() {
+  const currentModuleFile = import.meta.url;
+  const dirname = path.dirname(fileURLToPath(currentModuleFile));
+  const modelsConfigPath = path.join(dirname, 'modelsConfig.json');
+
+  try {
+    
+    await fs.access(modelsConfigPath);
+
+    const modelsConfigJson = await fs.readFile(modelsConfigPath, 'utf8');
+    const modelsConfig = JSON.parse(modelsConfigJson);
+
+    for (const modelData of modelsConfig) {
+      try {
+        await upsertModel(modelData);
+      } catch (error) {
+        logger.error('Error loading model:', error);
+      }
+    }
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      logger.error("No modelsConfig.json file found ", modelsConfigPath);
+    } else {
+      logger.error('Failed to load models:', error);
+    }
+  }
+}
+`config/modelsConfig.json`
+[
+  {
+      "name": "claude-2",
+      "available": false,
+      "vendor": "claude",
+      "isSupportsVision": false
+  },
+  {
+      "name": "claude-2.0",
+      "available": false,
+      "vendor": "claude",
+      "isSupportsVision": false
+  },
+  {
+      "name": "claude-instant-1",
+      "available": false,
+      "vendor": "claude",
+      "isSupportsVision": false
+  },
+  {
+      "name": "claude-instant-1.2",
+      "available": false,
+      "vendor": "claude",
+      "isSupportsVision": false
+  },
+  {
+      "name": "gpt-3.5-turbo",
+      "available": true,
+      "vendor": "openai",
+      "isSupportsVision": false
+  },
+  {
+      "name": "gpt-3.5-turbo-16k",
+      "available": true,
+      "vendor": "openai",
+      "isSupportsVision": false
+  },
+  {
+      "name": "gpt-4",
+      "available": true,
+      "vendor": "openai",
+      "isSupportsVision": false
+  },
+  {
+      "name": "gpt-4-1106-preview",
+      "available": true,
+      "vendor": "openai",
+      "isSupportsVision": false
+  },
+  {
+      "name": "gpt-4-vision-preview",
+      "available": true,
+      "vendor": "openai",
+      "isSupportsVision": true
+  },
+  {
+      "name": "mistral-medium",
+      "available": true,
+      "vendor": "mistral",
+      "isSupportsVision": false
+  },
+  {
+      "name": "mistral-small",
+      "available": true,
+      "vendor": "mistral",
+      "isSupportsVision": false
+  },
+  {
+      "name": "mistral-tiny",
+      "available": true,
+      "vendor": "mistral",
+      "isSupportsVision": false
+  },
+  {
+      "name": "models/gemini-pro",
+      "available": true,
+      "vendor": "google",
+      "isSupportsVision": false
+  },
+  {
+      "name": "models/gemini-pro-vision",
+      "available": true,
+      "vendor": "google",
+      "isSupportsVision": true
+  },
+  {
+      "name": "ollama/dolphin-mixtral",
+      "available": true,
+      "vendor": "ollama",
+      "isSupportsVision": false
+  },
+  {
+      "name": "ollama/mistral",
+      "available": true,
+      "vendor": "ollama",
+      "isSupportsVision": false
+  }
+]
+`controllers/messageController.mjs`
+import { logger } from "../logger.mjs";
+import OpenAIMessageAPI from "../messageAPIs/OpenAIMessageAPI.mjs";
+import ClaudeMessageAPI from "../messageAPIs/ClaudeMessageAPI.mjs";
+import GeminiMessageAPI from "../messageAPIs/GeminiMessageAPI.mjs";
+import OllamaMessageAPI from "../messageAPIs/OllamaAIMessageAPI.mjs";
+import MistralMessageAPI from "../messageAPIs/MistralAIMessageAPI.mjs";
+
+
+
+async function getFilters() {
+  const filterNames = (process.env.FILTERS || "").split(",").filter(Boolean);
+  const filters = [];
+
+  for (const name of filterNames) {
+    try {
+      const filterModule = await import(`../filters/${name}.mjs`);
+      const FilterClass = filterModule.default;
+      filters.push(new FilterClass());
+    } catch (err) {
+      logger.warn(`Unable to load filter: ${name} - ${err.message}`);
+    }
+  }
+
+  return filters;
+}
+
+async function sendMessageToAPI(messageAPI, message, options, signal) {
+  try {
+    return await messageAPI.sendRequest(message, signal, options);
+  } catch (error) {
+    logger.error("Error sending request to message API:", error);
+    throw error;
+  }
+}
+
+async function sendMessageToAPIStreamResponse(
+  messageAPI,
+  message,
+  options,
+  res,
+  signal
+) {
+  try {
+    return await messageAPI.sendRequestStreamResponse(message, res, signal, options);
+  } catch (error) {
+    logger.error("Error sending request to message API:", error);
+    throw error;
+  }
+}
+async function filterMessages(messages, res) {
+  let filters;
+  try {
+    filters = await getFilters();
+  } catch (error) {
+    res.status(500).send({ error: `Failed to load filters: ${error.message}` });
+    return;
+  }
+  try {
+    for (const filter of filters) {
+      for (const message of messages) {
+        message.content = await filter.process(message.content);
+      }
+    }
+    return messages;
+  } catch (error) {
+    res.status(400).send({ error: `Failed to apply filter ${error}` });
+    return;
+  }
+}
+
+async function getAPI(req, res) {
+  let models = ["gemini", "ollama", "gpt", "mistral", "claude"];
+  let model = models.find(m => req.body.userDetails.settings.model.includes(m));
+  let messageAPI = messageAPIs[model];
+  if (!messageAPI) {
+    res.status(400).send({ error: `Unsupported API: ${model}` });
+    return;
+  }
+  return messageAPI;
+
+}
+
+async function handleRequest(req, res) {
+  const messageAPI = await getAPI(req, res);
+  if (!messageAPI) {
+    return; 
+  }
+
+  const messages = await filterMessages(req.body.message, res);
+  if (!messages) {
+    return; 
+  }
+
+  const { userDetails: { settings }, message, stream } = req.body;
+  const options = {
+    userModel: settings.model,
+    maxTokens: settings.maxTokens,
+    temperature: settings.temperature,
+    isSupportsVision: settings.model.includes("vision"),
+  };
+
+  const abortController = new AbortController();
+  const { signal } = abortController;
+  res.on("close", () => {
+    abortController.abort();
+  });
+
+  try {
+    if (stream) {
+      await sendMessageToAPIStreamResponse(messageAPI, message, options, res, signal);
+    } else {
+      const content = await sendMessageToAPI(messageAPI, message, options, signal);
+      res.send({ content });
+    }
+  } catch (error) {
+    logger.error("Error handling request:", error);
+    res.status(500).send({ error: error.message });
+  }
+}
+
+export const messageAPIs = {
+  claude: new ClaudeMessageAPI(),
+  gpt: new OpenAIMessageAPI(),
+  gemini: new GeminiMessageAPI(),
+  ollama: new OllamaMessageAPI(),
+  mistral: new MistralMessageAPI(),
+};
+export default handleRequest;
+
+`controllers/modelController.mjs`
+import Model from '../models/Model.mjs';
+import { logger } from '../logger.mjs';
+
+async function upsertModel(modelData) {
+  try {
+    const updatedModel = await Model.findOneAndUpdate(
+      { name: modelData.name },
+      modelData,
+      { new: true, upsert: true }
+    );
+    return updatedModel;
+  } catch (error) {
+    logger.error('Error upserting model:', error);
+    throw error;
+  }
+}
+
+export { upsertModel };
+
+`filters/CreditCardFilter.mjs`
+import Filter from './Filter.mjs';
+
+class CreditCardFilter extends Filter {
+  process(message) {
+    return message.replace(/\b(\d{4}[- ]?){3}\d{4}\b/g, '**** **** **** ****');
+  }
+}
+
+export default CreditCardFilter;
+
+`filters/Filter.mjs`
+class Filter {
+    process(message) {
+        throw new Error('You have to implement the method process!');
+    }
+}
+
+export default Filter;
+
+`filters/PiiFilter.mjs`
+
+import { SyncRedactor } from 'redact-pii';
+import Filter from './Filter.mjs';
+
+class PiiFilter extends Filter {
+  process(message) {
+    const redactor = new SyncRedactor();
+    return redactor.redact(message);
+  }
+}
+
+export default PiiFilter;
+`filters/ProfanityFilter.mjs`
+import Profanity from 'profanity-util';
+import Filter from './Filter.mjs';
+
+class ProfanityFilter extends Filter {
+  process(message) {
+    return Profanity.purify(message, { replace: true, map: true })[0];
+  }
+}
+
+export default ProfanityFilter;
+`initDatabase.mjs`
+import { connect } from 'mongoose';
+import { logger } from './logger.mjs';
+import dotenv from 'dotenv';
+import loadModels from './config/loadModels.mjs';
+
+dotenv.config();
+
+const initDatabase = async () => {
+  try {
+    logger.info('Connecting to MongoDB');
+    await connect(process.env.MONGODB_URI);
+    logger.info('MongoDB Connected');
+    logger.info('Loading models');
+    await loadModels();
+    logger.info('Models loaded');
+  } catch (err) {
+    logger.error(err);
+  }
+};
+
+export default initDatabase;
+
+`logger.mjs`
+import { createLogger, format as _format, transports as _transports } from 'winston';
+
+const logger = createLogger({
+  level: 'info',
+  format: _format.combine(
+    _format.timestamp({
+      format: 'YYYY-MM-DD HH:mm:ss'
+    }),
+    _format.json()
+  ),
+  defaultMeta: { service: 'user-service' },
+  transports: [
+    new _transports.File({ filename: process.env.ERROR_LOG_LOCATION || 'error.log', level: 'error' }),
+    new _transports.File({ filename: process.env.COMBINED_LOG_LOCATION || 'combined.log' }),
+  ],
+});
+
+if (process.env.NODE_ENV !== 'production') {
+  logger.add(new _transports.Console({
+    format: _format.combine(
+      _format.timestamp({
+        format: 'YYYY-MM-DD HH:mm:ss'
+      }),
+      _format.simple()
+    ),
+  }));
+}
+
+export { logger };
+`messageAPIs/ClaudeMessageAPI.mjs`
+import { logger } from '../logger.mjs';
+import fetch from 'node-fetch';
+import MessageAPI from './MessageAPI.mjs'
+
+const CLAUDE_API_URL = 'https:
+
+
+
+
+
+
+
+class ClaudeMessageAPI extends MessageAPI {
+    constructor() {
+        super();
+
+        const {
+            CLAUDE_MODEL,
+            ANTHROPIC_API_KEY,
+            CLAUDE_MAX_TOKENS,
+            CLAUDE_TEMPERATURE
+        } = process.env;
+
+        if (!CLAUDE_MODEL || !ANTHROPIC_API_KEY || !CLAUDE_MAX_TOKENS || !CLAUDE_TEMPERATURE) {
+            throw new Error("Environment variables are not set correctly.");
+        }
+
+        this.MODEL = CLAUDE_MODEL;
+        this.API_KEY = ANTHROPIC_API_KEY;
+        this.TEMPERATURE = CLAUDE_TEMPERATURE;
+        const maxTokens = CLAUDE_MAX_TOKENS;
+        this.MAX_TOKENS = Number(maxTokens);
+
+        if (isNaN(this.MAX_TOKENS)) {
+            throw new Error('Invalid max token value');
+        }
+    }
+
+    formatUserMessage(messages) {
+        if (!messages || messages.length === 0) {
+            throw new Error("No messages provided.");
+        }
+
+        const userMessage = messages[messages.length - 1];
+        return `\n\nHuman: ${userMessage.content}\n\nAssistant:`;
+    }
+
+    async sendPromptMessage(prompt, opt) {
+        if (typeof prompt !== 'string') {
+            throw new Error("Prompt must be a string.");
+        }
+
+        const options = {
+            method: "POST",
+            headers: {
+                "X-API-KEY": this.API_KEY,
+                "Content-Type": "application/json",
+                "Anthropic-Version": "2023-06-01",
+            },
+            body: JSON.stringify({
+                model: opt.model || this.MODEL,
+                prompt,
+                max_tokens_to_sample: opt.maxTokens || this.MAX_TOKENS
+            }),
+        };
+
+        const response = await fetch(CLAUDE_API_URL, options);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error.message);
+        }
+
+        return data;
+    }
+
+    async sendRequest(messages, options = {}) {
+        try {
+            const prompt = this.formatUserMessage(messages);
+            const data = await this.sendPromptMessage(prompt, options);
+
+            return {
+                choices: [
+                    {
+                        message: {
+                            content: data.completion,
+                            role: 'assistant',
+                        },
+                    },
+                ],
+            };
+        } catch (error) {
+            return {
+                status: 'error',
+                error: error.message
+            }
+        }
+    }
+}
+
+export default ClaudeMessageAPI;
+`messageAPIs/GeminiMessageAPI.mjs`
+import { logger } from "../logger.mjs";
+import jsonata from "jsonata";
+import fetch from "node-fetch";
+import { TextDecoder } from "util";
+import MessageAPI from "./MessageAPI.mjs";
+
+
+const { GEMINI_MODEL, GEMINI_API_KEY, GEMINI_MAX_TOKENS, GEMINI_TEMPERATURE, GEMINI_API_URL } =
+  process.env;
+
+const checkEnvVariables = () => {
+  if (!GEMINI_MODEL || !GEMINI_API_KEY || !GEMINI_MAX_TOKENS || !GEMINI_TEMPERATURE) {
+    throw new Error("Environment variables are not set correctly.");
+  }
+
+  const temperature = parseFloat(GEMINI_TEMPERATURE);
+  const maxTokens = parseInt(GEMINI_MAX_TOKENS, 10);
+  if (Number.isNaN(maxTokens) || Number.isNaN(temperature)) {
+    throw new Error("Invalid GEMINI_MAX_TOKENS or GEMINI_TEMPERATURE environment variable value.");
+  }
+
+  return { temperature, maxTokens };
+};
+
+const envValues = checkEnvVariables();
+
+const expression = `
+{
+  "contents": $map(*[role != 'context'], function($v, $i, $a) {
+    {
+      "role": $v.role = 'bot' ? 'model' : $v.role,
+      "parts": {
+        "text": $v.content
+      }
+    }
+  }),
+  "generation_config": {}
+}
+`;
+async function messageToGeminiFormat(messages) {
+  const transform = jsonata(expression);
+  const gemini = await transform.evaluate(messages);
+  return gemini;
+}
+
+class GeminiMessageAPI extends MessageAPI {
+  constructor(userModel) {
+    super();
+    this.MODEL = userModel || GEMINI_MODEL;
+    this.API_KEY = GEMINI_API_KEY;
+    this.TEMPERATURE = envValues.temperature;
+    this.MAX_TOKENS = envValues.maxTokens;
+  }
+
+  _prepareHeaders() {
+    return {
+      "Content-Type": "application/json",
+    };
+  }
+
+  _prepareOptions(body, signal) {
+    return {
+      method: "POST",
+      headers: this._prepareHeaders(),
+      body: JSON.stringify(body),
+      signal: signal,
+    };
+  }
+
+  async sendRequest(messages, signal, options = {}) {
+    const { userModel, maxTokens, temperature } = options;
+    const updatedMessages = await messageToGeminiFormat(messages);
+
+    const requestOptions = this._prepareOptions({
+      contents: updatedMessages.contents,
+      generation_config: {
+        temperature: temperature || this.TEMPERATURE,
+        maxOutputTokens: maxTokens || this.MAX_TOKENS,
+      }
+    }, signal);
+
+    try {
+      const FULL_URL = `${GEMINI_API_URL}${userModel}:generateContent?key=${this.API_KEY}`;
+      const response = await fetch(FULL_URL, requestOptions, signal);
+      if (!response.ok) {
+        const text = await response.text();
+        logger.error("Open AI API response error: ", text);
+        throw new Error(`Gemini API Error: ${text}`);
+      }
+
+      const data = await response.json();
+      const content = data?.candidates[0]?.content?.parts[0]?.text;
+      return content;
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        logger.error("Fetch aborted:", err);
+      } else {
+        logger.error("Error sending request:", err);
+      }
+      throw err;
+    }
+  }
+
+  async sendRequestStreamResponse(messages, resClient, signal, options = {}) {
+    const { userModel, maxTokens, temperature } = options;
+    const updatedMessages = await messageToGeminiFormat(messages);
+
+    const requestOptions = this._prepareOptions({
+      contents: updatedMessages.contents,
+      generation_config: {
+        temperature: temperature || this.TEMPERATURE,
+        maxOutputTokens: maxTokens || this.MAX_TOKENS,
+      }
+    }, signal);
+
+    try {
+      const FULL_URL = `${GEMINI_API_URL}${userModel}:streamGenerateContent?key=${this.API_KEY}`;
+      const response = await fetch(FULL_URL, requestOptions, signal);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const textDecoder = new TextDecoder();
+      let lastChunk = "";
+
+      for await (const chunk of response.body) {
+
+        let decodedChunk = textDecoder.decode(chunk, { stream: true });
+        decodedChunk = lastChunk + decodedChunk;
+        const lines = decodedChunk.split("\n");
+        if (lines.length === 0) {
+          lastChunk = decodedChunk;
+        }
+        else {
+          lastChunk = "";
+        }
+        for (const line of lines) {
+          if (line.includes('"text": ')) {
+            const start = line.indexOf('"text": ') + 9; 
+            const end = line.lastIndexOf('"');
+            let text = line.substring(start, end);
+            text = text.replace(/\\n/g, '\n');
+            resClient.write(text);
+          }
+        }
+      }
+      resClient.end();
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        logger.error("Fetch aborted:", err);
+      } else {
+        logger.error("Error sending stream response:", err);
+      }
+      
+      if (err.name !== 'AbortError') {
+        throw err;
+      }
+    }
+  }
+}
+
+
+export default GeminiMessageAPI;
+
+
+`messageAPIs/MessageAPI.mjs`
+class MessageAPI {
+    async sendRequest() {
+        throw new Error('You have to implement the method sendRequest!');
+    }
+    async sendRequestStreamResponse() {
+        throw new Error('You have to implement the method sendRequest!');
+    }
+}
+
+export default MessageAPI;
+`messageAPIs/MistralAIMessageAPI.mjs`
+import { logger } from "../logger.mjs";
+import fetch from "node-fetch";
+import jsonata from "jsonata";
+import { TextDecoder } from "util";
+import MessageAPI from "./MessageAPI.mjs";
+import { promises as fs } from 'fs';
+import { resolve } from 'path';
+
+async function encodeFileToBase64(relativeFilePath) {
+  try {
+    
+    const absoluteFilePath = resolve(relativeFilePath);
+
+    
+    const fileBuffer = await fs.readFile(absoluteFilePath);
+
+    
+    const base64String = fileBuffer.toString('base64');
+
+    return base64String;
+  } catch (error) {
+    logger.error('Error encoding file to base64:', error);
+    throw error;
+  }
+}
+async function encodeFiles(messages) {
+  for (const message of messages) {
+    if (message.files) {
+      for (const file of message.files) {
+        file.base64 = await encodeFileToBase64(file.path);
+      }
+    }
+  }
+}
+
+const transformWithVision = `
+$map($, function($message) {
+  {
+      "role": $message.role = 'bot' ? 'assistant' :
+              $message.role = 'context' ? 'system' :
+              $message.role,
+      "content": [
+          {
+            "type": "text", 
+            "text": $message.content
+          },
+          $map($message.files, function($file) {
+              {"image_url": 
+                {
+                  "url": "data:image/jpeg;base64,"&$file.base64
+                }
+              }
+          })
+      ]
+  }
+})
+`;
+const transformWithoutVision = `
+$map($, function($message) {
+  {
+      "role": $message.role = 'bot' ? 'assistant' :
+              $message.role = 'context' ? 'system' :
+              $message.role,
+      "content": $message.content
+  }
+})
+`;
+async function messageToMistralAIFormat(messages, isSupportsVision) {
+  if (!isSupportsVision) {
+    const transform = jsonata(transformWithoutVision);
+    const openai = await transform.evaluate(messages);
+    return openai;
+  }
+  const transform = jsonata(transformWithVision);
+  const openai = await transform.evaluate(messages);
+  return openai;
+}
+
+const { MISTRALAI_MODEL, MISTRALAI_API_KEY, MISTRALAI_MAX_TOKENS, MISTRALAI_TEMPERATURE, MISTRALAI_API_URL } =
+  process.env;
+
+const checkEnvVariables = () => {
+  if (!MISTRALAI_MODEL || !MISTRALAI_API_KEY || !MISTRALAI_MAX_TOKENS || !MISTRALAI_TEMPERATURE) {
+    throw new Error("Environment variables are not set correctly.");
+  }
+
+  const temperature = parseFloat(MISTRALAI_TEMPERATURE);
+  const maxTokens = parseInt(MISTRALAI_MAX_TOKENS, 10);
+  if (Number.isNaN(maxTokens) || Number.isNaN(temperature)) {
+    throw new Error("Invalid MISTRALAI_MAX_TOKENS or MISTRALAI_TEMPERATURE environment variable value.");
+  }
+
+  return { temperature, maxTokens };
+};
+
+const envValues = checkEnvVariables();
+
+class MistralAIMessageAPI extends MessageAPI {
+  constructor(userModel) {
+    super();
+    this.MODEL = userModel || MISTRALAI_MODEL;
+    this.API_KEY = MISTRALAI_API_KEY;
+    this.TEMPERATURE = envValues.temperature;
+    this.MAX_TOKENS = envValues.maxTokens;
+  }
+
+  _prepareHeaders() {
+    return {
+      Authorization: `Bearer ${this.API_KEY}`,
+      "Content-Type": "application/json",
+    };
+  }
+
+  _prepareOptions(body, signal) {
+    return {
+      method: "POST",
+      headers: this._prepareHeaders(),
+      body: JSON.stringify(body),
+      signal: signal,
+    };
+  }
+
+  async sendRequest(messages, signal, options = {}) {
+    const { userModel, maxTokens, temperature, isSupportsVision } = options;
+    if (isSupportsVision) {
+      await encodeFiles(messages);
+    }
+    const updatedMessages = await messageToMistralAIFormat(messages, isSupportsVision);
+    const requestOptions = this._prepareOptions({
+      model: userModel || this.MODEL,
+      messages: updatedMessages,
+      max_tokens: maxTokens || this.MAX_TOKENS,
+      temperature: temperature || this.TEMPERATURE,
+    }, signal);
+
+    try {
+      const response = await fetch(MISTRALAI_API_URL, requestOptions, signal);
+
+      if (!response.ok) {
+        const text = await response.text();
+        logger.error("Open AI API response error: ", text);
+        throw new Error(`MistralAI API Error: ${text}`);
+      }
+
+      const data = await response.json();
+      const content = data?.choices?.[0]?.message?.content;
+      return content;
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        logger.error("Fetch aborted:", err);
+      } else {
+        logger.error("Error sending request:", err);
+      }
+      throw err;
+    }
+  }
+
+  async sendRequestStreamResponse(messages, resClient, signal, options = {}) {
+
+    const { userModel, maxTokens, temperature, isSupportsVision } = options;
+    if (isSupportsVision) {
+      await encodeFiles(messages);
+    }
+    const updatedMessages = await messageToMistralAIFormat(messages, isSupportsVision);
+
+    const requestOptions = this._prepareOptions({
+      model: userModel || this.MODEL,
+      messages: updatedMessages,
+      max_tokens: maxTokens || this.MAX_TOKENS,
+      temperature: temperature || this.TEMPERATURE,
+      stream: true,
+    });
+
+    try {
+      const response = await fetch(MISTRALAI_API_URL, requestOptions, signal);
+      const textDecoder = new TextDecoder();
+      let lastChunk = "";
+
+      for await (const chunk of response.body) {
+
+        let decodedChunk = textDecoder.decode(chunk, { stream: true });
+        if (!decodedChunk.startsWith("data:")) {
+          decodedChunk = lastChunk + decodedChunk;
+        }
+        const lines = decodedChunk.split("\n");
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const content = line.replace(/^data: /, "").trim();
+            if (content === "[DONE]") {
+              resClient.end();
+              return; 
+            }
+            try {
+              const parsedLine = JSON.parse(content);
+              if (parsedLine?.choices?.[0]?.delta?.content) {
+                resClient.write(parsedLine.choices[0].delta.content);
+              }
+            } catch (error) {
+              logger.error(`JSON parse error: ${error}`);
+              lastChunk = line; 
+            }
+          }
+        }
+      }
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        logger.error("Fetch aborted:", err);
+      } else {
+        logger.error("Error sending stream response:", err);
+      }
+      
+      if (err.name !== 'AbortError') {
+        throw err;
+      }
+    }
+  }
+}
+
+export default MistralAIMessageAPI;
+
+`messageAPIs/OllamaAIMessageAPI.mjs`
+import { logger } from "../logger.mjs";
+import fetch from "node-fetch";
+import { TextDecoder } from "util";
+import MessageAPI from "./MessageAPI.mjs";
+
+const { OLLAMA_MODEL, OLLAMA_API_URL } =
+  process.env;
+
+const checkEnvVariables = () => {
+  if (!OLLAMA_MODEL || !OLLAMA_API_URL) {
+    logger.error("Environment variables are not set correctly.");
+  }
+};
+
+checkEnvVariables();
+
+function messageToOllamaFormat(messages) {
+  return messages.map(({ messageId, modelName, files, ...message }) => ({
+    ...message,
+    role: message.role === "bot" ? "assistant" : message.role === "context" ? "system" : message.role,
+  }));
+}
+
+class OllamaMessageAPI extends MessageAPI {
+  constructor() {
+    super();
+    this.MODEL = OLLAMA_MODEL;
+  }
+
+  _prepareHeaders() {
+    return {
+      "Content-Type": "application/json",
+    };
+  }
+
+  _prepareOptions(body, signal) {
+    return {
+      method: "POST",
+      headers: this._prepareHeaders(),
+      body: JSON.stringify(body),
+      signal: signal,
+    };
+  }
+  async sendRequest(messages, signal, options = {}) {
+    const { userModel } = options;
+    const updatedMessages = messageToOllamaFormat(messages);
+    const parts = userModel.split('/');
+    const model = parts[1];
+    const requestOptions = this._prepareOptions({
+      model: model || this.MODEL,
+      messages: updatedMessages,
+      stream: false,
+    });
+
+    try {
+      const response = await fetch(OLLAMA_API_URL, requestOptions, signal);
+
+      if (!response.ok) {
+        const text = await response.text();
+        logger.error("Open AI API response error: ", text);
+        throw new Error(`OpenAI API Error: ${text}`);
+      }
+
+      const data = await response.json();
+      const content = data?.message?.content;
+      return content;
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        logger.error("Fetch aborted:", err);
+      } else {
+        logger.error("Error sending request:", err);
+      }
+      throw err;
+    }
+  }
+
+  async sendRequestStreamResponse(messages, resClient, signal, options = {}) {
+
+    const { userModel } = options;
+    const updatedMessages = messageToOllamaFormat(messages);
+    const parts = userModel.split('/');
+    const model = parts[1];
+    const requestOptions = this._prepareOptions({
+      model: model || this.MODEL,
+      messages: updatedMessages,
+      stream: true,
+    });
+
+    try {
+      const response = await fetch(OLLAMA_API_URL
+        , requestOptions, signal);
+      const textDecoder = new TextDecoder();
+
+      for await (const chunk of response.body) {
+
+        let decodedChunk = textDecoder.decode(chunk, { stream: true });
+        const parsedLine = JSON.parse(decodedChunk);
+        if (parsedLine?.done === true) {
+          resClient.end();
+          return;
+        }
+        if (parsedLine?.message.content) {
+          resClient.write(parsedLine?.message.content);
+        }
+      }
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        logger.error("Fetch aborted:", err);
+      } else {
+        logger.error("Error sending stream response:", err);
+      }
+      
+      if (err.name !== 'AbortError') {
+        throw err;
+      }
+    }
+  }
+}
+
+export default OllamaMessageAPI;
+
+
+`messageAPIs/OpenAIMessageAPI.mjs`
+import { logger } from "../logger.mjs";
+import fetch from "node-fetch";
+import jsonata from "jsonata";
+import { TextDecoder } from "util";
+import MessageAPI from "./MessageAPI.mjs";
+import { promises as fs } from 'fs';
+import { resolve } from 'path';
+
+async function encodeFileToBase64(relativeFilePath) {
+  try {
+    
+    const absoluteFilePath = resolve(relativeFilePath);
+
+    
+    const fileBuffer = await fs.readFile(absoluteFilePath);
+
+    
+    const base64String = fileBuffer.toString('base64');
+
+    return base64String;
+  } catch (error) {
+    logger.error('Error encoding file to base64:', error);
+    throw error;
+  }
+}
+async function encodeFiles(messages) {
+  for (const message of messages) {
+    if (message.files) {
+      for (const file of message.files) {
+        file.base64 = await encodeFileToBase64(file.path);
+      }
+    }
+  }
+}
+
+const transformWithVision = `
+$map($, function($message) {
+  {
+      "role": $message.role = 'bot' ? 'assistant' :
+              $message.role = 'context' ? 'system' :
+              $message.role,
+      "content": [
+          {
+            "type": "text", 
+            "text": $message.content
+          },
+          $map($message.files, function($file) {
+              {"image_url": 
+                {
+                  "url": "data:image/jpeg;base64,"&$file.base64
+                }
+              }
+          })
+      ]
+  }
+})
+`;
+const transformWithoutVision = `
+$map($, function($message) {
+  {
+      "role": $message.role = 'bot' ? 'assistant' :
+              $message.role = 'context' ? 'system' :
+              $message.role,
+      "content": $message.content
+  }
+})
+`;
+async function messageToOpenAIFormat(messages, isSupportsVision) {
+  if (!isSupportsVision) {
+    const transform = jsonata(transformWithoutVision);
+    const openai = await transform.evaluate(messages);
+    return openai;
+  }
+  const transform = jsonata(transformWithVision);
+  const openai = await transform.evaluate(messages);
+  return openai;
+}
+
+const { OPENAI_MODEL, OPENAI_API_KEY, OPENAI_MAX_TOKENS, OPENAI_TEMPERATURE, OPENAI_API_URL } =
+  process.env;
+
+const checkEnvVariables = () => {
+  if (!OPENAI_MODEL || !OPENAI_API_KEY || !OPENAI_MAX_TOKENS || !OPENAI_TEMPERATURE) {
+    throw new Error("Environment variables are not set correctly.");
+  }
+
+  const temperature = parseFloat(OPENAI_TEMPERATURE);
+  const maxTokens = parseInt(OPENAI_MAX_TOKENS, 10);
+  if (Number.isNaN(maxTokens) || Number.isNaN(temperature)) {
+    throw new Error("Invalid OPENAI_MAX_TOKENS or OPENAI_TEMPERATURE environment variable value.");
+  }
+
+  return { temperature, maxTokens };
+};
+
+const envValues = checkEnvVariables();
+
+class OpenAIMessageAPI extends MessageAPI {
+  constructor(userModel) {
+    super();
+    this.MODEL = userModel || OPENAI_MODEL;
+    this.API_KEY = OPENAI_API_KEY;
+    this.TEMPERATURE = envValues.temperature;
+    this.MAX_TOKENS = envValues.maxTokens;
+  }
+
+  _prepareHeaders() {
+    return {
+      Authorization: `Bearer ${this.API_KEY}`,
+      "Content-Type": "application/json",
+    };
+  }
+
+  _prepareOptions(body, signal) {
+    return {
+      method: "POST",
+      headers: this._prepareHeaders(),
+      body: JSON.stringify(body),
+      signal: signal,
+    };
+  }
+
+  async sendRequest(messages, signal, options = {}) {
+    const { userModel, maxTokens, temperature, isSupportsVision } = options;
+    if (isSupportsVision) {
+      await encodeFiles(messages);
+    }
+    const updatedMessages = await messageToOpenAIFormat(messages, isSupportsVision);
+    const requestOptions = this._prepareOptions({
+      model: userModel || this.MODEL,
+      messages: updatedMessages,
+      max_tokens: maxTokens || this.MAX_TOKENS,
+      temperature: temperature || this.TEMPERATURE,
+    }, signal);
+
+    try {
+      const response = await fetch(OPENAI_API_URL, requestOptions, signal);
+
+      if (!response.ok) {
+        const text = await response.text();
+        logger.error("Open AI API response error: ", text);
+        throw new Error(`OpenAI API Error: ${text}`);
+      }
+
+      const data = await response.json();
+      const content = data?.choices?.[0]?.message?.content;
+      return content;
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        logger.error("Fetch aborted:", err);
+      } else {
+        logger.error("Error sending request:", err);
+      }
+      throw err;
+    }
+  }
+
+  async sendRequestStreamResponse(messages, resClient, signal, options = {}) {
+
+    const { userModel, maxTokens, temperature, isSupportsVision } = options;
+    if (isSupportsVision) {
+      await encodeFiles(messages);
+    }
+    const updatedMessages = await messageToOpenAIFormat(messages, isSupportsVision);
+
+    const requestOptions = this._prepareOptions({
+      model: userModel || this.MODEL,
+      messages: updatedMessages,
+      max_tokens: maxTokens || this.MAX_TOKENS,
+      temperature: temperature || this.TEMPERATURE,
+      stream: true,
+    });
+
+    try {
+      const response = await fetch(OPENAI_API_URL, requestOptions, signal);
+      const textDecoder = new TextDecoder();
+      let lastChunk = "";
+
+      for await (const chunk of response.body) {
+
+        let decodedChunk = textDecoder.decode(chunk, { stream: true });
+        if (!decodedChunk.startsWith("data:")) {
+          decodedChunk = lastChunk + decodedChunk;
+        }
+        const lines = decodedChunk.split("\n");
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const content = line.replace(/^data: /, "").trim();
+            if (content === "[DONE]") {
+              resClient.end();
+              return; 
+            }
+            try {
+              const parsedLine = JSON.parse(content);
+              if (parsedLine?.choices?.[0]?.delta?.content) {
+                resClient.write(parsedLine.choices[0].delta.content);
+              }
+            } catch (error) {
+              logger.error(`JSON parse error: ${error}`);
+              lastChunk = line; 
+            }
+          }
+        }
+      }
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        logger.error("Fetch aborted:", err);
+      } else {
+        logger.error("Error sending stream response:", err);
+      }
+      
+      if (err.name !== 'AbortError') {
+        throw err;
+      }
+    }
+  }
+}
+
+export default OpenAIMessageAPI;
+
+`middlewares/errorHandler.mjs`
+import { logger } from '../logger.mjs';
+
+export default function errorHandler(err, req, res, next) {
+  logger.error(err.stack);
+  if (!err.status) err.status = 500;
+  res.status(err.status).send({ error: err.message });
+}
+`models/Conversation.mjs`
+import mongoose from "mongoose";
+
+const { Schema, model } = mongoose;
+const fileSchema = new Schema({
+  path: { type: String, required: true },
+  name: { type: String, required: true },
+  originalName: { type: String, required: true },
+  type: { type: String, required: true },
+  size: { type: Number, required: true },
+  uploadedAt: { type: Date, default: Date.now }
+});
+
+const messageSchema = new Schema({
+  content: { type: String, required: false },
+  role: { type: String, required: true, enum: ["user", "bot", "context"] },
+  messageId: { type: String, required: true, unique: true },
+  modelName: { type: String, required: false },
+  files: { type: [fileSchema], default: [] },
+});
+
+const conversationSchema = new Schema(
+  {
+    title: { type: String, required: true },
+    conversationId: { type: String, required: true, unique: true },
+    userId: { type: String, required: true },
+    messages: [messageSchema],
+  },
+  {
+    timestamps: {
+      createdAt: "createdTimestamp",
+      updatedAt: "updatedTimestamp",
+    },
+  }
+);
+
+conversationSchema.index({ conversationId: 1 });
+
+conversationSchema.index({
+  title: 'text',
+  conversationId: 'text',
+  'messages.content': 'text'
+});
+
+const Conversation = model("Conversation", conversationSchema);
+
+export default Conversation;
+
+`models/Model.mjs`
+import { Schema, model } from 'mongoose';
+
+const ModelSchema = new Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  vendor: {
+    type: String,
+    required: true,
+  },
+  maxTokens: {
+    type: Number,
+    required: true,
+
+  },
+  isSupportsVision: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
+  available: {
+    type: Boolean,
+    required: true,
+  },
+  createdTimestamp: {
+    type: Date,
+    default: Date.now
+  },
+  updatedTimestamp: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+export default model('Model', ModelSchema);
+`models/User.mjs`
+import { Schema, model, Types } from "mongoose";
+
+const ContextSchema = new Schema({
+  name: { type: String, required: true },
+  contextId: { type: String, required: true, unique: true },
+  text: { type: String, required: true },
+  isDefault: { type: Boolean, default: false },
+});
+
+const SettingsSchema = new Schema({
+  model: { type: String, required: true },
+  temperature: { type: Number, default: 0.5 },
+  maxTokens: { type: Number, default: 1000 },
+  isStreamResponse: { type: Boolean, default: false },
+  contexts: [ContextSchema],
+});
+
+const UserSchema = new Schema(
+  {
+    userId: { type: String, required: true, unique: true },
+    name: { type: String, required: true },
+    settings: { type: SettingsSchema, required: true },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+UserSchema.index({ userId: 1 }, { unique: true });
+
+export default model("User", UserSchema);
+
+`routes/conversationRoutes.mjs`
+import express from "express";
+import Conversation from "../models/Conversation.mjs"; 
+import Joi from "joi";
+import { logger } from "../logger.mjs";
+const router = express.Router();
+
+const fileSchema = Joi.object({
+  path: Joi.string().required(),
+  name: Joi.string().required(),
+  originalName: Joi.string().required(),
+  type: Joi.string().required(),
+  size: Joi.number().required(),
+  uploadedAt: Joi.date().default({ value: Date.now, description: 'time of creation' })
+});
+
+const messageSchema = Joi.object({
+  content: Joi.string().allow('').default(''),
+  role: Joi.string().valid('user', 'bot', 'context').required(),
+  messageId: Joi.string().required(),
+  modelName: Joi.string().optional(),
+  files: Joi.array().items(fileSchema).default({ value: [], description: 'default files' })
+});
+
+const conversationSchema = Joi.object({
+  title: Joi.string().required(),
+  conversationId: Joi.string().required(),
+  userId: Joi.string().required(),
+  messages: Joi.array().items(messageSchema),
+  createdTimestamp: Joi.date(),
+  updatedTimestamp: Joi.date()
+});
+
+
+const validateConversation = (req, res, next) => {
+  const { error } = conversationSchema.validate(req.body);
+  if (error) {
+    logger.error(`Error validating conversation: ${error}`);
+    return res.status(400).json({ message: error.details[0].message });
+  }
+  next();
+};
+
+
+const asyncHandler = (fn) => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
+
+
+router.post(
+  "/",
+  validateConversation,
+  asyncHandler(async (req, res) => {
+    const conversation = new Conversation(req.body);
+    await conversation.save();
+    res.status(201).json(conversation);
+  })
+);
+
+
+router.get(
+  "/",
+  asyncHandler(async (req, res) => {
+    const { userId } = req.query;
+    if (!userId) {
+      return res.status(400).send("UserId query parameter is required.");
+    }
+
+    const conversations = await Conversation.find({ userId: userId })
+      .select('-_id -__v -createdTimestamp -updatedTimestamp -messages._id -messages.files._id')
+      .lean();
+
+    res.json(conversations);
+  })
+);
+
+router.get('/search', asyncHandler(async (req, res) => {
+  const { query } = req.query;
+  if (!query) {
+    return res.status(400).send("Query parameter is required.");
+  }
+
+  try {
+    const regexQuery = new RegExp(query, 'i'); 
+
+    const conversations = await Conversation.find({
+      $or: [
+        { title: regexQuery },
+        { conversationId: regexQuery },
+        { 'messages.content': regexQuery }
+      ]
+    }, { conversationId: 1 }).lean();
+
+    const conversationIds = conversations.map(conv => conv.conversationId);
+
+    res.json(conversationIds);
+  } catch (error) {
+    res.status(500).send("An error occurred while searching for conversations.");
+  }
+}));
+
+
+router.get(
+  "/:conversationId",
+  asyncHandler(async (req, res) => {
+    const conversation = await Conversation.findOne({
+      conversationId: req.params.conversationId,
+    })
+      .select('-_id -__v -createdTimestamp -updatedTimestamp -messages._id')
+      .lean();
+
+    if (!conversation) {
+      return res.status(404).send("Conversation not found.");
+    }
+
+    
+    res.json(conversation);
+  })
+);
+
+
+router.put(
+  "/:conversationId",
+  validateConversation,
+  asyncHandler(async (req, res) => {
+    const conversation = await Conversation.findOneAndUpdate(
+      { conversationId: req.params.conversationId },
+      req.body,
+      { new: true }
+    );
+    if (!conversation) {
+      return res.status(404).send("Conversation not found.");
+    }
+    res.json(conversation);
+  })
+);
+
+
+router.delete(
+  "/:conversationId",
+  asyncHandler(async (req, res) => {
+    const conversation = await Conversation.findOneAndDelete({
+      conversationId: req.params.conversationId,
+    });
+    if (!conversation) {
+      return res.status(404).send("Conversation not found.");
+    }
+    res.sendStatus(204);
+  })
+);
+
+
+router.use((err, req, res, next) => {
+  logger.error(err);
+  res.status(500).json({ message: err.message });
+});
+
+export default router;
+
+`routes/fileRoutes.mjs`
+import express from 'express';
+import multer from 'multer';
+import { v4 as uuidv4 } from 'uuid';
+import path from 'path';
+import sharp from 'sharp';
+import { promises as fsPromises } from 'fs';
+
+import { logger } from '../logger.mjs';
+
+const router = express.Router();
+const FILE_SIZE_LIMIT = 10000000; 
+const SUPPORTED_FILE_TYPES = /jpeg|jpg|png|gif/;
+const ICON_SIZE = { width: 64, height: 64 };
+
+const createIcon = async (filePath) => {
+  const iconPath = filePath.replace(path.extname(filePath), '_icon.png');
+  try {
+    await sharp(filePath)
+      .resize(ICON_SIZE.width, ICON_SIZE.height)
+      .toFile(iconPath);
+    return iconPath;
+  } catch (error) {
+    logger.error(`Error creating icon: ${error.message}`);
+    throw error;
+  }
+};
+
+const checkUserId = (req, res, next) => {
+  const { userId } = req.params;
+  if (!userId) {
+    logger.error('No userId provided.');
+    return res.status(400).send({ error: 'No userId provided.' });
+  }
+  next();
+};
+
+
+const userDirectory = async (req, res, next) => {
+  const { userId } = req.params;
+  const userDir = path.join('uploads', userId);
+
+  try {
+    await fsPromises.mkdir(userDir, { recursive: true });
+    req.userDir = userDir;
+    next();
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).send({ error: 'Error creating user directory.', details: err.message });
+  }
+};
+
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, req.userDir); 
+  },
+  filename: (req, file, cb) => {
+    const fileExt = path.extname(file.originalname);
+    cb(null, `${uuidv4()}${fileExt}`); 
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: FILE_SIZE_LIMIT }, 
+  fileFilter: (req, file, cb) => {
+    const filetypes = SUPPORTED_FILE_TYPES;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype.toLowerCase());
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+    cb(new Error("Error: File upload only supports the following filetypes - .jpeg, .jpg, .png, .gif"));
+  }
+});
+
+
+router.post('/:userId', checkUserId, userDirectory, upload.single('file'), async (req, res) => {
+  if (!req.file) {
+    logger.error('No file uploaded.');
+    return res.status(422).send({ error: 'No file uploaded.' });
+  }
+
+  try {
+    
+    const iconPath = await createIcon(req.file.path);
+    res.status(201).send({
+      message: 'File and icon uploaded successfully.',
+      file: {
+        path: req.file.path,
+        name: req.file.filename,
+        originalName: req.file.originalname,
+        type: req.file.mimetype,
+        size: req.file.size,
+      },
+      icon: {
+        path: iconPath
+      }
+    });
+  } catch (error) {
+    if (error.message.startsWith('Error creating icon:')) {
+      logger.error(error.message);
+      res.status(500).send({ error: 'Error creating icon.', details: error.message });
+    } else {
+      
+      logger.error(`Error during file processing: ${error.message}`);
+      res.status(500).send({ error: 'Error during file processing.', details: error.message });
+    }
+  }
+});
+
+
+router.get('/:userId/image/:filename', checkUserId, userDirectory, async (req, res) => {
+  const { filename } = req.params;
+  const imagePath = path.normalize(path.join(req.userDir, filename));
+  
+  if (path.relative(req.userDir, imagePath).startsWith('..')) {
+    return res.status(400).send({ error: 'Invalid file path.' });
+  }
+
+  if (await fsPromises.stat(imagePath).catch(() => false)) {
+    res.sendFile(path.resolve(imagePath));
+  } else {
+    res.status(404).send({ error: 'Image does not exist.' });
+  }
+});
+
+
+router.get('/:userId/icon/:filename', checkUserId, userDirectory, async (req, res) => {
+  const { filename } = req.params;
+  const filePath = path.normalize(path.join(req.userDir, filename));
+  const iconPath = filePath.replace(path.extname(filePath), '_icon.png'); 
+
+  
+  if (path.relative(req.userDir, iconPath).startsWith('..')) {
+    return res.status(400).send({ error: 'Invalid file path.' });
+  }
+
+  if (await fsPromises.stat(iconPath).catch(() => false)) {
+    res.sendFile(path.resolve(iconPath));
+  } else {
+    res.status(404).send({ error: 'Image does not exist.' });
+  }
+});
+
+
+const fileExists = async (filePath) => {
+  try {
+    await fsPromises.stat(filePath);
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+
+
+router.delete('/:userId/:filename', checkUserId, userDirectory, async (req, res) => {
+  const { filename } = req.params;
+  const filePath = path.join(req.userDir, filename);
+  const iconPath = filePath.replace(path.extname(filePath), '_icon.png'); 
+
+  try {
+    
+    const [doesFileExist, doesIconExist] = await Promise.all([
+      fileExists(filePath),
+      fileExists(iconPath),
+    ]);
+
+    
+    if (!doesFileExist && !doesIconExist) {
+      logger.error('File does not exist.');
+      return res.status(404).send({ error: 'File does not exist.' });
+    }
+
+    
+    await Promise.all([
+      doesFileExist ? fsPromises.unlink(filePath) : null,
+      doesIconExist ? fsPromises.unlink(iconPath) : null,
+    ]);
+
+    
+    res.status(200).send({ message: 'File and icon deleted successfully.' });
+  } catch (err) {
+    logger.error(`Error deleting file or icon: ${err.message}`);
+    res.status(500).send({ error: 'Error deleting file or icon.', details: err.message });
+  }
+});
+
+
+router.use((error, req, res, next) => {
+  logger.error(error);
+  res.status(500).send({ error: 'An error occurred during file upload.', details: error.message });
+});
+
+export default router;
+`routes/loginRoutes.mjs`
+import express from 'express';
+import passport from 'passport';
+import { v4 as uuidv4 } from 'uuid';
+
+import User from "../models/User.mjs"; 
+
+const router = express.Router();
+
+
+router.post('/', process.env.DISABLE_AUTH !== 'true' ? passport.authenticate('ldapauth', { session: false }) : (req, res, next) => next(), async function (req, res) {
+    try {
+        
+        let user = await User.findOne({ userId: req.body.username });
+
+        
+        if (!user) {
+            user = new User({
+                userId: req.body.username, 
+                name: req.body.username,
+                settings: {
+                    model: 'gpt-4', 
+                    temperature: 0.7,
+                    maxTokens: 1500,
+                    isStreamResponse: true,
+                    contexts: [
+                        {
+                            name: 'default',
+                            contextId: uuidv4(), 
+                            text: 'You are a helpful AI assisstant.',
+                            isDefault: true
+                        }
+                    ]
+                }
+            }); 
+            await user.save();
+        }
+        
+        res.json({ status: 'OK' });
+    } catch (error) {
+        
+        console.error(error); 
+        res.status(500).send('An error occurred while processing the request.');
+    }
+});
+
+export default router;
+`routes/messageRoutes.mjs`
+import express from 'express';
+import messageController,{ messageAPIs }   from '../controllers/messageController.mjs';
+
+const router = express.Router();
+
+router.post('/', messageController);
+
+router.post('/abort', async (req, res) => {
+  const api = req.body.api;
+  const messageAPI = messageAPIs[api];
+  if (!messageAPI) {
+    res.status(400).send({ error: `Unsupported API: ${api}` });
+    return;
+  }
+
+  if (typeof messageAPI.abortRequest !== 'function') {
+    res.status(400).send({ error: `API ${api} does not support aborting requests.` });
+    return;
+  }
+
+  messageAPI.abortRequest();
+  res.send({ message: `Request to API ${api} has been aborted.` });
+});
+
+const messageRoutes = router;
+
+export default messageRoutes;
+`routes/modelRoutes.mjs`
+import express from 'express';
+import { logger } from '../logger.mjs';
+import Model from '../models/Model.mjs';
+
+const router = express.Router();
+
+router.get('/', async (req, res) => {
+  try {
+    const models = await Model.find({ available: true }).sort({ name: 1 }); 
+    res.send(models);
+  } catch (error) {
+    logger.error(error);
+    res.status(400).send({ error: error.message });
+  }
+});
+
+const modelRoutes = router;
+export default modelRoutes;
+`routes/userRoutes.mjs`
+import express from "express";
+import Joi from "joi";
+
+import User from "../models/User.mjs";
+import { logger } from "../logger.mjs";
+
+const router = express.Router();
+
+
+const userSchema = Joi.object({
+  userId: Joi.string().required(),
+  name: Joi.string().required(),
+  settings: Joi.object({
+    model: Joi.string().required(),
+    temperature: Joi.number().default(0.5),
+    maxTokens: Joi.number().default(1000),
+    contexts: Joi.array().items(
+      Joi.object({
+        name: Joi.string().required(),
+        contextId: Joi.string().required(),
+        text: Joi.string().required(),
+        isDefault: Joi.boolean().default(false),
+      }).unknown()
+    ),
+  }).required().unknown(),
+}).unknown();
+
+
+const validate = (schema) => (req, res, next) => {
+  const { error } = schema.validate(req.body);
+  if (error) {
+    logger.error(error);
+    return res.status(400).send(error.details[0].message);
+  }
+  next();
+};
+
+
+router.put("/:userId", validate(userSchema), async (req, res) => {
+  try {
+    const user = await User.findOneAndUpdate(
+      { userId: req.params.userId },
+      req.body,
+      { new: true, overwrite: true, runValidators: true }
+    );
+    if (!user) {
+      return res.status(404).send();
+    }
+    res.send(user);
+  } catch (error) {
+    logger.error(error);
+    res.status(400).send(error);
+  }
+});
+
+
+router.post("/", validate(userSchema), async (req, res) => {
+  try {
+    const user = new User(req.body);
+    await user.save();
+    res.status(201).send(user);
+  } catch (error) {
+    logger.error(error);
+    res.status(400).send(error);
+  }
+});
+
+
+router.get("/:userId", async (req, res) => {
+  try {
+    const user = await User.findOne({ userId: req.params.userId });
+    if (!user) {
+      return res.status(404).send();
+    }
+    res.send(user);
+  } catch (error) {
+    logger.error(error);
+    res.status(500).send(error);
+  }
+});
+
+
+router.get("/", async (req, res) => {
+  try {
+    const users = await User.find({});
+    res.send(users);
+  } catch (error) {
+    logger.error(error);
+    res.status(500).send(error);
+  }
+});
+
+
+router.delete("/:userId", async (req, res) => {
+  try {
+    const user = await User.findOneAndDelete({ userId: req.params.userId });
+    if (!user) {
+      return res.status(404).send();
+    }
+    res.send(user);
+  } catch (error) {
+    logger.error(error);
+    res.status(500).send(error);
+  }
+});
+
+export default router;
+
+`server.mjs`
+import express from 'express';
+import cors from 'cors';
+import passport from 'passport';
+import LdapStrategy from 'passport-ldapauth';
+import initDatabase from './initDatabase.mjs';
+import { logger } from './logger.mjs';
+import messageRoutes from './routes/messageRoutes.mjs';
+import conversationRoutes from './routes/conversationRoutes.mjs';
+import userRoutes from './routes/userRoutes.mjs';
+import loginRoutes from './routes/loginRoutes.mjs';
+import uploadRoutes from './routes/fileRoutes.mjs'; 
+import dotenv from 'dotenv';
+import errorHandler from './middlewares/errorHandler.mjs';
+import ldapOpts from './config/ldapOpts.mjs';
+import modelRoutes from './routes/modelRoutes.mjs';
+
+dotenv.config();
+const app = express();
+
+const PORT = process.env.PORT || 3000; 
+app.use(express.json());
+
+const whitelist = process.env.WHITELIST ? process.env.WHITELIST.split(',') : [];
+const corsOptions = {
+  origin: function (origin, callback) {
+    const isWhitelisted = whitelist.includes(origin);
+    callback(null, whitelist.includes(origin)); 
+  }
+}
+
+app.use(cors(corsOptions));
+if (process.env.DISABLE_AUTH !== 'true') {
+  app.use(passport.initialize());
+}
+
+passport.use(new LdapStrategy(ldapOpts));
+
+app.use((req, res, next) => {
+  next();
+});
+
+app.use('/file', uploadRoutes);
+app.use('/message', messageRoutes);
+app.use('/login', loginRoutes);
+app.use('/users', userRoutes);
+app.use('/conversations', conversationRoutes);
+app.use('/model', modelRoutes);
+app.use('*', (req, res, next) => {
+  const error = new Error('The route you tried does not exist');
+  error.status = 404;
+  next(error);
+});
+
+app.use(errorHandler); 
+
+app.listen(PORT, () => logger.info(`Your server is running on PORT ${PORT}`));
+
+initDatabase();
+
+export default app;

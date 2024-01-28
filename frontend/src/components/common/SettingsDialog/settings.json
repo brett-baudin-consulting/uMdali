@@ -1,0 +1,14 @@
+{
+    "settings": {
+        "general": {
+            "model": "gpt-4",
+            "temperature": 0.5,
+            "maxTokens": 64
+        },
+        "context": [{
+            "name": "my context 1",
+            "value": "my context 1 value",
+            "default": true
+        }]
+    }
+}

@@ -1,0 +1,60 @@
+.conversation-item {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  justify-content: space-between;
+  align-items: center;
+
+
+  .conversation-title {
+    flex: 1;
+    padding: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+
+    .text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    /* Add a new class for the input field that shares properties with .conversation-title */
+  }
+  .conversation-title-input {
+    flex: 1;
+    padding: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+    background-color: var(--color-background-selected);
+    color: var(--color-text-primary);
+    border: none;
+  }
+  
+  .conversation-actions {
+    display: block;
+    padding: 0px;
+    background-color: var(--color-background-selected);
+
+    .action-button {
+      padding: 2px 0px;
+      background-color: var(--color-background-selected);
+      border-color: var(--color-background-selected);
+
+      &:hover {
+        background-color: var(--color-background-hover);
+        color: var(--color-text-accent);
+      }
+
+      &:disabled {
+        background-color: var(--color-background-secondary);
+        color: var(--color-text-secondary);
+        cursor: not-allowed; // Change cursor to indicate the button is not clickable
+        opacity: 0.5; // Optionally add opacity to make the button look "faded out"
+      }
+    }
+  }
+}

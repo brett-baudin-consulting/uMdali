@@ -1,0 +1,55 @@
+# MONGODB
+MONGODB_URI=mongodb://localhost:27017/uMdali
+
+# APP
+PORT=8001
+PROTOCOL=http
+SSL_CERT_PATH=./certs/cert.pem
+SSL_KEY_PATH=./certs/key.pem
+WHITELIST=http://localhost:3000
+SESSION_SECRET=abc123
+DISABLE_AUTH=true
+# FILTERS=CreditCardFilter,PiiFilter,ProfanityFilter
+FILTERS=
+
+# OLLAMA
+OLLAMA_API_URL=http://localhost:11434/api/chat
+OLLAMA_MODEL=ollama/mistral
+
+# OPENAI
+OPENAI_API_URL=https://api.openai.com/v1/chat/completions
+OPENAI_API_KEY=NA
+OPENAI_MODEL=gpt-4
+OPENAI_MAX_TOKENS=1000
+OPENAI_TEMPERATURE=0.7
+
+# Mistral AI
+MISTRALAI_API_URL=https://api.mistral.ai/v1/chat/completions
+MISTRALAI_API_KEY=NA
+MISTRALAI_MODEL=mistral-tiny
+MISTRALAI_MAX_TOKENS=1000
+MISTRALAI_TEMPERATURE=0.7
+
+#Google
+GEMINI_API_URL=https://generativelanguage.googleapis.com/v1/
+GEMINI_API_KEY=NA
+GEMINI_MODEL=models/gemini-pro
+GEMINI_MAX_TOKENS=1000
+GEMINI_TEMPERATURE=0.7
+
+# ANTHROPIC
+ANTHROPIC_API_KEY=NA
+CLAUDE_MODEL=claude-2
+CLAUDE_MAX_TOKENS=10000
+CLAUDE_TEMPERATURE=0.7
+
+# LOGGING
+ERROR_LOG_LOCATION=./error.log
+COMBINED_LOG_LOCATION=./combined.log
+
+# LDAP
+LDAP_URL=ldap://ldap.mydomain.com:389
+BIND_DN=cn=admin,dc=mydomain,dc=com
+BIND_CREDENTIALS=welcome1
+SEARCH_BASE=ou=people,dc=mydomain,dc=com
+SEARCH_FILTER=(uid={{username}})

@@ -1,0 +1,31 @@
+.code-block-container {
+    position: relative;
+    padding-top: 30px;
+  }
+  
+  .code-block-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 5px;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    background: rgba(75, 70, 70, 0.8);
+    box-sizing: border-box;
+  }
+  
+  .copy-code-button {
+    padding: 5px 10px;
+    margin-right: 5px;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    border-radius: 3px;
+    transition: background 0.3s ease;
+  
+    &:hover {
+      background: #ccc;
+    }
+  }

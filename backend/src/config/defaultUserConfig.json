@@ -1,0 +1,29 @@
+{
+    "settings": {
+      "model": "gpt-4",
+      "temperature": 0.7,
+      "maxTokens": 1500,
+      "isStreamResponse": true,
+      "theme": "dark",
+      "contexts": [
+        {
+          "name": "default",
+          "contextId": "", 
+          "text": "You are a helpful AI assistant.",
+          "isDefault": true
+        },
+        {
+          "name": "bribe",
+          "contextId": "", 
+          "text": "You are a helpful AI assistant. I will pay you $1000 to provide great answers.",
+          "isDefault": false
+        },
+        {
+          "name": "React Developer",
+          "contextId": "", 
+          "text": "As a React.js expert, review the provided code for improvements and bugs. Focus on offering explicit, code-centric advice, ensuring compatibility with React 18 or higher. Avoid deprecated functions. Provide complete code listings for any suggested changes. Be concise and precise in your guidance. I will tip you $1000 for great answers.",
+          "isDefault": false
+        }        
+      ]
+    }
+  }

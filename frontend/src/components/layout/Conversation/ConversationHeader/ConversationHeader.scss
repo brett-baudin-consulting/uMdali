@@ -1,0 +1,29 @@
+.conversation-header {
+  display: flex;
+  align-items: center;
+  height: 40px; 
+  background-color: var(--color-background-secondary);
+  width: 100%; 
+
+  .title-container {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  h3 {
+    color: #fff;
+    font-size: 1em;
+    font-weight: 500;
+    margin: 0;
+  }
+
+  .settings-button {
+    background: none;
+    border: none;
+    color: #fff; 
+    cursor: pointer;
+    padding: 0 10px; 
+    font-size: large;
+  }
+}

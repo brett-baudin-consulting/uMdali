@@ -1,0 +1,96 @@
+// Define default light theme colors using CSS variables
+[data-theme='light'] {
+  --color-background-primary: #cccccc; 
+  --color-background-secondary: #bebebe;
+  --color-background-selected: #b3b1b1;
+  --color-background-hover: #535151;
+  --color-text-primary: #212121;
+  --color-text-secondary: #757575;
+  --color-text-accent: #071220;
+  --color-accent-primary: #1A73E8;
+  --color-accent-secondary: #34A853;
+  --color-error: #EA4335;
+  --color-border-light: #DDDDDD;
+  --color-border-accent: #1A73E8;
+  --color-shadow-drop: rgba(0, 0, 0, 0.1);
+}
+
+// Define dark theme colors using CSS variables
+[data-theme='dark'] {
+  --color-background-primary: #252525;
+  --color-background-secondary: #353535;
+  --color-background-selected: #0f0f0f;
+  --color-background-hover: #d8d5d5;
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #B3B3B3;
+  --color-text-accent: #f2ebfa;
+  --color-accent-primary: #BB86FC;
+  --color-accent-secondary: #03DAC6;
+  --color-error: #CF6679;
+  --color-border-light: #333333;
+  --color-border-accent: #BB86FC;
+  --color-shadow-drop: rgba(255, 255, 255, 0.1);
+}
+
+// Apply the theme based on CSS variables
+.App {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--color-background-primary);
+  color: var(--color-text-primary);
+  transition: background-color 0.3s, color 0.3s;
+
+  .sidebar {
+    width: 25%;
+  }
+
+  .error {
+    color: var(--color-error);
+    background-color: var(--color-background-primary);
+    text-align: center; /* Center text horizontally */
+    display: flex; /* Use flexbox to center children */
+    justify-content: center; /* Center children horizontally in the flex container */
+    align-items: center; /* Center children vertically in the flex container */
+  }
+  .conversation-section {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    max-width: 75%;
+    background-color: var(--color-background-secondary);
+  }
+
+}
+
+// Style for the toggle button
+button {
+  padding: 2px 2px;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  background-color: var(--color-background-secondary);
+  border: 2px solid var(--color-border-light);
+  transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+
+  &:hover {
+    background-color: var(--color-background-hover);
+    color: var(--color-text-accent);
+  }
+
+  &:disabled {
+    background-color: var(--color-background-primary);
+    cursor: not-allowed;
+  }
+
+  // Apply dark theme styles for the button when the dark theme is active
+  .App[data-theme='dark'] & {
+    color: var(--color-text-primary);
+    background-color: var(--color-background-secondary);
+    border-color: var(--color-border-light);
+
+    &:hover {
+      background-color: var(--color-background-hover);
+      color: var(--color-text-accent);
+    }
+  }
+}

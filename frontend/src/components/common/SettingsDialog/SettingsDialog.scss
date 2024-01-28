@@ -1,0 +1,108 @@
+.settings-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5); /* Optional: for dimming the background */
+    z-index: 998; /* Ensure this is below the modal z-index */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.settings-modal {
+    width: 600px;
+    max-width: 90%;
+    background: var(--color-border-light);
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 999;
+
+    .settings-modal-content {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .settings-modal-header{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-direction: row;
+        color: var(--color-text-primary);
+
+
+        h4 {
+            margin: 0;
+        }
+
+        button {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            outline: none;
+            color: #555;
+            &:hover {
+                color: #000;
+            }
+        }
+    }
+    .tabs {
+        display: flex;
+        border-bottom: 2px solid #444; 
+        margin-bottom: -1px; 
+
+        button {
+            flex: 1;
+            padding: 10px 20px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent; 
+            font-size: 16px;
+            outline: none;
+            color: #aaa; 
+            transition: color 0.3s, border-color 0.3s; 
+
+            &:hover {
+                color: #fff; 
+                border-color: #646464; 
+            }
+
+            &.active {
+                color: #fff; 
+                border-color: var(--color-border-slected); 
+                background: var(--color-background-selected); 
+                font-weight: bold;
+                border-bottom: 2px solid #f8f7f5; 
+            }
+        }
+    }
+
+    .tab-content {
+        padding: 20px;
+        display: block;
+        &.active {
+            display: block;
+        }
+    }
+
+    .switch {
+        display: flex;
+        align-items: center;
+        margin: 10px 0;
+
+        input[type="checkbox"] {
+            margin-right: 10px;
+        }
+    }
+}

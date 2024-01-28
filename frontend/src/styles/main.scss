@@ -1,0 +1,13 @@
+// Add the Google Font import at the beginning of your SCSS file
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+@import "variables";
+
+.app {
+  display: flex;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}

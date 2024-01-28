@@ -1,0 +1,92 @@
+version: '3.8'
+services:
+  frontend:
+    container_name: umdali-frontend
+    build:
+      context: ./frontend
+      args:
+        - REACT_APP_SERVER_BASE_URL=http://localhost:8001
+    ports:
+      - "8080:80"
+      - "8443:443"
+    depends_on:
+      - backend
+    volumes:
+      - ~/certs:/etc/nginx/certs:ro
+    networks:
+      - umdali-network
+
+  backend:
+    container_name: umdali-backend
+    build: ./backend
+    ports:
+      - "8001:8001"
+    volumes:
+      - ~/certs:/usr/src/app/certs:ro       
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/uMdali
+      - PORT=8001
+      - PROTOCOL=http
+      - WHITELIST=https://localhost:8443,http://localhost:8080
+      - SSL_CERT_PATH=/usr/src/app/certs/cert.pem
+      - SSL_KEY_PATH=/usr/src/app/certs/key.pem
+      # Session
+      - SESSION_SECRET=abc123
+      # Filters to outbound text
+      # - FILTERS=CreditCardFilter,PiiFilter,ProfanityFilter
+      - FILTERS=
+      # OLLAMA
+      - OLLAMA_API_URL=http://localhost:11434/api/chat
+      - OLLAMA_MODEL=ollama/mistral
+      # Open AI
+      - OPENAI_API_URL=https://api.openai.com/v1/chat/completions      
+      - OPENAI_API_KEY=NA
+      - OPENAI_MODEL=gpt-4
+      - OPENAI_MAX_TOKENS=1000
+      - OPENAI_TEMPERATURE=0.7
+      # Mistral AI
+      - MISTRALAI_API_URL=https://api.mistral.ai/v1/chat/completions
+      - MISTRALAI_API_KEY=NA
+      - MISTRALAI_MODEL=mistral-tiny
+      - MISTRALAI_MAX_TOKENS=1000
+      - MISTRALAI_TEMPERATURE=0.7
+      # Google
+      - GEMINI_API_URL=https://generativelanguage.googleapis.com/v1/
+      - GEMINI_API_KEY=NA
+      - GEMINI_MODEL=models/gemini-pro
+      - GEMINI_MAX_TOKENS=1000
+      - GEMINI_TEMPERATURE=0.7
+      #Anthropic
+      - ANTHROPIC_API_KEY=NA
+      - CLAUDE_MODEL=claude-2
+      - CLAUDE_MAX_TOKENS=10000
+      - CLAUDE_TEMPERATURE=0.7
+      #Log locations
+      - ERROR_LOG_LOCATION=./error.log
+      - COMBINED_LOG_LOCATION=./combined.log
+      # Auth configuration
+      - DISABLE_AUTH=true
+      - LDAP_URL=
+      - BIND_DN=
+      - BIND_CREDENTIALS=
+      - SEARCH_BASE=
+      - SEARCH_FILTER=
+    networks:
+      - umdali-network
+
+  mongo:
+    container_name: mongo
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - umdali-network
+
+networks:
+  umdali-network:
+
+
+volumes:
+  mongo-data:

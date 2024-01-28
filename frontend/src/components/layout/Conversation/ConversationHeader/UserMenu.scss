@@ -1,0 +1,31 @@
+.user-menu {
+    position: relative;
+
+    .user-name-button {
+      background: none;
+      border: none;
+      color: #fff; 
+      cursor: pointer;
+      padding: 0 10px; 
+      font-size: large;
+    }
+
+    .user-options {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #333;
+      border: 1px solid #444;
+      z-index: 1000;
+
+      .logoff-button {
+        background: none;
+        border: none;
+        color: #fff; 
+        cursor: pointer;
+        padding: 20px;
+        width: 100%;
+        text-align: left;
+      }
+    }
+  }

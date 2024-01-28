@@ -1,0 +1,110 @@
+[
+  {
+      "name": "claude-2",
+      "available": false,
+      "vendor": "claude",
+      "isSupportsVision": false
+  },
+  {
+      "name": "claude-2.0",
+      "available": false,
+      "vendor": "claude",
+      "isSupportsVision": false
+  },
+  {
+      "name": "claude-instant-1",
+      "available": false,
+      "vendor": "claude",
+      "isSupportsVision": false
+  },
+  {
+      "name": "claude-instant-1.2",
+      "available": false,
+      "vendor": "claude",
+      "isSupportsVision": false
+  },
+  {
+      "name": "gpt-3.5-turbo",
+      "available": true,
+      "vendor": "openai",
+      "isSupportsVision": false
+  },
+  {
+      "name": "gpt-3.5-turbo-16k",
+      "available": true,
+      "vendor": "openai",
+      "isSupportsVision": false
+  },
+  {
+      "name": "gpt-4",
+      "available": true,
+      "vendor": "openai",
+      "isSupportsVision": false
+  },
+  {
+      "name": "gpt-4-turbo-preview",
+      "available": true,
+      "vendor": "openai",
+      "isSupportsVision": false
+  },
+  {
+      "name": "gpt-4-0125-preview",
+      "available": true,
+      "vendor": "openai",
+      "isSupportsVision": false
+  },
+  {
+      "name": "gpt-4-1106-preview",
+      "available": true,
+      "vendor": "openai",
+      "isSupportsVision": false
+  },
+  {
+      "name": "gpt-4-vision-preview",
+      "available": true,
+      "vendor": "openai",
+      "isSupportsVision": true
+  },
+  {
+      "name": "mistral-medium",
+      "available": true,
+      "vendor": "mistral",
+      "isSupportsVision": false
+  },
+  {
+      "name": "mistral-small",
+      "available": true,
+      "vendor": "mistral",
+      "isSupportsVision": false
+  },
+  {
+      "name": "mistral-tiny",
+      "available": true,
+      "vendor": "mistral",
+      "isSupportsVision": false
+  },
+  {
+      "name": "models/gemini-pro",
+      "available": true,
+      "vendor": "google",
+      "isSupportsVision": false
+  },
+  {
+      "name": "models/gemini-pro-vision",
+      "available": true,
+      "vendor": "google",
+      "isSupportsVision": true
+  },
+  {
+      "name": "ollama/dolphin-mixtral",
+      "available": true,
+      "vendor": "ollama",
+      "isSupportsVision": false
+  },
+  {
+      "name": "ollama/mistral",
+      "available": true,
+      "vendor": "ollama",
+      "isSupportsVision": false
+  }
+]

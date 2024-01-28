@@ -1,0 +1,59 @@
+$background-color: #888;
+$text-color: #e0e0e0;
+$input-background-color: #1e1e1e;
+$button-background-color: #333;
+$button-hover-color: #444;
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100%;
+  background: $background-color;
+  color: $text-color;
+
+  .login-title {
+    margin-bottom: 20px; // Adjust as needed
+    text-align: center;
+  }
+  
+  .login-image {
+    margin-bottom: 20px; // Adjust as needed
+    max-width: 100%; // Ensure the image is responsive
+    height: auto;
+  }
+
+  .login-form {
+    display: flex;
+    flex-direction: column;
+
+    input {
+      margin-bottom: 10px;
+      padding: 10px;
+      font-size: 16px;
+      background-color: $input-background-color;
+      border: none;
+      color: $text-color;
+
+      &::placeholder {
+        color: lighten($text-color, 20%);
+      }
+    }
+
+    button {
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: $button-background-color;
+      border: none;
+      color: $text-color;
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: $button-hover-color;
+      }
+    }
+  }
+}

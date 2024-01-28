@@ -1,0 +1,73 @@
+.new-conversation-container {
+    position: relative;
+    display: inline-block;
+    /* Add this to contain the button and the dropdown */
+}
+
+.new-conversation-options {
+    position: absolute;
+    background-color: var(--color-background-primary);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    width: auto;
+    /* Set width to auto or a specific value if needed */
+    min-width: 200px;
+    /* Adjust this value to your preference */
+}
+
+.new-conversation-options li {
+    padding: 5px 10px;
+    cursor: pointer;
+
+    &:hover {
+        background-color: var(--color-background-secondary);
+    }
+}
+
+.sidebar-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2px;
+
+
+    .new-conversation-btn,
+    .search-btn {
+        flex: 1;
+        background-color: var(--color-background-primary);
+        color: var(--color-text-primary);
+        border: none;
+        padding: 5px 5px;
+        border-radius: 5px;
+        cursor: pointer;
+
+        &:not(:last-child) {
+            margin-right: 10px;
+        }
+
+        &:disabled {
+            background-color: var(--color-background-secondary);
+            cursor: not-allowed;
+        }
+    }
+
+    .search-input {
+        background-color: var(--color-background-primary);
+        color: var(--color-text-primary);
+        flex-grow: 1;
+        margin-right: 10px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        outline: none;
+
+        &:focus {
+            border-color: var(--color-background-primary);
+        }
+    }
+}

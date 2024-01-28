@@ -1,0 +1,114 @@
+.message-item {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  .message-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 5px;
+    box-sizing: border-box;
+  }
+
+  .message-type {
+    line-height: 1.5;
+  }
+
+  .message-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: baseline;
+
+    .message-tool-bar {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+      align-items: baseline;
+      height: 100%;
+
+      .action-button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: inherit;
+        font: inherit;
+        outline: inherit;
+
+        &:hover {
+          background-color: var(--color-background-hover);
+          color: var(--color-text-accent);
+        }
+      }
+    }
+  }
+
+  .message-images img {
+    max-width: 100%;
+    height: auto;
+    display: block; // To prevent inline gaps
+    margin-bottom: 10px;
+  }
+
+  .message-content {
+    width: 100%;
+    max-width: 100%;
+    flex: 8;
+    padding: 5px;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  th,
+  td {
+    border: 1px solid black;
+    padding: 8px;
+  }
+
+  .code-block-container {
+    position: relative;
+    padding-top: 30px;
+  }
+
+  .code-block-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 5px;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    background: rgba(75, 70, 70, 0.8);
+    box-sizing: border-box;
+  }
+
+  .copy-code-button {
+    padding: 5px 10px;
+    margin-right: 5px;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    border-radius: 3px;
+    transition: background 0.3s ease;
+
+    &:hover {
+      background: #ccc;
+    }
+  }
+
+  .message-content-edit {
+    background-color: rgb(212, 209, 209);
+    width: 95%;
+    flex: 8;
+    padding: 5px;
+    white-space: pre-line;
+    resize: none;
+    overflow: hidden;
+  }
+
+}

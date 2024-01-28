@@ -1,0 +1,118 @@
+.context-tab {
+  background-color: var(--color-background-primary);
+  color: var(--color-text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  height: 500px;
+
+  .content {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+
+    .left-panel {
+      flex: 0 0 30%;
+
+      .list {
+        list-style-type: none;
+        padding: 0;
+        color: var(--color-text-secondary);
+
+        .list-item {
+          padding: 0.5rem;
+          cursor: pointer;
+
+          &:hover {
+            background-color: var(--color-background-primary);
+          }
+
+          &.active {
+            background-color: var(--color-background-selected);
+            color: var(--color-text-selected);
+            font-weight: bold;
+          }
+        }
+      }
+    }
+
+    .right-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+
+      .input-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+
+        $input-font-family: Arial, sans-serif;
+        $input-font-size: 1rem;
+
+        input {
+          font-family: $input-font-family;
+          font-size: $input-font-size;
+          width: 100%;
+          padding: 0.5rem;
+          box-sizing: border-box;
+          border: none;
+          border-radius: 4px;
+          background-color: var(--color-background-secondary);
+          color: var(--color-text-secondary);
+          outline: none;
+          flex: none;
+        }
+
+        textarea {
+          font-family: $input-font-family;
+          font-size: $input-font-size;
+          flex: 1;
+          width: 100%;
+          padding: 0.5rem;
+          box-sizing: border-box;
+          border: none;
+          border-radius: 4px;
+          background-color: var(--color-background-secondary);
+          color: var(--color-text-secondary);
+          outline: none;
+          resize: none;
+        }
+      }
+    }
+  }
+
+  .footer {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+
+    $input-font-family: Arial, sans-serif;
+    $input-font-size: 1rem;
+
+    button {
+      font-family: $input-font-family;
+      font-size: $input-font-size;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 4px;
+      background-color: var(--color-background-selected);
+      border-color: var(--color-background-selected);
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: var(--color-background-hover);
+        color: var(--color-text-accent);
+      }
+
+      &:disabled {
+        background-color: var(--color-background-primary);
+        cursor: not-allowed;
+      }
+    }
+  }
+}

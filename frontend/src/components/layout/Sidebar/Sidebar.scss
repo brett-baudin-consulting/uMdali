@@ -1,0 +1,60 @@
+
+.sidebar {
+  background-color: var(--color-background-primary);
+  color: var(--color-text-primary);
+  padding: 20px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.conversation-list-container {
+  margin-top: 20px;
+  overflow-y: auto;
+  flex-grow: 1;
+  scrollbar-width: none; // For Firefox
+
+  &::-webkit-scrollbar {
+    display: none; // For WebKit browsers like Chrome and Safari
+  }
+
+  &:hover {
+    scrollbar-width: thin; // For Firefox
+
+    &::-webkit-scrollbar {
+      display: block; // For WebKit browsers
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      border-radius: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background-color: var(--color-background-secondary);    }
+  }
+}
+
+.conversation-list {
+  width: 100%; 
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+
+  .conversation-list-item {
+    width: auto;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    height: auto;
+    padding: 5px;
+
+    &:hover {
+      background-color: var(--color-background-hover);
+    }
+
+    &.selected {
+      background-color: var(--color-background-selected);
+    }
+  }
+}
