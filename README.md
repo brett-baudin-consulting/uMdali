@@ -77,6 +77,9 @@ Our chat application is designed with flexibility in mind, catering to both ente
 
 2. **Getting the Application**
     - Clone the repository to your local system.
+```
+git clone https://github.com/brett-baudin-consulting/uMdali
+```
 
 3. **Running the Application**
     - Navigate to the project directory in your terminal.
@@ -89,8 +92,6 @@ Our chat application is designed with flexibility in mind, catering to both ente
 
 5. **Shutting Down**
     - Use `docker-compose down` to stop and remove the containers.
-
-Certainly! I'll expand on the details in your `README.md` to make it more user-friendly for those who are less technical. Here's a revised version:
 
 ---
 
@@ -106,6 +107,9 @@ Before we begin, you'll need a couple of things:
 ### Step 2: Getting the Application
 
 - Clone the repository to your local system.
+```
+git clone https://github.com/brett-baudin-consulting/uMdali
+```
 
 
 **or**
@@ -275,8 +279,6 @@ VS Code has powerful debugging tools that you can use to troubleshoot your appli
 ---
 
 I hope this guide helps you get started with the application! If you run into any issues or have any questions, don't hesitate to ask for help. Good luck!
-
-Certainly! Below is a sample FAQ section for a chat frontend that interfaces with different Learning Management Systems (LMS). This FAQ is designed to address common questions users might have about the chat integration.
 
 ---
 
