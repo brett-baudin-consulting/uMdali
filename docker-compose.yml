@@ -23,6 +23,7 @@ services:
       - "8001:8001"
     volumes:
       - ~/certs:/usr/src/app/certs:ro       
+      - ~/uploads:/usr/src/app/uploads:rw       
     environment:
       - MONGODB_URI=mongodb://mongo:27017/uMdali
       - PORT=8001
