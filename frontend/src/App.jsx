@@ -49,17 +49,20 @@ function App() {
       const title = moment().format(t("title_date_format"));
       const defaultContext = user?.settings?.contexts?.find((ctx) => ctx.name === contextName) || null;
 
-      const defaultContextMessage = {
-        role: "context",
-        content: defaultContext ? defaultContext.text : "",
-        messageId: uuidv4(),
-      };
+      let defaultContextMessage = null;
+      if (defaultContext) {
+        defaultContextMessage = {
+          role: "context",
+          content: defaultContext.text,
+          messageId: uuidv4(),
+        };
+      }
 
       const newConversation = {
         title,
         conversationId,
         userId: user.userId,
-        messages: [defaultContextMessage],
+        messages: defaultContextMessage ? [defaultContextMessage] : [],
       };
 
       await postConversation(newConversation);
