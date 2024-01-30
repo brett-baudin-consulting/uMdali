@@ -29,6 +29,10 @@ This application is not just a product of code; it is a harmonious blend of AI i
 
 We invite you to delve into the code, explore the features, and join us in celebrating the new horizons that this chat application represents. Your feedback and contributions are not only welcomed but essential in shaping the continued evolution of this project.
 
+# Architecture
+
+[Highlevel Architecture](./docs/Highlevel-Architecture.md)
+
 # Getting Started with uMdali
 
 **This is not an application to run models it is an application to talk to APIs exposed by models running locally or remotely.**
