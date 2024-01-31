@@ -1,9 +1,10 @@
-import { logger } from "../logger.mjs";
 import jsonata from "jsonata";
 import fetch from "node-fetch";
 import { TextDecoder } from "util";
-import MessageAPI from "./MessageAPI.mjs";
 
+import { logger } from "../logger.mjs";
+import MessageAPI from "./MessageAPI.mjs";
+import { encodeFiles } from './FileEncoder.mjs';
 
 const { GEMINI_MODEL, GEMINI_API_KEY, GEMINI_MAX_TOKENS, GEMINI_TEMPERATURE, GEMINI_API_URL } =
   process.env;
@@ -24,7 +25,29 @@ const checkEnvVariables = () => {
 
 const envValues = checkEnvVariables();
 // JSONata expression
-const expression = `
+const transformWithVision = `
+{
+  "contents": $map(*[role != 'context'], function($v, $i, $a) {
+    {
+      "role": $v.role = 'bot' ? 'model' : $v.role,
+      "parts":[ 
+          $map($v.files, function($file) {
+              {
+                "inlineData": {
+                  "mimeType": $file.type,
+                  "data": $file.base64
+                }
+              }
+          }),{
+        "text": $v.content
+      }
+    ]
+    }
+  }),
+  "generation_config": {}
+}
+`;
+const transformWithoutVision = `
 {
   "contents": $map(*[role != 'context'], function($v, $i, $a) {
     {
@@ -37,10 +60,16 @@ const expression = `
   "generation_config": {}
 }
 `;
-async function messageToGeminiFormat(messages) {
-  const transform = jsonata(expression);
-  const gemini = await transform.evaluate(messages);
-  return gemini;
+
+async function messageToGeminiFormat(messages, isSupportsVision) {
+  if (!isSupportsVision) {
+    const transform = jsonata(transformWithoutVision);
+    const openai = await transform.evaluate(messages);
+    return openai;
+  }
+  const transform = jsonata(transformWithVision);
+  const openai = await transform.evaluate(messages);
+  return openai;
 }
 
 class GeminiMessageAPI extends MessageAPI {
@@ -68,8 +97,11 @@ class GeminiMessageAPI extends MessageAPI {
   }
 
   async sendRequest(messages, signal, options = {}) {
-    const { userModel, maxTokens, temperature } = options;
-    const updatedMessages = await messageToGeminiFormat(messages);
+    const { userModel, maxTokens, temperature, isSupportsVision } = options;
+    if (isSupportsVision) {
+      await encodeFiles(messages);
+    }
+    const updatedMessages = await messageToGeminiFormat(messages, isSupportsVision);
 
     const requestOptions = this._prepareOptions({
       contents: updatedMessages.contents,
@@ -92,12 +124,7 @@ class GeminiMessageAPI extends MessageAPI {
       const content = data?.candidates[0]?.content?.parts[0]?.text;
       return content;
     } catch (err) {
-      if (err.name === 'AbortError') {
-        logger.error("Fetch aborted:", err);
-      } else {
-        logger.error("Error sending request:", err);
-      }
-      throw err;
+      this._handleStreamResponseError(err);
     }
   }
 
@@ -113,8 +140,11 @@ class GeminiMessageAPI extends MessageAPI {
   }
 
   async _prepareRequestOptions(messages, options, signal) {
-    const { userModel, maxTokens, temperature } = options;
-    const updatedMessages = await messageToGeminiFormat(messages);
+    const { maxTokens, temperature, isSupportsVision } = options;
+    if (isSupportsVision) {
+      await encodeFiles(messages);
+    }
+    const updatedMessages = await messageToGeminiFormat(messages, isSupportsVision);
 
     return this._prepareOptions({
       contents: updatedMessages.contents,
@@ -129,8 +159,11 @@ class GeminiMessageAPI extends MessageAPI {
     const FULL_URL = `${GEMINI_API_URL}${userModel || this.MODEL}:streamGenerateContent?key=${this.API_KEY}`;
     const response = await fetch(FULL_URL, requestOptions, signal);
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const text = await response.text();
+      logger.error("GeminiAPI response error: ", text);
+      throw new Error(`Gemini API Error: ${text}`);
     }
+
     return response;
   }
 
@@ -142,19 +175,18 @@ class GeminiMessageAPI extends MessageAPI {
       let decodedChunk = textDecoder.decode(chunk, { stream: true });
       decodedChunk = lastChunk + decodedChunk;
       const lines = decodedChunk.split("\n");
-
-      if (lines.length === 0) {
+      if (lines.length === 0 || !decodedChunk.endsWith("\n")) {
         lastChunk = decodedChunk;
       } else {
+        for (const line of lines) {
+          const text = this._extractTextFromLine(line);
+          if (text) {
+            resClient.write(text);
+          }
+        }
         lastChunk = "";
       }
 
-      for (const line of lines) {
-        const text = this._extractTextFromLine(line);
-        if (text) {
-          resClient.write(text);
-        }
-      }
     }
     resClient.end();
   }

@@ -68,7 +68,8 @@ export const sendMessageStreamResponse = async (
     const response = await fetch(`${SERVER_BASE_URL}/message`, options);
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`Error sending message: ${errorText}`);
     }
 
     let data = "";
