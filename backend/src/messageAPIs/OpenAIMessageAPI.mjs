@@ -1,37 +1,11 @@
-import { logger } from "../logger.mjs";
 import fetch from "node-fetch";
 import jsonata from "jsonata";
-import { TextDecoder } from "util";
+import util, { TextDecoder } from "util";
+
 import MessageAPI from "./MessageAPI.mjs";
-import { promises as fs } from 'fs';
-import { resolve } from 'path';
+import { logger } from "../logger.mjs";
+import { encodeFiles } from './FileEncoder.mjs';
 
-async function encodeFileToBase64(relativeFilePath) {
-  try {
-    // Resolve the relative path to an absolute path
-    const absoluteFilePath = resolve(relativeFilePath);
-
-    // Read the file content as a Buffer
-    const fileBuffer = await fs.readFile(absoluteFilePath);
-
-    // Convert the Buffer to a base64 string
-    const base64String = fileBuffer.toString('base64');
-
-    return base64String;
-  } catch (error) {
-    logger.error('Error encoding file to base64:', error);
-    throw error;
-  }
-}
-async function encodeFiles(messages) {
-  for (const message of messages) {
-    if (message.files) {
-      for (const file of message.files) {
-        file.base64 = await encodeFileToBase64(file.path);
-      }
-    }
-  }
-}
 // JSONata expression
 const transformWithVision = `
 $map($, function($message) {
