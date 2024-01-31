@@ -36,8 +36,8 @@ services:
       # Filters to outbound text
       # - FILTERS=CreditCardFilter,PiiFilter,ProfanityFilter
       - FILTERS=
-      # OLLAMA
-      - OLLAMA_API_URL=http://localhost:11434/api/chat
+      # OLLAMA Note can't use localhost here, use the IP address of the host machine
+      - OLLAMA_API_URL=http://<host ip running Ollama>:11434/api/chat
       - OLLAMA_MODEL=ollama/mistral
       # Open AI
       - OPENAI_API_URL=https://api.openai.com/v1/chat/completions      
