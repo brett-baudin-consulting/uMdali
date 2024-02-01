@@ -81,9 +81,9 @@ Our chat application is designed with flexibility in mind, catering to both ente
 
 2. **Getting the Application**
     - Clone the repository to your local system.
-```
-git clone https://github.com/brett-baudin-consulting/uMdali
-```
+    ```
+    git clone https://github.com/brett-baudin-consulting/uMdali
+    ```
 
 3. **Running the Application**
     - Navigate to the project directory in your terminal.
@@ -104,20 +104,16 @@ git clone https://github.com/brett-baudin-consulting/uMdali
 ### Step 1: Prerequisites
 
 Before we begin, you'll need a couple of things:
-
-- **Node.js and npm**: These are programming tools that let you run the application. You can download them from [the official Node.js website](https://nodejs.org/). Just choose the version that matches your operating system and follow the installation instructions.
-- **MongoDB**: This is where all the data for the application is stored. You can sign up for a free MongoDB at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) or install it locally from [the MongoDB website](https://www.mongodb.com/try/download/community).
+    - **Node.js and npm**: These are programming tools that let you run the application. You can download them from [the official Node.js website](https://nodejs.org/). Just choose the version that matches your operating system and follow the installation instructions.
+    - **MongoDB**: This is where all the data for the application is stored. You can sign up for a free MongoDB at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) or install it locally from [the MongoDB website](https://www.mongodb.com/try/download/community).
 
 ### Step 2: Getting the Application
-
-- Clone the repository to your local system.
-```
-git clone https://github.com/brett-baudin-consulting/uMdali
-```
-
+Clone the repository to your local system.
+    ```
+    git clone https://github.com/brett-baudin-consulting/uMdali
+    ```
 
 **or**
-
 
 Instead of cloning the whole repository, we'll download the latest stable version of the application. Here's how to do it:
 
@@ -134,18 +130,18 @@ Now let's set things up:
 
 - **Navigate to the Project Directory**: In your terminal, use the `cd` command to move into the directory where you cloned the repository. It should look something like this:
 
-  ```
-  cd path/to/your-repo-name
-  ```
+    ```
+    cd path/to/your-repo-name
+    ```
 
 - **Install Dependencies**: The application needs several other pieces of code to run properly, which we call 'dependencies'. Run these commands to install them:
 
-  ```
-  cd backend
-  npm install
-  cd ../frontend
-  npm install
-  ```
+    ```
+    cd backend
+    npm install
+    cd ../frontend
+    npm install
+    ```
 
 - **Environment Configuration**: The application needs to know about your MongoDB and other settings. Here's how to set that up:
 
@@ -162,15 +158,14 @@ You're almost there! Let's start the application:
 
 - **Start the Server and Client**: Go back to your terminal and make sure you're in the project directory. Run this command to start the application:
 
-in the backend directory
-```
-npm run server
-```
-
-in the frontend directory
-```
-npm run client
-```
+    - in the backend directory
+    ```
+    npm run server
+    ```
+    - in the frontend directory
+    ```
+    npm run client
+    ```
 
 ### Step 5: Accessing the Application
 
@@ -218,44 +213,44 @@ git clone https://github.com/brett-baudin-consulting/uMdali
 
 2. **Navigate to the Backend**: Change directory to the `backend` folder and install npm packages:
 
-```
-cd backend
-npm install
-```
+    ```
+    cd backend
+    npm install
+    ```
 
 3. **Configure the .env file**: Run the backend with nodemon for automatic reloading:
 
-in the backend directory
-```
-cp sample_env.txt .env
-```
-    - Open the `.env` file in a text editor and change the settings like:
-    - your MongoDB URL
-    - any API keys that you have for models you want to use
-    - and other preferences.
+    in the backend directory
+    ```
+    cp sample_env.txt .env
+    ```
+    Open the `.env` file in a text editor and change the settings like:
+        - your MongoDB URL
+        - any API keys that you have for models you want to use
+        - and other preferences.
 
 4. **Start the Backend**: Run the backend with nodemon for automatic reloading:
 
-```
-   in the backend directory
-   npm run server
-```
+    in the backend directory
+    ```
+    npm run server
+    ```
 
 5. **Open a New Terminal**: For the frontend, open a new terminal tab in VS Code.
 
 6. **Navigate to the Frontend**: Change directory to the `frontend` folder and install npm packages:
 
-```
-cd frontend
-npm install
-```
+    ```
+    cd frontend
+    npm install
+    ```
 
 7. **Start the Frontend**: Run the frontend development server:
 
-in the backend directory
-```
-npm run client
-```
+    in the backend directory
+    ```
+    npm run client
+    ```
 
 ### Accessing the Application
 
@@ -266,9 +261,9 @@ npm run client
 
 VS Code has powerful debugging tools that you can use to troubleshoot your application:
 
-1. **Set Breakpoints**: Click to the left of the line numbers in your code to set breakpoints.
-2. **Start Debugging**: Use the Debug View on the left side of VS Code and start a debugging session by selecting the appropriate configuration.
-3. **Inspect Variables**: During a debugging session, use the debug console to inspect variables and step through your code.
+- **Set Breakpoints**: Click to the left of the line numbers in your code to set breakpoints.
+- **Start Debugging**: Use the Debug View on the left side of VS Code and start a debugging session by selecting the appropriate configuration.
+- **Inspect Variables**: During a debugging session, use the debug console to inspect variables and step through your code.
 
 ### Stopping the Application
 
@@ -291,39 +286,40 @@ I hope this guide helps you get started with the application! If you run into an
 ## General Questions
 
 ### Q: What is this chat frontend?
-A: Our chat frontend is a user-friendly interface that allows users to interact with an LLM that has exposed via a REST API for use by this application.
+A: Our chat frontend is a user-friendly interface that allows users to interact with an LLM that is exposed via a REST API for use by this application.
 
-### Q: Which LLMS are supported?
-A: We currently support integration with
+### Q: Which LLMs are supported?
+A: We currently support integration with:
+- OpenAI chat models, including vision (requires an API key),
+- Mistral chat models (requires an API key),
+- Google Gemini chat models (requires an API key),
+- [Ollama](https://ollama.ai/) frontended models running locally.
 
-    - Open AI chat models including vision (Requires API key)
-    - Mistral chat models (Requires API key)
-    - Google Gemini chat models (Requires API key)
-    - [Ollama](https://ollama.ai/). frontended models running locally.
-
-### Q: I am using an LLM that has a REST API that is not on the list. Will I be able to access it? 
+### Q: I am using an LLM that has a REST API that is not on the list. Will I be able to access it?
 A: 
+- If it is compatible with one of our supported APIs, then you should be able to just change, for example, the OpenAI URL to point to it. You would also need to manually add the model's names to the MongoDB.
+- You can make a feature request to have it added.
+- You can create your own implementation of `MessageAPI` in the server code.
 
-    - If it is compatible with with one of our supported APIs then you should 
-    be able to just change the URL for say Open AI to point to it. You would 
-    also need to manually add the models names to the Mongo DB.
-    - You can make a feature request to have it added.
-    - You can create your own implementation of MessageAPI in the server code. 
+### Q: I have models that are not on the list. How do I add them?
+A: 
+- You can update the file `backend/src/config/modelsConfig.json` and restart/rebuild the backend. It will perform an upsert on the database collection for models. Note: It will not delete any models. If you don't want an existing model to display, mark it as not available. Be sure to refresh your page to see the changes reflected.
+- You can use [Compass](https://www.mongodb.com/products/tools/compass) to edit the Mongo collection **models**. Be sure to refresh your page to see the changes reflected.
 
 ## Usage
 
 ### Q: Are chat conversations saved or logged?
-A: Yes, conversations are saved within Mongo.
+A: Yes, conversations are saved within MongoDB.
 
 ## Troubleshooting
 
 ### Q: The chat frontend isn't displaying properly, what should I do?
-A: First just try refreshing the page. Clearing your browser cache or trying a different browser can also resolve display issues.
+A: First, try refreshing the page. Clearing your browser cache or trying a different browser can also resolve display issues.
 
 ## Support
 
 ### Q: Where can I get help if I have an issue or question?
-A: Opening an issue on our GitHub repository if you encounter a bug or have a feature request.
+A: Open an issue on our GitHub repository if you encounter a bug or have a feature request.
 
 ### Q: Can I suggest a new feature for the chat frontend?
 A: Absolutely! We welcome feedback and suggestions. Please use the 'Feature Request' template on our GitHub repository to submit your idea. Our development team will review it and consider it for future updates.
