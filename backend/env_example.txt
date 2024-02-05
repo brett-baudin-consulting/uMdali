@@ -11,6 +11,17 @@ SESSION_SECRET=abc123
 DISABLE_AUTH=true
 # FILTERS=CreditCardFilter,PiiFilter,ProfanityFilter
 FILTERS=
+#rate limit
+USE_BASIC_LIMITER=false
+BASIC_LIMIT_WINDOW_MS=900000  # 15 minutes in milliseconds
+BASIC_LIMIT_MAX_REQUESTS=1000
+# The Redis limits are only applied to the message API that talks to the chat APIs
+USE_REDIS=false
+REDIS_HOST=localhost
+REDIS_PORT=6379
+# REDIS_PASSWORD=optional
+ADVANCED_LIMIT_POINTS=10
+ADVANCED_LIMIT_DURATION=60  # Duration in seconds
 
 # OLLAMA
 OLLAMA_API_URL=http://localhost:11434/api/chat

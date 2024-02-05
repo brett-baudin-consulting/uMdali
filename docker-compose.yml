@@ -21,6 +21,9 @@ services:
     build: ./backend
     ports:
       - "8001:8001"
+    depends_on:
+      - mongo # comment out if you don't want to use mongo from the container
+      # - redis # comment out if you don't want to use redis from the container
     volumes:
       - ~/certs:/usr/src/app/certs:ro       
       - ~/uploads:/usr/src/app/uploads:rw       
@@ -28,6 +31,7 @@ services:
       - MONGODB_URI=mongodb://mongo:27017/uMdali
       - PORT=8001
       - PROTOCOL=http
+      # CORS whitelist
       - WHITELIST=https://localhost:8443,http://localhost:8080
       - SSL_CERT_PATH=/usr/src/app/certs/cert.pem
       - SSL_KEY_PATH=/usr/src/app/certs/key.pem
@@ -36,12 +40,23 @@ services:
       # Filters to outbound text
       # - FILTERS=CreditCardFilter,PiiFilter,ProfanityFilter
       - FILTERS=
+      #rate limit
+      - USE_BASIC_LIMITER=false
+      - BASIC_LIMIT_WINDOW_MS=900000  # 15 minutes in milliseconds
+      - BASIC_LIMIT_MAX_REQUESTS=1000
+      # The Redis limits are only applied to the message API that talks to the chat APIs
+      - USE_REDIS=false
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # REDIS_PASSWORD=optional
+      - ADVANCED_LIMIT_POINTS=10
+      - ADVANCED_LIMIT_DURATION=60  # Duration in seconds
       # OLLAMA Note can't use localhost here, use the IP address of the host machine
       - OLLAMA_API_URL=http://<host ip running Ollama>:11434/api/chat
       - OLLAMA_MODEL=ollama/mistral
       # Open AI
       - OPENAI_API_URL=https://api.openai.com/v1/chat/completions      
-      - OPENAI_API_KEY=NA
+      - OPENAI_API_KEY=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
       - OPENAI_MODEL=gpt-4
       - OPENAI_MAX_TOKENS=1000
       - OPENAI_TEMPERATURE=0.7
@@ -74,9 +89,9 @@ services:
       - SEARCH_FILTER=
     networks:
       - umdali-network
-
+  # Comment out if you don't want to use mongo from the container
   mongo:
-    container_name: mongo
+    container_name: umdali-mongo
     image: mongo
     ports:
       - "27017:27017"
@@ -84,10 +99,23 @@ services:
       - mongo-data:/data/db
     networks:
       - umdali-network
+  # Comment out if you don't want to use redis from the container
+  # redis:
+  #   container_name: umdali-redis
+  #   image: redis:latest
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis-data:/data
+  #   networks:
+  #     - umdali-network
 
 networks:
   umdali-network:
 
 
 volumes:
+# Comment out if you don't want to use mongo from the container
   mongo-data:
+# Comment out if you don't want to use redis from the container
+  # redis-data:
