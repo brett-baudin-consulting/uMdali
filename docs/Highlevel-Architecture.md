@@ -26,6 +26,34 @@ Our project leverages a modern, efficient, and scalable technology stack designe
 ### Database and ORM:
 - **Mongoose**: An Object Data Modeling (ODM) library for MongoDB and Node.js. It manages relationships between data, provides schema validation, and is used to translate between objects in code and the representation of those objects in MongoDB.
 
+### Rate Limiting
+
+To ensure the reliability and security of our chat application, we have implemented rate limiting on our API endpoints. This prevents abuse and protects against brute-force attacks, ensuring a consistent and dependable service for all users.
+
+#### Express-rate-limit
+
+For basic rate limiting, we utilize `express-rate-limit`, a middleware for Express applications. It allows us to apply rate limits directly to our API routes, specifying how many requests a single IP can make within a designated timeframe. This is particularly effective for preventing excessive requests in a short period, safeguarding our system against overload.
+
+**Key Features:**
+
+- **Simple Setup**: Easily integrated into existing Express applications, providing immediate protection.
+- **Customizable**: Allows for the customization of limit windows, request quotas, and the response returned to the user when the rate limit is exceeded.
+- **In-memory Storing**: By default, it stores IP data in memory, making it suitable for applications with a single process or server.
+
+#### Redis-based Rate Limiting
+
+For a more scalable and distributed solution, we have integrated Redis into our rate limiting strategy. This approach is ideal for applications deployed across multiple servers or in a microservices architecture, as it allows rate limit counters to be shared across instances.
+
+**Key Features:**
+
+- **Scalability**: Leverages Redis, a high-performance in-memory data store, to manage rate limiting counters across multiple nodes.
+- **Persistence**: Offers the option to persist data, ensuring that rate limiting counters are not lost during restarts or failures.
+- **Flexibility**: Can be configured to suit various rate limiting strategies, including fixed window counters, sliding log, or token bucket algorithms.
+
+#### Implementation
+
+Our rate limiting is strategically placed at the entrance of our API layer, ensuring that all incoming requests are evaluated before processing. This setup allows us to effectively manage load and prevent malicious or excessive use of our APIs, contributing to the overall stability and security of our chat application.
+
 ### Authentication and Security:
 - **Passport**: Middleware for Node.js that simplifies the process of handling authentication in Express applications. It can be unobtrusively dropped into any Express-based web application.
 - **Passport-ldapauth**: A Passport strategy for authenticating against an LDAP server. It integrates with your LDAP authentication setup.
