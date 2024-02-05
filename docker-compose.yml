@@ -56,7 +56,7 @@ services:
       - OLLAMA_MODEL=ollama/mistral
       # Open AI
       - OPENAI_API_URL=https://api.openai.com/v1/chat/completions      
-      - OPENAI_API_KEY=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
+      - OPENAI_API_KEY=NA
       - OPENAI_MODEL=gpt-4
       - OPENAI_MAX_TOKENS=1000
       - OPENAI_TEMPERATURE=0.7
