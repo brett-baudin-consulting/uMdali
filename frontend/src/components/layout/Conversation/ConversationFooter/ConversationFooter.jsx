@@ -21,6 +21,26 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
   const [fileList, setFileList] = useState([]);
 
   useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, []); // The empty array means this effect runs once on mount
+
+  const focusOnTextArea = () => {
+    // Check if the ref is currently pointing to an element
+    if (textareaRef.current) {
+      // If so, focus the element
+      textareaRef.current.focus();
+    }
+  };
+
+  useEffect(() => {
+    if (!isStreaming) {
+      focusOnTextArea();
+    }
+  }, [isStreaming]);
+
+  useEffect(() => {
     if (currentConversation?.messages?.length > 0) {
       setLastMessageRole(currentConversation.messages[currentConversation.messages.length - 1].role);
     }
@@ -43,6 +63,7 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
     if (trimmedInput || fileList) {
       try {
         await onSendMessage(trimmedInput, fileList);
+        focusOnTextArea();
         setInput("");
         setFileList([]); // Clear file list after sending a message
       } catch (error) {
@@ -54,12 +75,14 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
   function handleAbort() {
     setIsStreaming(false);
     abortFetch();
+    focusOnTextArea();
   };
 
   function handleRetry() {
     const newMessages = [...currentConversation.messages.slice(0, -1)];
     setCurrentConversation(prevState => ({ ...prevState, messages: newMessages }));
     onResendMessage();
+    focusOnTextArea();
   };
 
   async function handlePaste() {
@@ -101,6 +124,7 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
     if (!currentConversation?.userId) return;
     deleteFile(currentConversation.userId, fileToDelete.name)
     setFileList(fileList.filter(file => file.name !== fileToDelete.name));
+    focusOnTextArea();
   }, [fileList, currentConversation?.userId]);
 
   // Update handleFileChange function
