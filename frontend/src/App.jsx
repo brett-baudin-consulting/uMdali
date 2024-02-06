@@ -64,8 +64,9 @@ function App() {
         userId: user.userId,
         messages: defaultContextMessage ? [defaultContextMessage] : [],
       };
-
-      await postConversation(newConversation);
+      if (newConversation.messages.length > 0) {
+        await postConversation(newConversation);
+      }
       setConversations((prev) => [...prev, newConversation]);
       setCurrentConversation(newConversation);
     }
@@ -129,7 +130,7 @@ function App() {
 
     // Define the async function inside useEffect
     const fetchData = async () => {
-      if (isLoggedIn && currentConversation && !isStreaming) {
+      if (isLoggedIn && currentConversation && !isStreaming && currentConversation.messages.length > 0) {
         try {
           await updateConversation(currentConversation);
           // Check if the component is still mounted before setting state
