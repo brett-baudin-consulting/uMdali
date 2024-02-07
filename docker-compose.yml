@@ -89,6 +89,7 @@ services:
       - SEARCH_FILTER=
     networks:
       - umdali-network
+
   # Comment out if you don't want to use mongo from the container
   mongo:
     container_name: umdali-mongo
@@ -99,7 +100,7 @@ services:
       - mongo-data:/data/db
     networks:
       - umdali-network
-  # Comment out if you don't want to use redis from the container
+  # Uncomment out if you want to use redis from the container
   # redis:
   #   container_name: umdali-redis
   #   image: redis:latest
@@ -110,12 +111,29 @@ services:
   #   networks:
   #     - umdali-network
 
+  #Uncomment to run ollama in a container
+  #there are no models with the inital creation of the ollama container.
+  #once running 'docker-compose exec ollama ollama pull <model name>' will add a model to be used by the container. 
+  #There is no gpu support for the ollama container by default. You should follow 
+  #the ollama documentation to add gpu support to the container.
+  # ollama:
+  #   image: ollama/ollama
+  #   container_name: ollama
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   ports:
+  #     - "11434:11434"
+  #   restart: unless-stopped
+  #   networks:
+  #     - umdali-network
+
 networks:
   umdali-network:
 
-
 volumes:
+#uncomment to run ollama in a container
+  # ollama_data:
 # Comment out if you don't want to use mongo from the container
   mongo-data:
-# Comment out if you don't want to use redis from the container
+# Uncomment out if you want to use redis from the container
   # redis-data:
