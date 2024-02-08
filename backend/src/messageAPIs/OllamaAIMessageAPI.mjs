@@ -57,8 +57,8 @@ class OllamaMessageAPI extends MessageAPI {
 
       if (!response.ok) {
         const text = await response.text();
-        logger.error("Open AI API response error: ", text);
-        throw new Error(`OpenAI API Error: ${text}`);
+        logger.error("Ollama API response error: ", text);
+        throw new Error(`Ollama API Error: ${text}`);
       }
 
       const data = await response.json();
@@ -89,6 +89,13 @@ class OllamaMessageAPI extends MessageAPI {
     try {
       const response = await fetch(OLLAMA_API_URL
         , requestOptions, signal);
+
+      if (!response.ok) {
+        const text = await response.text();
+        logger.error("Ollama API response error: ", text);
+        throw new Error(`Ollama API Error: ${text}`);
+      }
+
       const textDecoder = new TextDecoder();
 
       for await (const chunk of response.body) {
