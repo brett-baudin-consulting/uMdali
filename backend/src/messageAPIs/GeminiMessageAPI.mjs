@@ -23,6 +23,24 @@ const checkEnvVariables = () => {
   return { temperature, maxTokens };
 };
 
+async function handleApiErrorResponse(response) {
+  const text = await response.text();
+  let parsedText;
+  try {
+    parsedText = JSON.parse(text);
+  } catch (error) {
+    // If JSON parsing fails, use the original text
+    parsedText = text;
+  }
+
+  // Log the error
+  logger.error("Gemini API response error: ", parsedText);
+
+  // Throw an error with a message, checking if parsedText is an object and has an error.message
+  const errorMessage = `Gemini API Error: ${parsedText[0]?.error?.message ||parsedText?.error?.message || parsedText}`;
+  throw new Error(errorMessage);
+}
+
 const envValues = checkEnvVariables();
 // JSONata expression
 const transformWithVision = `
@@ -115,9 +133,7 @@ class GeminiMessageAPI extends MessageAPI {
       const FULL_URL = `${GEMINI_API_URL}${userModel}:generateContent?key=${this.API_KEY}`;
       const response = await fetch(FULL_URL, requestOptions, signal);
       if (!response.ok) {
-        const text = await response.text();
-        logger.error("Open AI API response error: ", text);
-        throw new Error(`Gemini API Error: ${text}`);
+        await handleApiErrorResponse(response);
       }
 
       const data = await response.json();
@@ -159,9 +175,7 @@ class GeminiMessageAPI extends MessageAPI {
     const FULL_URL = `${GEMINI_API_URL}${userModel || this.MODEL}:streamGenerateContent?key=${this.API_KEY}`;
     const response = await fetch(FULL_URL, requestOptions, signal);
     if (!response.ok) {
-      const text = await response.text();
-      logger.error("GeminiAPI response error: ", text);
-      throw new Error(`Gemini API Error: ${text}`);
+      await handleApiErrorResponse(response);
     }
 
     return response;

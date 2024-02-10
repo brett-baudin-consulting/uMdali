@@ -93,6 +93,24 @@ const checkEnvVariables = () => {
   return { temperature, maxTokens };
 };
 
+async function handleApiErrorResponse(response) {
+  const text = await response.text();
+  let parsedText;
+  try {
+    parsedText = JSON.parse(text);
+  } catch (error) {
+    // If JSON parsing fails, use the original text
+    parsedText = text;
+  }
+
+  // Log the error
+  logger.error("Mistral API response error: ", parsedText);
+
+  // Throw an error with a message, checking if parsedText is an object and has an error.message
+  const errorMessage = `Mistral API Error: ${parsedText?.error?.message || parsedText?.message || 'Unknown error occurred'}`;
+  throw new Error(errorMessage);
+}
+
 const envValues = checkEnvVariables();
 
 class MistralAIMessageAPI extends MessageAPI {
@@ -137,9 +155,7 @@ class MistralAIMessageAPI extends MessageAPI {
       const response = await fetch(MISTRALAI_API_URL, requestOptions, signal);
 
       if (!response.ok) {
-        const text = await response.text();
-        logger.error("Mistral AI API response error: ", text);
-        throw new Error(`MistralAI API Error: ${text}`);
+        await handleApiErrorResponse(response);
       }
 
       const data = await response.json();
@@ -172,6 +188,11 @@ class MistralAIMessageAPI extends MessageAPI {
 
     try {
       const response = await fetch(MISTRALAI_API_URL, requestOptions, signal);
+
+      if (!response.ok) {
+        await handleApiErrorResponse(response);
+      }
+
       await this.processResponseStream(response, resClient);
     } catch (err) {
       this.handleStreamError(err);

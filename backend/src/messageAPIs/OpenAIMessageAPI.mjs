@@ -69,6 +69,24 @@ const checkEnvVariables = () => {
 
 const envValues = checkEnvVariables();
 
+async function handleApiErrorResponse(response) {
+  const text = await response.text();
+  let parsedText;
+  try {
+    parsedText = JSON.parse(text);
+  } catch (error) {
+    // If JSON parsing fails, use the original text
+    parsedText = text;
+  }
+
+  // Log the error
+  logger.error("Open AI API response error: ", parsedText);
+
+  // Throw an error with a message, checking if parsedText is an object and has an error.message
+  const errorMessage = `OpenAI API Error: ${parsedText?.error?.message || 'Unknown error occurred'}`;
+  throw new Error(errorMessage);
+}
+
 class OpenAIMessageAPI extends MessageAPI {
   constructor(userModel) {
     super();
@@ -94,6 +112,8 @@ class OpenAIMessageAPI extends MessageAPI {
     };
   }
 
+
+
   async sendRequest(messages, signal, options = {}) {
     const { userModel, maxTokens, temperature, isSupportsVision } = options;
     if (isSupportsVision) {
@@ -111,10 +131,8 @@ class OpenAIMessageAPI extends MessageAPI {
       const response = await fetch(OPENAI_API_URL, requestOptions, signal);
 
       if (!response.ok) {
-        const text = await response.text();
-        logger.error("Open AI API response error: ", text);
-        throw new Error(`OpenAI API Error: ${text}`);
-      }
+        await handleApiErrorResponse(response);
+     }
 
       const data = await response.json();
       const content = data?.choices?.[0]?.message?.content;
@@ -143,9 +161,11 @@ class OpenAIMessageAPI extends MessageAPI {
       temperature: temperature || this.TEMPERATURE,
       stream: true,
     }, signal);
-
     try {
       const response = await fetch(OPENAI_API_URL, requestOptions, signal);
+      if (!response.ok) {
+         await handleApiErrorResponse(response);
+      }
       await this.processResponseStream(response, resClient);
     } catch (err) {
       this.handleStreamError(err);

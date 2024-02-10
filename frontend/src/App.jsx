@@ -163,7 +163,6 @@ function App() {
     // Only run this effect if the user is logged in
     if (isLoggedIn) {
       abortControllerRef.current = new AbortController();
-
       const sendMsgAndUpdateConversation = async () => {
         if (!currentConversation || !newBotMessage || !sendNewMessage) {
           return;
@@ -189,6 +188,7 @@ function App() {
         } catch (err) {
           setError(err);
         } finally {
+          setSendNewMessage(false);
           setIsWaitingForResponse(false);
         }
       };
