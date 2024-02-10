@@ -78,10 +78,10 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
     focusOnTextArea();
   };
 
-  function handleRetry() {
+  async function handleRetry() {
     const newMessages = [...currentConversation.messages.slice(0, -1)];
     setCurrentConversation(prevState => ({ ...prevState, messages: newMessages }));
-    onResendMessage();
+    await onResendMessage();
     focusOnTextArea();
   };
 

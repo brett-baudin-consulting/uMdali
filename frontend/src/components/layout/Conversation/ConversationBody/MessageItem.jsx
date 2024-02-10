@@ -14,11 +14,12 @@ import CodeBlock from './CodeBlock';
 function MessageItem({ message, onDelete, onEdit, userId }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
-  const [isModalOpen, setModalOpen] = useState(false);
-  const [isEditing, setEditing] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [editedMessage, setEditedMessage] = useState(message.content);
   const [imageUrls, setImageUrls] = useState([]);
-
+  const [isExpanded, setIsExpanded] = useState(true);
+  const maxLineCount = 4;
   const resetCopyState = useCallback(() => {
     setCopied(false);
   }, []);
@@ -35,22 +36,22 @@ function MessageItem({ message, onDelete, onEdit, userId }) {
     }
   }, [message.files, userId]);
 
-  const handleModalClose = useCallback(() => setModalOpen(false), []);
+  const handleModalClose = useCallback(() => setIsModalOpen(false), []);
 
-  const handleDeleteClick = useCallback(() => setModalOpen(true), []);
+  const handleDeleteClick = useCallback(() => setIsModalOpen(true), []);
 
   const handleDeleteConfirm = useCallback(() => {
-    setModalOpen(false);
+    setIsModalOpen(false);
     onDelete();
   }, [onDelete]);
 
   const handleEditClick = useCallback(() => {
     setEditedMessage(message.content);
-    setEditing(true);
+    setIsEditing(true);
   }, [message.content]);
 
   const handleEditConfirm = useCallback(() => {
-    setEditing(false);
+    setIsEditing(false);
     onEdit(editedMessage);
   }, [onEdit, editedMessage]);
 
@@ -58,6 +59,14 @@ function MessageItem({ message, onDelete, onEdit, userId }) {
     setEditedMessage(event.target.value);
     event.target.style.height = 'auto';
     event.target.style.height = `${event.target.scrollHeight}px`;
+  }, []);
+
+  const handleExpandClick = useCallback(() => {
+    setIsExpanded(true);
+  }, []);
+
+  const handleShrinkClick = useCallback(() => {
+    setIsExpanded(false);
   }, []);
 
   const copyToClipboard = useCallback(async (text) => {
@@ -81,7 +90,7 @@ function MessageItem({ message, onDelete, onEdit, userId }) {
       event.preventDefault();
       handleEditConfirm();
     } else if (event.key === 'Escape') {
-      setEditing(false);
+      setIsEditing(false);
       setEditedMessage(message.content);
     }
   }, [handleEditConfirm, message.content]);
@@ -102,6 +111,11 @@ function MessageItem({ message, onDelete, onEdit, userId }) {
       );
     },
   }), []);
+
+  // const lineCount = useMemo(() => {
+  //   return message.content.split('\n').length;
+  // }, [message.content]);
+  const lineCount = message.content.split('\n').length;
 
   return (
     <>
@@ -143,6 +157,16 @@ function MessageItem({ message, onDelete, onEdit, userId }) {
               >
                 {t('edit')}
               </button>
+              {!isExpanded && lineCount > maxLineCount && (
+                <button className="action-button" onClick={handleExpandClick} title="Expand">
+                  ↓
+                </button>
+              )}
+              {isExpanded && lineCount > maxLineCount && (
+                <button className="action-button" onClick={handleShrinkClick} title="Shrink">
+                  ↑
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -151,7 +175,7 @@ function MessageItem({ message, onDelete, onEdit, userId }) {
             <img key={index} src={url} alt={`Message attachment ${index + 1}`} />
           ))}
         </div>
-        <div className="message-content">
+        <div className={`message-content ${!isExpanded ? 'message-content-shrink' : ''}`}>
           {isEditing ? (
             <TextareaAutosize
               className="message-content-edit"
