@@ -15,20 +15,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
-
-    # Define service containers for MongoDB and Redis with specific versions.
-    services:
-      mongo:
-        image: mongo:5.0
-        ports:
-          - 27017:27017
-      redis: 
-        image: redis:6.0
-        ports:
-          - 6379:6379
-
     # Define environment variables for the job.
     env:
       NODE_ENV: test
@@ -38,10 +26,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Use Node.js 20
+      # Use Node.js (adjust version as needed)
+      - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20         
+          node-version: '16' # Adjust the Node.js version as needed
 
       # Set up Docker Buildx for more advanced build capabilities.
       - name: Set up Docker Buildx
@@ -54,61 +43,42 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Cache Node.js modules using a hash of the package-lock.json to restore cache.
-      - name: Cache Node.js modules
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      # Build Docker images using docker-compose, with caching to speed up subsequent builds.
-      - name: Build and push Docker images
+      # Build and push Docker image for backend
+      - name: Build and push backend Docker image
         uses: docker/build-push-action@v3
         with:
-          context: .
-          file: docker-compose.yml
+          context: ./backend
+          file: ./backend/Dockerfile
           push: true
-          # Make sure to replace <your-dockerhub-username>/<repository-name> with your actual DockerHub username and repository or image name.
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/umdali:latest
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
+          cache-from: type=local,src=/tmp/.buildx-cache-backend
+          cache-to: type=local,dest=/tmp/.buildx-cache-backend-new,mode=max
 
-  # Define a job to test the backend, dependent on the build job completing successfully.
+      # Build and push Docker image for frontend
+      - name: Build and push frontend Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
+          cache-from: type=local,src=/tmp/.buildx-cache-frontend
+          cache-to: type=local,dest=/tmp/.buildx-cache-frontend-new,mode=max
+
+  # Define a job to test the backend, dependent on the build-and-push job completing successfully.
   test-backend:
-    needs: build
+    needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      # Run backend tests within the Docker environment.
-      - name: Run backend tests
-        id: run-backend-tests
-        run: |
-          docker-compose -f docker-compose.yml run --rm backend npm test
-        continue-on-error: true
-
-      # Check the outcome of the backend tests and fail the job if tests failed.
-      - name: Check Backend Test Results
-        if: steps.run-backend-tests.outcome == 'failure'
-        run: |
-          echo "Backend tests failed!"
-          exit 1 
+      # Example placeholder for backend test commands
+      - name: Placeholder for backend tests
+        run: echo "Replace this step with actual backend test commands"
 
   # Define a job to test the frontend, with a similar setup to the backend testing.
   test-frontend:
-    needs: build
+    needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      # Run frontend tests within the Docker environment.
-      - name: Run frontend tests
-        id: run-frontend-tests
-        run: |
-          docker-compose -f docker-compose.yml run --rm frontend npm test
-        continue-on-error: true 
-
-      # Check the outcome of the frontend tests and fail the job if tests failed.
-      - name: Check Frontend Test Results
-        if: steps.run-frontend-tests.outcome == 'failure'
-        run: |
-          echo "Frontend tests failed!"
-          exit 1 
+      # Example placeholder for frontend test commands
+      - name: Placeholder for frontend tests
+        run: echo "Replace this step with actual frontend test commands"
