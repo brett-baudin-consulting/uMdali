@@ -11,6 +11,8 @@ Pronounced "oom-DAH-lee"
 ![GitHub issues](https://img.shields.io/github/issues/brett-baudin-consulting/uMdali)
 
 ![Screenshot of the uMdali chat application interface](ApplicationImage1.png)
+![Screenshot of the uMdali settings for general](ApplicationSettingsGeneral.png)
+![Screenshot of the uMdali setttings for context](ApplicationSettingsContext.png)
 
 # Table of Contents
 1. [Project Overview](#project-overview)
