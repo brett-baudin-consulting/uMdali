@@ -32,7 +32,6 @@ jobs:
     # Define environment variables for the job.
     env:
       NODE_ENV: test
-      # Add other environment variables as needed
 
     steps:
       # Check out the repository code.
@@ -60,15 +59,17 @@ jobs:
             ${{ runner.os }}-node-
 
       # Build Docker images using docker-compose, with caching to speed up subsequent builds.
-      - name: Build Docker images
+      - name: Build and push Docker images
         uses: docker/build-push-action@v3
         with:
           context: .
           file: docker-compose.yml
-          push: true  # Enable to push the built image to a registry
+          push: true
+          # Make sure to replace <your-dockerhub-username>/<repository-name> with your actual DockerHub username and repository or image name.
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/umdali:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
-      
+
   # Define a job to test the backend, dependent on the build job completing successfully.
   test-backend:
     needs: build
@@ -76,10 +77,10 @@ jobs:
     steps:
       # Run backend tests within the Docker environment.
       - name: Run backend tests
-        id: run-backend-tests # Add an ID to reference this step later.
+        id: run-backend-tests
         run: |
           docker-compose -f docker-compose.yml run --rm backend npm test
-        continue-on-error: true 
+        continue-on-error: true
 
       # Check the outcome of the backend tests and fail the job if tests failed.
       - name: Check Backend Test Results
@@ -95,7 +96,7 @@ jobs:
     steps:
       # Run frontend tests within the Docker environment.
       - name: Run frontend tests
-        id: run-frontend-tests # Add an ID to reference this step later.
+        id: run-frontend-tests
         run: |
           docker-compose -f docker-compose.yml run --rm frontend npm test
         continue-on-error: true 
