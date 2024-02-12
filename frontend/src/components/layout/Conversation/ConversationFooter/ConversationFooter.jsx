@@ -40,6 +40,7 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
         setIsExpanded(true);
       }
     }
+    focusOnTextArea();
   };
 
   useEffect(() => {
