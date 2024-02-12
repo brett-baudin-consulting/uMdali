@@ -95,6 +95,7 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
         focusOnTextArea();
         setInput("");
         setFileList([]); // Clear file list after sending a message
+        setIsExpanded(false);
       } catch (error) {
         console.error('Failed to send message:', error);
       }
