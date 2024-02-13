@@ -19,6 +19,45 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
   const fileInputRef = useRef(null);
   const [lastMessageRole, setLastMessageRole] = useState(null);
   const [fileList, setFileList] = useState([]);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [lastHeight, setLastHeight] = useState('auto');
+
+
+  const toggleHeight = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      if (isExpanded) {
+        // If currently expanded, reset to last known height
+        textarea.style.height = lastHeight;
+        setIsExpanded(false);
+      } else {
+        // If not expanded, expand to the full height of the screen
+        setLastHeight(textarea.style.height); // Remember last height before expanding
+        
+        // Set height to the full height of the viewport
+        let fullScreenHeight = `${window.innerHeight}px`;
+        textarea.style.height = fullScreenHeight;
+        setIsExpanded(true);
+      }
+    }
+    focusOnTextArea();
+  };
+
+  useEffect(() => {
+    setError(null);
+    const textarea = textareaRef.current;
+    if (textarea) {
+      if (!isExpanded) {
+        textarea.style.height = 'auto'; 
+        let newHeight = `${Math.min(textarea.scrollHeight, 200)}px`;
+        textarea.style.height = newHeight;
+        setLastHeight(newHeight); 
+      } else {
+        textarea.style.height = `${window.innerHeight}px`;        
+      }
+    }
+  }, [input, isExpanded, setError]); // Re-run whenever input or isExpanded changes
+
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -46,15 +85,6 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
     }
   }, [currentConversation?.messages]);
 
-  useEffect(() => {
-    setError(null);
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = "auto";
-      textarea.style.height = `${textarea.scrollHeight}px`;
-    }
-  }, [input, setError]);
-
 
   const handleSend = useCallback(async () => {
 
@@ -66,6 +96,7 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
         focusOnTextArea();
         setInput("");
         setFileList([]); // Clear file list after sending a message
+        setIsExpanded(false);
       } catch (error) {
         console.error('Failed to send message:', error);
       }
@@ -129,10 +160,20 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
 
   // Update handleFileChange function
   const handleFileChange = async (event) => {
-    const fileName = event.target.files[0];
-    if (fileName) {
-      const fileDetails = await uploadFile(currentConversation.userId, fileName);
+    console.log('File selected:', event.target.files);
+    const file = event.target.files[0];
+    if (!file) {
+      console.log('No file selected');
+      return;
+    }
+    try {
+      const fileDetails = await uploadFile(currentConversation.userId, file);
       setFileList(prevList => [...prevList, fileDetails.file]); // Add new file name to the list
+    } catch (error) {
+      console.error('Error uploading file:', error);
+    } finally {
+      // Reset the file input after handling the file change
+      event.target.value = ''; // This line is crucial
     }
   }
 
@@ -187,7 +228,6 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
           }}
           placeholder={t("type_a_message")}
           rows={1}
-          style={{ maxHeight: "100px" }}
           disabled={isStreaming}
         />
         <button
@@ -204,6 +244,9 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
           disabled={isStreaming}
         >
           {t("paste")}
+        </button>
+        <button onClick={toggleHeight} title={t("toggle_height_title")}>
+          {isExpanded ? t("expand") : t("shrink")}
         </button>
         <input
           type="file"
