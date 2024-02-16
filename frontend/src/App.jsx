@@ -72,7 +72,7 @@ function App() {
     }
     // don't add user to the dependency array, otherwise it will execute this when user changes settings.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [t, setConversations, setCurrentConversation]);
+  }, [t, setConversations, setCurrentConversation, user?.userId]);
 
   useEffect(() => {
     if (user) {
