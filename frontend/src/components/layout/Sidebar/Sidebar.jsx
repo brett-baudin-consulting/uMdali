@@ -49,16 +49,29 @@ const Sidebar = ({
 
   const deleteConversation = useCallback(async (conversationId) => {
     try {
+      setConversations(prev => {
+        // Filter out the deleted conversation
+        const updatedConversations = prev.filter(c => c.conversationId !== conversationId);
+  
+        // If the currentConversation is the one being deleted, update the currentConversation
+        if (currentConversation?.conversationId === conversationId) {
+          const currentIndex = prev.findIndex(c => c.conversationId === conversationId);
+  
+          // Set to next item if available, else previous, else null
+          const nextCurrent = updatedConversations[currentIndex] 
+                               || updatedConversations[currentIndex - 1] 
+                               || null;
+          setCurrentConversation(nextCurrent);
+        }
+  
+        return updatedConversations;
+      });
       await deleteConversationApi(conversationId);
-      setConversations(prev => prev.filter(c => c.conversationId !== conversationId));
-      if (currentConversation?.conversationId === conversationId) {
-        setCurrentConversation(null);
-      }
     } catch (err) {
       console.error(err);
     }
-  }, [currentConversation?.conversationId, setConversations, setCurrentConversation]);
-
+  }, [currentConversation, setConversations, setCurrentConversation]);
+  
   const updateConversation = useCallback(async (updatedConversation) => {
     try {
       await updateConversationApi(updatedConversation);

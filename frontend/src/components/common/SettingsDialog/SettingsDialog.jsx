@@ -7,6 +7,7 @@ import { userShape } from "../../../model/userPropType";
 import Tab from "./Tab";
 import GeneralTab from "./GeneralTab";
 import ContextTab from "./ContextTab";
+import MacroTab from "./MacroTab";
 
 import "./SettingsDialog.scss";
 
@@ -35,12 +36,22 @@ function SettingsDialog({ onClose, models, user, setUser }) {
   const contentMap = {
     general: <GeneralTab user={user} setUser={setUser} models={models} />,
     context: <ContextTab user={user} setUser={setUser} />,
+    macro: <MacroTab user={user} setUser={setUser} />,
   };
 
   // Function to handle close and save user data
   const handleClose = async () => {
     if (user?.userId) {
-      await updateUser(user);
+      const updatedUser = {
+        ...user,
+        settings: {
+          ...user.settings,
+          contexts: user.settings.contexts.filter(context => context.name), // Filter out contexts with null or empty name
+          macros: user.settings.macros.filter(macro => macro.shortcut) // Filter out macros with null or empty name
+        }
+      };
+      await updateUser(updatedUser);
+      setUser(updatedUser);
     }
     onClose();
   };
@@ -63,6 +74,11 @@ function SettingsDialog({ onClose, models, user, setUser }) {
               label={t("context_settings_title")}
               isActive={activeTab === "context"}
               onClick={() => setActiveTab("context")}
+            />
+            <Tab
+              label={t("macro_settings_title")}
+              isActive={activeTab === "macro"}
+              onClick={() => setActiveTab("macro")}
             />
           </div>
           <div className="tab-content">{contentMap[activeTab]}</div>

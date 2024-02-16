@@ -72,7 +72,7 @@ function App() {
     }
     // don't add user to the dependency array, otherwise it will execute this when user changes settings.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [t, user?.userId, user?.settings?.contexts, setConversations, setCurrentConversation]);
+  }, [t, setConversations, setCurrentConversation]);
 
   useEffect(() => {
     if (user) {
@@ -357,6 +357,7 @@ function App() {
               currentConversation={currentConversation}
               setCurrentConversation={setCurrentConversation}
               setConversations={setConversations}
+              user={user}
             />
             {error && (
               <div className="error">

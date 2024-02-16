@@ -3,12 +3,15 @@ import PropTypes from "prop-types";
 
 import MessageItem from "./MessageItem";
 import { conversationShape } from "../../../../model/conversationPropType";
+import { userShape } from "../../../../model/userPropType";
+
 import "./ConversationBody.scss";
 
 const ConversationBody = ({
   currentConversation,
   setCurrentConversation,
   setConversations,
+  user,
 }) => {
 
   const messagesEndRef = useRef(null);
@@ -72,6 +75,7 @@ const ConversationBody = ({
                 onDelete={() => deleteMessage(msg.messageId)}
                 onEdit={(newContent) => editMessage(msg.messageId, newContent)}
                 userId={currentConversation.userId}
+                user={user}
               />
             </li>
           ))}
@@ -85,6 +89,7 @@ ConversationBody.propTypes = {
   currentConversation: conversationShape,
   setConversations: PropTypes.func.isRequired,
   setCurrentConversation: PropTypes.func.isRequired,
+  user: userShape.isRequired,
 };
 
 export default ConversationBody;
