@@ -8,6 +8,7 @@ import { uploadFile, deleteFile } from "../../../../api/fileService";
 import FileItem from './FileItem';
 import { conversationShape } from "../../../../model/conversationPropType";
 import { userShape } from "../../../../model/userPropType";
+import { handleKeyDown as handleKeyDownUtility } from "../../../common/util/useTextareaKeyHandlers";
 
 import "./ConversationFooter.scss";
 
@@ -33,7 +34,7 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
       } else {
         // If not expanded, expand to the full height of the screen
         setLastHeight(textarea.style.height); // Remember last height before expanding
-        
+
         // Set height to the full height of the viewport
         let fullScreenHeight = `${window.innerHeight}px`;
         textarea.style.height = fullScreenHeight;
@@ -48,12 +49,12 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
     const textarea = textareaRef.current;
     if (textarea) {
       if (!isExpanded) {
-        textarea.style.height = 'auto'; 
+        textarea.style.height = 'auto';
         let newHeight = `${Math.min(textarea.scrollHeight, 200)}px`;
         textarea.style.height = newHeight;
-        setLastHeight(newHeight); 
+        setLastHeight(newHeight);
       } else {
-        textarea.style.height = `${window.innerHeight}px`;        
+        textarea.style.height = `${window.innerHeight}px`;
       }
     }
   }, [input, isExpanded, setError]); // Re-run whenever input or isExpanded changes
@@ -160,10 +161,8 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
 
   // Update handleFileChange function
   const handleFileChange = async (event) => {
-    console.log('File selected:', event.target.files);
     const file = event.target.files[0];
     if (!file) {
-      console.log('No file selected');
       return;
     }
     try {
@@ -176,6 +175,14 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
       event.target.value = ''; // This line is crucial
     }
   }
+
+  const handleKeyDown = useCallback((e) => {
+    handleKeyDownUtility(e, setInput, input, textareaRef, user.settings.macros);
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  }, [input, user.settings.macros, handleSend]);
 
   const handlePasteTimeoutRef = useRef(null); // Add a ref to store the timeout ID
   useEffect(() => {
@@ -220,12 +227,7 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
           ref={textareaRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
+          onKeyDown={handleKeyDown}
           placeholder={t("type_a_message")}
           rows={1}
           disabled={isStreaming}

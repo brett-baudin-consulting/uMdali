@@ -1,10 +1,16 @@
 import PropTypes from 'prop-types';
 
+export const macroShape = PropTypes.shape({
+  shortcut: PropTypes.string.isRequired,
+  text: PropTypes.string.isRequired,
+  macroId: PropTypes.string.isRequired,
+});
+
 export const contextShape = PropTypes.shape({
   name: PropTypes.string.isRequired,
   contextId: PropTypes.string.isRequired,
   text: PropTypes.string.isRequired,
-  isDefault: PropTypes.bool.isRequired,
+  isDefault: PropTypes.bool,
 });
 
 export const settingsShape = PropTypes.shape({
@@ -14,6 +20,7 @@ export const settingsShape = PropTypes.shape({
   isStreamResponse: PropTypes.bool.isRequired,
   theme: PropTypes.string.isRequired,
   contexts: PropTypes.arrayOf(contextShape),
+  macros: PropTypes.arrayOf(macroShape),
 });
 
 export const userShape = PropTypes.shape({

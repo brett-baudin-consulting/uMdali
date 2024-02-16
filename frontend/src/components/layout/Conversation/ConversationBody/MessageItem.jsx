@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
@@ -6,12 +6,15 @@ import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 
 import ModalDialog from '../../../common/ModalDialog/ModalDialog';
-import './MessageItem.scss';
 import { messageShape } from '../../../../model/conversationPropType';
 import { fetchImage } from '../../../../api/fileService';
 import CodeBlock from './CodeBlock';
+import { handleKeyDown as handleKeyDownUtility } from "../../../common/util/useTextareaKeyHandlers";
+import { userShape } from "../../../../model/userPropType";
 
-function MessageItem({ message, onDelete, onEdit, userId }) {
+import './MessageItem.scss';
+
+function MessageItem({ message, onDelete, onEdit, userId, user }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,6 +22,7 @@ function MessageItem({ message, onDelete, onEdit, userId }) {
   const [editedMessage, setEditedMessage] = useState(message.content);
   const [imageUrls, setImageUrls] = useState([]);
   const [isExpanded, setIsExpanded] = useState(true);
+  const textareaRef = useRef(null);
   const maxLineCount = 4;
   const resetCopyState = useCallback(() => {
     setCopied(false);
@@ -85,7 +89,8 @@ function MessageItem({ message, onDelete, onEdit, userId }) {
     }
   }, [copied, resetCopyState]);
 
-  const handleOnKeyDown = useCallback((event) => {
+  const handleKeyDown = useCallback((event) => {
+    handleKeyDownUtility(event, setEditedMessage, editedMessage, textareaRef, user.settings.macros);
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       handleEditConfirm();
@@ -93,7 +98,7 @@ function MessageItem({ message, onDelete, onEdit, userId }) {
       setIsEditing(false);
       setEditedMessage(message.content);
     }
-  }, [handleEditConfirm, message.content]);
+  }, [editedMessage, user.settings.macros, handleEditConfirm, message.content]);
 
   const renderers = useMemo(() => ({
     code: ({ node, inline, className, children, ...props }) => {
@@ -112,9 +117,6 @@ function MessageItem({ message, onDelete, onEdit, userId }) {
     },
   }), []);
 
-  // const lineCount = useMemo(() => {
-  //   return message.content.split('\n').length;
-  // }, [message.content]);
   const lineCount = message.content.split('\n').length;
 
   return (
@@ -182,8 +184,9 @@ function MessageItem({ message, onDelete, onEdit, userId }) {
               value={editedMessage}
               onChange={handleEditChange}
               onBlur={handleEditConfirm}
-              onKeyDown={handleOnKeyDown}
+              onKeyDown={handleKeyDown}
               autoFocus
+              ref={textareaRef}
             />
           ) : (
             <ReactMarkdown components={renderers} remarkPlugins={[gfm]}>
@@ -201,6 +204,7 @@ MessageItem.propTypes = {
   onDelete: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,
   userId: PropTypes.string.isRequired,
+  user: userShape.isRequired,
 };
 
 export default MessageItem;

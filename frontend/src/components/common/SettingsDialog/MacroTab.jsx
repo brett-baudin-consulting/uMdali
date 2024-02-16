@@ -4,72 +4,78 @@ import { useTranslation } from "react-i18next";
 import { v4 as uuidv4 } from "uuid";
 
 import { userShape } from "../../../model/userPropType";
-import "./ContextTab.scss";
+import { isShortcutAllowed } from "../util/shortcutValidator";
+import "./MacroTab.scss";
 
-function ContextTab({ user, setUser }) {
+function MacroTab({ user, setUser }) {
   const { t } = useTranslation();
   const [selectedItemIndex, setSelectedItemIndex] = useState(null);
-  const [contexts, setContexts] = useState(user.settings.contexts);
+  const [macros, setMacros] = useState(() => user.settings.macros || []);
 
   useEffect(() => {
-    setContexts(user.settings.contexts);
-  }, [user.settings.contexts]);
+    setMacros(user.settings.macros);
+  }, [user.settings.macros]);
 
   useEffect(() => {
     setUser((prevUser) => ({
       ...prevUser,
-      settings: { ...prevUser.settings, contexts },
+      settings: { ...prevUser.settings, macros },
     }));
-  }, [contexts, setUser]);
+  }, [macros, setUser]);
 
-  const handleContextChange = (index, key, value) => {
-    const updatedContexts = contexts.map((context, idx) => {
+  const handleMacroChange = (index, key, value) => {
+    if (key === "shortcut" && !isShortcutAllowed(value)) {
+      alert(t('shortcutNotAllowed', { value }));
+      return;
+    }
+
+    const updatedMacros = macros.map((macro, idx) => {
       if (idx === index) {
-        return { ...context, [key]: value };
+        return { ...macro, [key]: value };
       }
-      return context;
+      return macro;
     });
-    setContexts(updatedContexts);
+    setMacros(updatedMacros);
   };
 
   const handleAdd = () => {
     const newItem = {
-      name: "",
+      shortcut: "",
       text: "",
-      contextId: `${uuidv4()}`,
+      macroId: `${uuidv4()}`,
     };
-    setContexts([...contexts, newItem]);
-    setSelectedItemIndex(contexts.length);
+    setMacros([...macros, newItem]);
+    setSelectedItemIndex(macros.length);
   };
 
   const handleDelete = () => {
-    const updatedContexts = contexts.filter(
-      (_, idx) => idx !== selectedItemIndex
-    );
-    setContexts(updatedContexts);
+    const updatedMacros = macros.filter((_, idx) => idx !== selectedItemIndex);
+    setMacros(updatedMacros);
+
     // Adjust selectedItemIndex based on deletion context
-    if (updatedContexts.length === 0) {
+    if (updatedMacros.length === 0) {
       // No items left, deselect
       setSelectedItemIndex(null);
-    } else if (selectedItemIndex >= updatedContexts.length) {
+    } else if (selectedItemIndex >= updatedMacros.length) {
       // If the last item or an out-of-range item was selected, adjust the index to the new last item
-      setSelectedItemIndex(updatedContexts.length - 1);
+      setSelectedItemIndex(updatedMacros.length - 1);
     }
+    // If an item before the currently selected one is deleted, selectedItemIndex is automatically adjusted by React's re-render
   };
 
   return (
-    <div className="context-tab">
+    <div className="macro-tab">
       <div className="content">
         <div className="left-panel">
           <ul className="list">
-            {contexts.map((context, index) => (
+            {macros.map((macro, index) => (
               <li
                 className={`list-item ${index === selectedItemIndex ? "active" : ""
                   }`}
-                key={context.contextId}
+                key={macro.macroId}
                 onClick={() => setSelectedItemIndex(index)}
               >
-                {context.name}
+                {macro.shortcut}
               </li>
             ))}
           </ul>
@@ -79,18 +85,18 @@ function ContextTab({ user, setUser }) {
             <div className="input-container">
               <input
                 type="text"
-                value={contexts[selectedItemIndex].name}
+                value={macros[selectedItemIndex].shortcut}
                 onChange={(e) =>
-                  handleContextChange(selectedItemIndex, "name", e.target.value)
+                  handleMacroChange(selectedItemIndex, "shortcut", e.target.value)
                 }
-                placeholder={t('name_placeholder')}
+                placeholder={t('shortcut_placeholder')}
               />
               <textarea
-                value={contexts[selectedItemIndex].text}
+                value={macros[selectedItemIndex].text}
                 onChange={(e) =>
-                  handleContextChange(selectedItemIndex, "text", e.target.value)
+                  handleMacroChange(selectedItemIndex, "text", e.target.value)
                 }
-                placeholder={t('context_placeholder')}
+                placeholder={t('macro_placeholder')}
               />
             </div>
           )}
@@ -108,9 +114,9 @@ function ContextTab({ user, setUser }) {
   );
 }
 
-ContextTab.propTypes = {
+MacroTab.propTypes = {
   user: userShape.isRequired,
   setUser: PropTypes.func.isRequired,
 };
 
-export default ContextTab;
+export default MacroTab;
