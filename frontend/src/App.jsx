@@ -359,11 +359,11 @@ function App() {
               setConversations={setConversations}
               user={user}
             />
-            {error && (
+            {/* {error && ( */}
               <div className="error">
-                {error.message}
+                {error}
               </div>
-            )}
+            {/* )} */}
             <ConversationFooter
               user={user}
               currentConversation={currentConversation}
