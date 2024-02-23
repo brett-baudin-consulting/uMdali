@@ -2,6 +2,7 @@ import { connect } from 'mongoose';
 import { logger } from './logger.mjs';
 import dotenv from 'dotenv';
 import loadModels from './config/loadModels.mjs';
+import loadSpeechToTextModels from './config/loadSpeechToTextModels.mjs';
 
 dotenv.config();
 
@@ -22,6 +23,8 @@ const initDatabase = async () => {
       logger.info('Loading models');
       await loadModels();
       logger.info('Models loaded');
+      await loadSpeechToTextModels();
+      logger.info('Speech to text models loaded');
       break; // Break the loop if connection is successful
     } catch (err) {
       logger.error(err);

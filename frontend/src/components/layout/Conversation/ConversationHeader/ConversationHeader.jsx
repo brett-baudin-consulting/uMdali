@@ -6,7 +6,12 @@ import UserMenu from "./UserMenu";
 
 import "./ConversationHeader.scss";
 
-const ConversationHeader = ({ models, user, setUser, isLoggedIn, setIsLoggedIn }) => {
+const ConversationHeader = ({ models,
+  user,
+  setUser,
+  isLoggedIn,
+  setIsLoggedIn,
+  speechToTextModels }) => {
   const { t } = useTranslation();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -33,6 +38,7 @@ const ConversationHeader = ({ models, user, setUser, isLoggedIn, setIsLoggedIn }
           user={user}
           setUser={setUser}
           models={models}
+          speechToTextModels={speechToTextModels}
         />
       )}
     </div>
@@ -57,6 +63,11 @@ ConversationHeader.propTypes = {
   ).isRequired,
   isLoggedIn: PropTypes.bool.isRequired,
   setIsLoggedIn: PropTypes.func.isRequired,
+  speechToTextModels: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string,
+    })
+  ).isRequired,
 };
 
 export default ConversationHeader;

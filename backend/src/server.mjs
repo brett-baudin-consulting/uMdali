@@ -20,6 +20,7 @@ import conversationRoutes from './routes/conversationRoutes.mjs';
 import loginRoutes from './routes/loginRoutes.mjs';
 import uploadRoutes from './routes/fileRoutes.mjs';
 import modelRoutes from './routes/modelRoutes.mjs';
+import speechToTextModelRoutes from './routes/speechToTextModelRoutes.mjs';
 import { basicLimiter } from './rateLimit/rateLimitConfig.mjs';
 import setupWebSocket from './websocket/WebsocketHandler.mjs';
 
@@ -51,6 +52,7 @@ app.use('/login', loginRoutes);
 app.use('/users', userRoutes); // Applying per-user rate limiter here
 app.use('/conversations', conversationRoutes);
 app.use('/model', modelRoutes);
+app.use('/speechToTextModel', speechToTextModelRoutes);
 
 // Error handling and 404
 app.use('*', (req, res, next) => {
