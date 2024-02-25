@@ -23,7 +23,7 @@ const GeneralTab = ({ user, setUser, models, speechModels }) => {
       ...prevSettings,
       settings: {
         ...prevSettings.settings,
-        speechModel: e.target.value, // Add or update speechModel in settings
+        speechToTextModel: e.target.value, // Add or update speechModel in settings
       },
     }));
   };
@@ -75,7 +75,7 @@ const GeneralTab = ({ user, setUser, models, speechModels }) => {
     </option>
   ));
 
-  const speechOptions = speechModels.map((model) => ( // Create options for speechModels
+  const speechOptions = speechModels.map((model) => ( 
     <option key={model.name} value={model.name}>
       {model.name}
     </option>
@@ -91,7 +91,7 @@ const GeneralTab = ({ user, setUser, models, speechModels }) => {
       </label>
       <label> {/* Add a new label and select for speech to text model */}
         {t('speech_to_text_model_title')}:
-        <select value={user.settings.speechModel} onChange={handleSpeechModelChange}>
+        <select value={user.settings.uMdali} onChange={handleSpeechModelChange}>
           {speechOptions}
         </select>
       </label>

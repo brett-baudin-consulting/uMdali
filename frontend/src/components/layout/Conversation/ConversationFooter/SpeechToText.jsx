@@ -33,11 +33,13 @@ const AudioRecorder = ({ setInput, isStreaming, setError }) => {
                     console.error("WebSocket Error: ", error);
                     reject(error); // Reject the promise on error
                 });
+                ws.addEventListener('open', handleOpen);
+                ws.addEventListener('error', handleError);
             } catch (error) {
                 reject(error); // Reject the promise on exception
             }
         });
-    }, [handleMessage]);
+    }, [handleMessage, handleOpen, handleError]);
 
     const convertBlobToBase64 = useCallback((blob) => new Promise((resolve, reject) => {
         const reader = new FileReader();

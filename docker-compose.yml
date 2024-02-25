@@ -87,6 +87,11 @@ services:
       - BIND_CREDENTIALS=
       - SEARCH_BASE=
       - SEARCH_FILTER=
+      # Audio transcription
+      - OPENAI_TRANSCRIPTION_API_KEY=NA
+      - OPENAI_TRANSCRIPTION_ENDPOINT=https://api.openai.com/v1/audio/transcriptions
+      - OPENAI_TRANSCRIPTION_MODEL=whisper-1
+      - OPENAI_TRANSCRIPTION_TIMEOUT_MS=30000
     networks:
       - umdali-network
 
@@ -116,23 +121,23 @@ services:
   #once running 'docker-compose exec ollama ollama pull <model name>' will add a model to be used by the container. 
   #There is no gpu support for the ollama container by default. You should follow 
   #the ollama documentation to add gpu support to the container.
-  # ollama:
-  #   image: ollama/ollama
-  #   container_name: ollama
-  #   volumes:
-  #     - ollama_data:/root/.ollama
-  #   ports:
-  #     - "11434:11434"
-  #   restart: unless-stopped
-  #   networks:
-  #     - umdali-network
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+    networks:
+      - umdali-network
 
 networks:
   umdali-network:
 
 volumes:
 #uncomment to run ollama in a container
-  # ollama_data:
+  ollama_data:
 # Comment out if you don't want to use mongo from the container
   mongo-data:
 # Uncomment out if you want to use redis from the container

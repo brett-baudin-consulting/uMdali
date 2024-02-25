@@ -24,10 +24,6 @@ function MacroTab({ user, setUser }) {
   }, [macros, setUser]);
 
   const handleMacroChange = (index, key, value) => {
-    if (key === "shortcut" && !isShortcutAllowed(value)) {
-      alert(t('shortcutNotAllowed', { value }));
-      return;
-    }
 
     const updatedMacros = macros.map((macro, idx) => {
       if (idx === index) {
@@ -62,7 +58,16 @@ function MacroTab({ user, setUser }) {
     }
     // If an item before the currently selected one is deleted, selectedItemIndex is automatically adjusted by React's re-render
   };
+  const handleShortcutValidation = (index, value) => {
+    if (!isShortcutAllowed(value)) {
+      alert(t('shortcutNotAllowed', { value }));
 
+      // Set focus back to the input field using a more direct method
+      setTimeout(() => { // Ensure this runs after the alert is dismissed
+        document.querySelector(`input[data-index='${index}'][name='shortcut']`).focus();
+      }, 0);
+    }
+  };
   return (
     <div className="macro-tab">
       <div className="content">
@@ -85,9 +90,14 @@ function MacroTab({ user, setUser }) {
             <div className="input-container">
               <input
                 type="text"
+                data-index={selectedItemIndex} 
+                name="shortcut" 
                 value={macros[selectedItemIndex].shortcut}
                 onChange={(e) =>
                   handleMacroChange(selectedItemIndex, "shortcut", e.target.value)
+                }
+                onBlur={(e) =>
+                  handleShortcutValidation(selectedItemIndex, e.target.value)
                 }
                 placeholder={t('shortcut_placeholder')}
               />
