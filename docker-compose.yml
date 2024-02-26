@@ -6,6 +6,7 @@ services:
       context: ./frontend
       args:
         - REACT_APP_SERVER_BASE_URL=http://localhost:8001
+        - REACT_APP_SERVER_WEBSOCKET_URL=ws://localhost:8001
     ports:
       - "8080:80"
       - "8443:443"

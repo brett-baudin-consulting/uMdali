@@ -1,12 +1,15 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from "react-i18next";
 
+
+import { SERVER_WEBSOCKET_URL } from '../../../../config/config';
 const AudioRecorder = ({ setInput, isStreaming, setError }) => {
+    const { t } = useTranslation();
     const [isRecording, setIsRecording] = useState(false);
     const mediaRecorderRef = useRef(null);
     const webSocketRef = useRef(null);
 
-    const handleOpen = useCallback(() => console.log("WebSocket Connected"), []);
     const handleMessage = useCallback((event) => {
         try {
             const message = JSON.parse(event.data);
@@ -19,12 +22,11 @@ const AudioRecorder = ({ setInput, isStreaming, setError }) => {
             setError("Error: " + error + event.data);
         }
     }, [setInput, setError]);
-    const handleError = useCallback((error) => console.error("WebSocket Error: ", error), []);
 
     const initializeWebSocket = useCallback(() => {
         return new Promise((resolve, reject) => {
             try {
-                const ws = new WebSocket('ws://localhost:8001');
+                const ws = new WebSocket(`${SERVER_WEBSOCKET_URL}`);
                 ws.addEventListener('open', () => {
                     resolve(ws); // Resolve the promise with the WebSocket instance on successful connection
                 });
@@ -33,13 +35,11 @@ const AudioRecorder = ({ setInput, isStreaming, setError }) => {
                     console.error("WebSocket Error: ", error);
                     reject(error); // Reject the promise on error
                 });
-                ws.addEventListener('open', handleOpen);
-                ws.addEventListener('error', handleError);
             } catch (error) {
                 reject(error); // Reject the promise on exception
             }
         });
-    }, [handleMessage, handleOpen, handleError]);
+    }, [handleMessage]);
 
     const convertBlobToBase64 = useCallback((blob) => new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -92,11 +92,18 @@ const AudioRecorder = ({ setInput, isStreaming, setError }) => {
             setIsRecording(false);
         }
     }, []);
-
-    const buttonText = isRecording ? '▪' : '🎤';
+    useEffect(() => {
+        return () => {
+            if (webSocketRef.current) {
+                webSocketRef.current.close();
+            }
+        };
+    }, []);
+    const buttonText = isRecording ? t("stop_recording") : t("start_recording");
+    const titleText = isRecording ? t("stop_recording_title") : t("start_recording_title");
     return (
         <div>
-            <button disabled={isStreaming} onClick={isRecording ? stopRecording : startRecording}>
+            <button title={titleText} disabled={isStreaming} onClick={isRecording ? stopRecording : startRecording}>
                 {buttonText}
             </button>
         </div>
