@@ -15,6 +15,7 @@ import ConversationFooter from "./components/layout/Conversation/ConversationFoo
 import LoginDialog from "./components/common/LoginDialog/LoginDialog";
 import { sendMessage, sendMessageStreamResponse } from "./api/messageService";
 import { fetchModels } from "./api/modelService";
+import { fetchSpeechToTextModels } from "./api/speechToTextModelService";
 import ErrorBoundary from './ErrorBoundary';
 
 import "./App.scss";
@@ -28,6 +29,7 @@ function App() {
   const [newBotMessage, setNewBotMessage] = useState({});
   const [isStreaming, setIsStreaming] = useState(false);
   const [models, setModels] = useState([]);
+  const [speechToTextModels, setSpeechToTextModels] = useState([]);
   const { t } = useTranslation();
   const fetchedConversations = useConversations(user ? user.userId : null);
   const [sendNewMessage, setSendNewMessage] = useState(false);
@@ -72,7 +74,7 @@ function App() {
     }
     // don't add user to the dependency array, otherwise it will execute this when user changes settings.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [t, setConversations, setCurrentConversation, user?.userId]);
+  }, [t, setConversations, setCurrentConversation, user?.userId, user?.settings?.contexts]);
 
   useEffect(() => {
     if (user) {
@@ -114,6 +116,8 @@ function App() {
         setError(null);
         const modelsData = await fetchModels();
         setModels(modelsData);
+        const speechToTextModelsData = await fetchSpeechToTextModels();
+        setSpeechToTextModels(speechToTextModelsData);
       } catch (error) {
         setError(error.message);
       }
@@ -352,6 +356,7 @@ function App() {
               models={models}
               isLoggedIn={isLoggedIn}
               setIsLoggedIn={setIsLoggedIn}
+              speechToTextModels={speechToTextModels}
             />
             <ConversationBody
               currentConversation={currentConversation}
@@ -359,11 +364,11 @@ function App() {
               setConversations={setConversations}
               user={user}
             />
-            {error && (
-              <div className="error">
-                {error.message}
-              </div>
-            )}
+            {/* {error && ( */}
+            <div className="error">
+              {error}
+            </div>
+            {/* )} */}
             <ConversationFooter
               user={user}
               currentConversation={currentConversation}

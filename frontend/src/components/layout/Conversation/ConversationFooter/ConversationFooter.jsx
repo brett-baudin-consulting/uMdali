@@ -9,6 +9,7 @@ import FileItem from './FileItem';
 import { conversationShape } from "../../../../model/conversationPropType";
 import { userShape } from "../../../../model/userPropType";
 import { handleKeyDown as handleKeyDownUtility } from "../../../common/util/useTextareaKeyHandlers";
+import SpeechToText from "./SpeechToText";
 
 import "./ConversationFooter.scss";
 
@@ -43,7 +44,6 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
     }
     focusOnTextArea();
   };
-
   useEffect(() => {
     setError(null);
     const textarea = textareaRef.current;
@@ -250,6 +250,11 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
         <button onClick={toggleHeight} title={t("toggle_height_title")}>
           {isExpanded ? t("expand") : t("shrink")}
         </button>
+        <SpeechToText 
+        isStreaming={isStreaming} 
+        setInput={setInput}
+        setError={setError}
+        />  
         <input
           type="file"
           onChange={handleFileChange}
@@ -272,5 +277,6 @@ ConversationFooter.propTypes = {
   setIsStreaming: PropTypes.func.isRequired,
   abortFetch: PropTypes.func.isRequired,
   isWaitingForResponse: PropTypes.bool.isRequired,
+  setError: PropTypes.func.isRequired
 };
 export default ConversationFooter;

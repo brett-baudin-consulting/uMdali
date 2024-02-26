@@ -1,4 +1,4 @@
-import { Schema, model} from "mongoose";
+import { Schema, model } from "mongoose";
 
 const MarcroSchema = new Schema({
   shortcut: { type: String, required: true },
@@ -15,6 +15,7 @@ const ContextSchema = new Schema({
 
 const SettingsSchema = new Schema({
   model: { type: String, required: true },
+  speechToTextModel: { type: String, required: true },
   temperature: { type: Number, default: 0.5 },
   maxTokens: { type: Number, default: 1000 },
   isStreamResponse: { type: Boolean, default: true },

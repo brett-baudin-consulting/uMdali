@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import http from 'http';
 import https from 'https';
+import { WebSocketServer } from 'ws';
 
 // Custom modules and routes
 import initDatabase from './initDatabase.mjs';
@@ -19,7 +20,9 @@ import conversationRoutes from './routes/conversationRoutes.mjs';
 import loginRoutes from './routes/loginRoutes.mjs';
 import uploadRoutes from './routes/fileRoutes.mjs';
 import modelRoutes from './routes/modelRoutes.mjs';
+import speechToTextModelRoutes from './routes/speechToTextModelRoutes.mjs';
 import { basicLimiter } from './rateLimit/rateLimitConfig.mjs';
+import setupWebSocket from './websocket/WebsocketHandler.mjs';
 
 dotenv.config();
 const app = express();
@@ -49,6 +52,7 @@ app.use('/login', loginRoutes);
 app.use('/users', userRoutes); // Applying per-user rate limiter here
 app.use('/conversations', conversationRoutes);
 app.use('/model', modelRoutes);
+app.use('/speechToTextModel', speechToTextModelRoutes);
 
 // Error handling and 404
 app.use('*', (req, res, next) => {
@@ -58,8 +62,10 @@ app.use('*', (req, res, next) => {
 });
 app.use(errorHandler);
 
-// Server setup based on protocol
-if (PROTOCOL === 'https') {
+const server = PROTOCOL === 'https' ? createHttpsServer(app) : http.createServer(app);
+
+// Function to create HTTPS server
+function createHttpsServer(app) {
   if (!process.env.SSL_CERT_PATH || !process.env.SSL_KEY_PATH) {
     logger.error('SSL_CERT_PATH and SSL_KEY_PATH must be set for HTTPS.');
     process.exit(1);
@@ -68,14 +74,17 @@ if (PROTOCOL === 'https') {
     cert: fs.readFileSync(process.env.SSL_CERT_PATH),
     key: fs.readFileSync(process.env.SSL_KEY_PATH),
   };
-  https.createServer(sslOptions, app).listen(PORT, '0.0.0.0', () => {
-    logger.info(`HTTPS server running on port ${PORT}`);
-  });
-} else {
-  http.createServer(app).listen(PORT, '0.0.0.0', () => {
-    logger.info(`HTTP server running on port ${PORT}`);
-  });
+  return https.createServer(sslOptions, app);
 }
+
+// Listen on the server
+server.listen(PORT, '0.0.0.0', () => {
+  logger.info(`${PROTOCOL.toUpperCase()} server running on port ${PORT}`);
+});
+
+// Initialize WebSocket server on the same server instance
+const wss = new WebSocketServer({ server });
+setupWebSocket(wss);
 
 initDatabase();
 

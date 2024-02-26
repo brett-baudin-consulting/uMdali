@@ -4,6 +4,7 @@
       "temperature": 0.7,
       "maxTokens": 1500,
       "isStreamResponse": true,
+      "speechToTextModel": "whisper-1",
       "theme": "dark",
       "contexts": [
         {

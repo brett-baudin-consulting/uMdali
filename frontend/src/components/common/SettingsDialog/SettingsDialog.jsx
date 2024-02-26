@@ -11,7 +11,7 @@ import MacroTab from "./MacroTab";
 
 import "./SettingsDialog.scss";
 
-function SettingsDialog({ onClose, models, user, setUser }) {
+function SettingsDialog({ onClose, models, user, setUser, speechToTextModels }) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("general");
   const modalContentRef = useRef(null);
@@ -34,7 +34,7 @@ function SettingsDialog({ onClose, models, user, setUser }) {
   useEffect(() => {
   }, [user]);
   const contentMap = {
-    general: <GeneralTab user={user} setUser={setUser} models={models} />,
+    general: <GeneralTab user={user} setUser={setUser} models={models} speechModels={speechToTextModels} />,
     context: <ContextTab user={user} setUser={setUser} />,
     macro: <MacroTab user={user} setUser={setUser} />,
   };
@@ -93,6 +93,11 @@ SettingsDialog.propTypes = {
   user: userShape.isRequired,
   setUser: PropTypes.func.isRequired,
   models: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string,
+    })
+  ).isRequired,
+  speechToTextModels: PropTypes.arrayOf(
     PropTypes.shape({
       name: PropTypes.string,
     })

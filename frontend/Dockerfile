@@ -7,6 +7,13 @@ ARG REACT_APP_SERVER_BASE_URL
 # Set the environment variable for the server base URL
 ENV REACT_APP_SERVER_BASE_URL=${REACT_APP_SERVER_BASE_URL}
 
+# Backend server base URL
+ARG REACT_APP_SERVER_WEBSOCKET_URL
+
+# Set the environment variable for the server base URL
+ENV REACT_APP_SERVER_WEBSOCKET_URL=${REACT_APP_SERVER_WEBSOCKET_URL}
+
+
 # Set the working directory in the container
 WORKDIR /app
 
