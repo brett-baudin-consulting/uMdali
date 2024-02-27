@@ -48,6 +48,7 @@
     "password": "Password",
     "paste_title": "Paste Code",
     "paste": "📋",
+    "retry_title": "Retry",
     "retry": "↻",
     "search_placeholder": "Search string (supports regex)",
     "search_title": "Search",

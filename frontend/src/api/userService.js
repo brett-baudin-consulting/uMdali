@@ -35,7 +35,6 @@ export const createUser = async (user) => {
 
 export const updateUser = async (user) => {
   try {
-    console.log("user", user);
     const response = await fetch(`${SERVER_BASE_URL}/users/${user.userId}`, {
       method: "PUT",
       headers: COMMON_HEADERS,
