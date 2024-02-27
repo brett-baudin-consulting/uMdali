@@ -23,7 +23,7 @@ const GeneralTab = ({ user, setUser, models, speechModels }) => {
       ...prevSettings,
       settings: {
         ...prevSettings.settings,
-        speechToTextModel: e.target.value, // Add or update speechModel in settings
+        speechToTextModel: e.target.value,
       },
     }));
   };
@@ -91,7 +91,7 @@ const GeneralTab = ({ user, setUser, models, speechModels }) => {
       </label>
       <label> {/* Add a new label and select for speech to text model */}
         {t('speech_to_text_model_title')}:
-        <select value={user.settings.uMdali} onChange={handleSpeechModelChange}>
+        <select value={user.settings.speechToTextModel} onChange={handleSpeechModelChange}>
           {speechOptions}
         </select>
       </label>
