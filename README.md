@@ -12,16 +12,18 @@ Pronounced "oom-DAH-lee"
 
 ![Screenshot of the uMdali chat application interface](ApplicationImage1.png)
 ![Screenshot of the uMdali settings for general](ApplicationSettingsGeneral.png)
-![Screenshot of the uMdali setttings for context](ApplicationSettingsContext.png)
+![Screenshot of the uMdali settings for context](ApplicationSettingsContext.png)
+![Screenshot of the uMdali settings for macros](ApplicationSettingsMacro.png)
 
 # Table of Contents
 1. [Project Overview](#project-overview)
-2. [Getting Started](#getting-started-with-umdali)
+2. [Features](#features)
+3. [Getting Started](#getting-started-with-umdali)
     * [For Enterprises: Deploying in Internal Containers](#for-enterprises-deploying-in-internal-containers)
     * [For Local Use: Running with Docker](#for-local-use-running-with-docker)
     * [For Local Use: Running with npm](#for-local-use-running-with-npm)
     * [For Local Development: Running with VS Code](#for-local-development-running-with-vs-code)
-3. [Frequently Asked Questions (FAQ)](#frequently-asked-questions-faq)
+4. [Frequently Asked Questions (FAQ)](#frequently-asked-questions-faq)
 
 # Project Overview
 
@@ -40,6 +42,52 @@ We believe uMdali represents a glimpse into the future of software creation,  a 
 ## Architecture
 
 For a comprehensive understanding of uMdali's technology stack, design choices, and application structure, please consult the [High-Level Architecture](./docs/Highlevel-Architecture.md) document. This guide includes diagrams, explanations, and details about our frontend, backend, database, utilities, and development tools.
+
+# Features
+
+uMdali offers a broad range of features designed to enhance the user experience and provide a high level of adaptability for enterprise environments. Below is an overview of the key features available in uMdali:
+
+- **Speech to Text for Voice Input**
+  - Incorporates speech-to-text functionality, allowing for voice input into chats.
+
+- **Multi-Lingual Support**
+  - Supports multiple languages, enabling seamless interaction for users from various linguistic backgrounds.
+
+- **Dynamic Text Resizing in Messages**
+  - Dynamically resizes overly long text in messages to maintain readability and a clean interface.
+
+- **Markdown Support for User Input**
+  - Supports Markdown for user input, enabling message formatting with styles, links, lists, and more.
+
+- **Conversation History Search**
+  - Allows users to search through their conversation history for specific discussions, messages, or information.
+
+- **Keyboard Macros for Text Injection**
+  - Enables the use of keyboard macros for quick and efficient text injection into conversations.
+
+- **Outbound Filtering for Message Content**
+  - Supports outbound filtering to remove Personally Identifiable Information (PII), profanity, and other unwanted content.
+
+- **Multi-User Support**
+  - Accommodates multiple authenticated users.
+
+- **Multiple Model Support**
+  - Integrates with various language models (LLMs) that are REST API accessible, offering flexibility and choice.
+
+- **Container-Based Architecture**
+  - Leverages a container-based architecture for scalability, ease of deployment, and cross-platform compatibility.
+
+- **Rate Limiting with Redis**
+  - Implements rate limiting using Redis to manage the flow of requests and maintain performance.
+
+- **Model-Created Conversation Titles**
+  - Uses models to generate contextually relevant titles for conversations.
+
+- **Enterprise-Grade with Individual Accessibility**
+  - Designed for enterprise use but easily run by individuals on any platform, offering flexibility and accessibility.
+
+- **Unlimited Context/System Prompts**
+  - Supports an unlimited number of user context/system prompts for comprehensive interactions with language models.
 
 # Getting Started with uMdali
 
