@@ -4,6 +4,7 @@ import ClaudeMessageAPI from "../messageAPIs/ClaudeMessageAPI.mjs";
 import GeminiMessageAPI from "../messageAPIs/GeminiMessageAPI.mjs";
 import OllamaMessageAPI from "../messageAPIs/OllamaAIMessageAPI.mjs";
 import MistralMessageAPI from "../messageAPIs/MistralAIMessageAPI.mjs";
+import GroqMessageAPI from "../messageAPIs/GroqMessageAPI.mjs";
 
 export const messageAPIs = {
   claude: new ClaudeMessageAPI(),
@@ -11,6 +12,7 @@ export const messageAPIs = {
   gemini: new GeminiMessageAPI(),
   ollama: new OllamaMessageAPI(),
   mistral: new MistralMessageAPI(),
+  groq: new GroqMessageAPI(),
 };
 
 // Dynamic import of filters
@@ -76,7 +78,7 @@ async function filterMessages(messages, res) {
 }
 
 function getAPI(req) {
-  let models = ["gemini", "ollama", "gpt", "mistral", "claude"];
+  let models = ["gemini", "ollama", "gpt", "mistral", "claude", "groq"];
   let model = models.find(m => req.body.userDetails.settings.model.includes(m));
   return messageAPIs[model];
 }
