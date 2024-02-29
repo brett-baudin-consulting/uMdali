@@ -66,7 +66,7 @@
         "isSupportsVision": true
     },
     {
-        "name": "mistral-large",
+        "name": "mistral-large-2402",
         "available": true,
         "vendor": "mistral",
         "isSupportsVision": false
@@ -111,6 +111,18 @@
         "name": "ollama/mistral",
         "available": true,
         "vendor": "ollama",
+        "isSupportsVision": false
+    },
+    {
+        "name": "groq/llama2-70b-4096",
+        "available": true,
+        "vendor": "groq",
+        "isSupportsVision": false
+    },
+    {
+        "name": "groq/mixtral-8x7b-32768",
+        "available": true,
+        "vendor": "groq",
         "isSupportsVision": false
     }
 ]

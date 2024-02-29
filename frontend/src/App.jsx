@@ -190,7 +190,7 @@ function App() {
           }));
           setSendNewMessage(false);
         } catch (err) {
-          setError(err);
+          setError(err.message);
         } finally {
           setSendNewMessage(false);
           setIsWaitingForResponse(false);
@@ -240,7 +240,7 @@ function App() {
               );
 
             } catch (err) {
-              setError(err);
+              setError(err.message);
             }
           }
         };
