@@ -79,7 +79,7 @@ services:
       - CLAUDE_MAX_TOKENS=10000
       - CLAUDE_TEMPERATURE=0.7
       # Groq
-      - GROQ_API_URL=https://api.groq.com/openai/v1
+      - GROQ_API_URL=https://api.groq.com/openai/v1/chat/completions
       - GROQ_API_KEY=NA
       - GROQ_MODEL=mixtral-8x7b-32768
       - GROQ_MAX_TOKENS=2000
