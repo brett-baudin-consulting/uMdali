@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef} from "react";
 import { v4 as uuidv4 } from "uuid";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
@@ -35,7 +35,6 @@ function App() {
   const [sendNewMessage, setSendNewMessage] = useState(false);
   const abortControllerRef = useRef(null);
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
-  const hasInitialized = useRef(false);
   const [theme, setTheme] = useState('dark');
   const [error, setError] = useState(null);
 
@@ -45,7 +44,8 @@ function App() {
   };
 
   const isMountedRef = useRef(true);
-  const createNewConversation = useCallback(async (contextName) => {
+  const createNewConversationRef = useRef(null);
+  createNewConversationRef.current = async (contextName) => {
     if (user) {
       const conversationId = uuidv4();
       const title = moment().format(t("title_date_format"));
@@ -72,10 +72,7 @@ function App() {
       setConversations((prev) => [...prev, newConversation]);
       setCurrentConversation(newConversation);
     }
-    // don't add user to the dependency array, otherwise it will execute this when user changes settings.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [t, setConversations, setCurrentConversation, user?.userId, user?.settings?.contexts]);
-
+  };
   useEffect(() => {
     if (user) {
       setTheme(user.settings.theme);
@@ -90,25 +87,12 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      // User has logged out, reset the initialization flag
-      hasInitialized.current = false;
-    } else if (isLoggedIn && !hasInitialized.current) {
-      // User is logged in and conversations haven't been initialized
-      (async () => {
-        await createNewConversation();
-        hasInitialized.current = true;
-      })();
-    }
-  }, [isLoggedIn, createNewConversation]);
-
-  useEffect(() => {
     if (isLoggedIn) {
       setConversations(fetchedConversations);
       if (fetchedConversations.length > 0)
         setCurrentConversation(fetchedConversations[fetchedConversations.length - 1]);
     }
-  }, [createNewConversation, fetchedConversations, isLoggedIn]);
+  }, [fetchedConversations, isLoggedIn]);
 
   useEffect(() => {
     const loadModels = async () => {
@@ -346,7 +330,7 @@ function App() {
             currentConversation={currentConversation}
             setCurrentConversation={setCurrentConversation}
             setConversations={setConversations}
-            createNewConversation={createNewConversation}
+            createNewConversation={createNewConversationRef.current}
             user={user}
           />
           <div className="conversation-section">

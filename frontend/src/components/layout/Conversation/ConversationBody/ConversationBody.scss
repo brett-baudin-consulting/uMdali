@@ -37,21 +37,21 @@
       background: #888;
       border-radius: 4px;
     }
-  }
 
-  ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-    align-items: center;
-    width: 100%;
-  }
+    >ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+      align-items: center;
+      width: 100%;
+    }
 
-  li {
-    padding: 10px;
-    margin-bottom: 8px;
-    border-radius: 5px;
-    max-width: 100%;
+    >ul>li {
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 5px;
+      max-width: 100%;
+    }
   }
 
   .user,
