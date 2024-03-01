@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef} from "react";
 import { v4 as uuidv4 } from "uuid";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
@@ -35,7 +35,6 @@ function App() {
   const [sendNewMessage, setSendNewMessage] = useState(false);
   const abortControllerRef = useRef(null);
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
-  const hasInitialized = useRef(false);
   const [theme, setTheme] = useState('dark');
   const [error, setError] = useState(null);
 
@@ -86,21 +85,6 @@ function App() {
       isMountedRef.current = false;
     };
   }, []);
-
-  // useEffect(() => {
-  //   if (!isLoggedIn) {
-  //     // User has logged out, reset the initialization flag
-  //     hasInitialized.current = false;
-  //   } else if (isLoggedIn && !hasInitialized.current) {
-  //     // User is logged in and conversations haven't been initialized
-  //     (async () => {
-  //       if (createNewConversationRef.current) {
-  //         createNewConversationRef.current("exampleContextName");
-  //       }
-  //       hasInitialized.current = true;
-  //     })();
-  //   }
-  // }, [isLoggedIn]);
 
   useEffect(() => {
     if (isLoggedIn) {

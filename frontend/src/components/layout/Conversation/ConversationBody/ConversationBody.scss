@@ -38,17 +38,15 @@
       border-radius: 4px;
     }
 
-    > ul { // Changed to apply only to immediate children
+    >ul {
       list-style-type: none;
       padding: 0;
       margin: 0;
-      display: flex; // Assuming you want to keep align-items centered, flex display is needed
-      flex-direction: column; // To stack items vertically
       align-items: center;
       width: 100%;
     }
 
-    > ul > li { // Changed to apply only to immediate children of `ul` within `.scrollable-container`
+    >ul>li {
       padding: 10px;
       margin-bottom: 8px;
       border-radius: 5px;
