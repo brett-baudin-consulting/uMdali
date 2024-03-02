@@ -27,6 +27,13 @@ ADVANCED_LIMIT_DURATION=60  # Duration in seconds
 OLLAMA_API_URL=http://localhost:11434/api/chat
 OLLAMA_MODEL=ollama/mistral
 
+# OLLAMA OPENAI API
+OLLAMA_OPENAI_API_URL=http://localhost:11434/v1/chat/completions
+OLLAMA_OPENAI_API_KEY=NA
+OLLAMA_OPENAI_MODEL=ollama_openai/mistral
+OLLAMA_OPENAI_MAX_TOKENS=2000
+OLLAMA_OPENAI_TEMPERATURE=0.7
+
 # OPENAI
 OPENAI_API_URL=https://api.openai.com/v1/chat/completions
 OPENAI_API_KEY=NA

@@ -114,6 +114,30 @@
         "isSupportsVision": false
     },
     {
+        "name": "ollama/gemma:7b",
+        "available": true,
+        "vendor": "ollama",
+        "isSupportsVision": false
+    },
+    {
+        "name": "ollama_openai/dolphin-mixtral",
+        "available": true,
+        "vendor": "ollama",
+        "isSupportsVision": false
+    },
+    {
+        "name": "ollama_openai/mistral",
+        "available": true,
+        "vendor": "ollama",
+        "isSupportsVision": false
+    },
+    {
+        "name": "ollama_openai/gemma:7b",
+        "available": true,
+        "vendor": "ollama",
+        "isSupportsVision": false
+    },
+    {
         "name": "groq/llama2-70b-4096",
         "available": true,
         "vendor": "groq",
