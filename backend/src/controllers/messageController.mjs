@@ -5,8 +5,10 @@ import GeminiMessageAPI from "../messageAPIs/GeminiMessageAPI.mjs";
 import OllamaMessageAPI from "../messageAPIs/OllamaAIMessageAPI.mjs";
 import MistralMessageAPI from "../messageAPIs/MistralAIMessageAPI.mjs";
 import GroqMessageAPI from "../messageAPIs/GroqMessageAPI.mjs";
+import OllamaOpenAIMessageAPI from "../messageAPIs/OllamaOpenAIMessageAPI.mjs";
 
 export const messageAPIs = {
+  ollama_openai: new OllamaOpenAIMessageAPI(),
   claude: new ClaudeMessageAPI(),
   gpt: new OpenAIMessageAPI(),
   gemini: new GeminiMessageAPI(),
@@ -78,7 +80,7 @@ async function filterMessages(messages, res) {
 }
 
 function getAPI(req) {
-  let models = ["gemini", "ollama", "gpt", "mistral", "claude", "groq"];
+  let models = ["ollama_openai","gemini", "ollama", "gpt", "mistral", "claude", "groq"];
   let model = models.find(m => req.body.userDetails.settings.model.includes(m));
   return messageAPIs[model];
 }
