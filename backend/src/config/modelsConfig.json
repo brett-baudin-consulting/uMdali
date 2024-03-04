@@ -1,27 +1,39 @@
 [
     {
-        "name": "claude-2",
-        "available": false,
-        "vendor": "claude",
+        "name": "claude-2.1",
+        "available": true,
+        "vendor": "anthropic",
         "isSupportsVision": false
     },
     {
         "name": "claude-2.0",
-        "available": false,
-        "vendor": "claude",
-        "isSupportsVision": false
-    },
-    {
-        "name": "claude-instant-1",
-        "available": false,
-        "vendor": "claude",
+        "available": true,
+        "vendor": "anthropic",
         "isSupportsVision": false
     },
     {
         "name": "claude-instant-1.2",
-        "available": false,
-        "vendor": "claude",
+        "available": true,
+        "vendor": "anthropic",
         "isSupportsVision": false
+    },
+    {
+        "name": "claude-instant-1.2",
+        "available": true,
+        "vendor": "anthropic",
+        "isSupportsVision": false
+    },
+    {
+        "name": "claude-3-sonnet-20240229",
+        "available": true,
+        "vendor": "anthropic",
+        "isSupportsVision": true
+    },
+    {
+        "name": "claude-3-opus-20240229",
+        "available": true,
+        "vendor": "anthropic",
+        "isSupportsVision": true
     },
     {
         "name": "gpt-3.5-turbo",
