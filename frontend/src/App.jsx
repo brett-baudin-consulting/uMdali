@@ -146,16 +146,16 @@ function App() {
       isMounted = false;
     };
   }, [currentConversation, isLoggedIn, isStreaming]);
+
   const doesModelSupportVision = (models, modelName) => {
 
     const model = models.find(m => m.name === modelName);
     if (!model) {
-      // Handle the case where the model is not found. This could be returning false, throwing an error, or logging a warning.
-      console.warn("Model not found:", modelName);
       return false;
     }
     return model.isSupportsVision;
   };
+  
   useEffect(() => {
     // Only run this effect if the user is logged in
     if (isLoggedIn) {

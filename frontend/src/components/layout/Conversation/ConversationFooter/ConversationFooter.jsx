@@ -25,7 +25,6 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
   const [isExpanded, setIsExpanded] = useState(false);
   const [lastHeight, setLastHeight] = useState('auto');
 
-
   const toggleHeight = () => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -201,8 +200,6 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
 
     const model = models.find(m => m.name === modelName);
     if (!model) {
-      // Handle the case where the model is not found. This could be returning false, throwing an error, or logging a warning.
-      console.warn("Model not found:", modelName);
       return false;
     }
     return model.isSupportsVision;
@@ -288,6 +285,6 @@ ConversationFooter.propTypes = {
   abortFetch: PropTypes.func.isRequired,
   isWaitingForResponse: PropTypes.bool.isRequired,
   setError: PropTypes.func.isRequired,
-  models: modelShape.isRequired
+  models: PropTypes.arrayOf(modelShape).isRequired,
 };
 export default ConversationFooter;
