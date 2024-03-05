@@ -6,7 +6,8 @@ import { COMMON_HEADERS } from "../constants";
 export const sendMessage = async (
   currentConversation,
   user,
-  signal
+  signal,
+  isSupportsVision
 ) => {
   const filteredMessages = currentConversation.messages.filter(message => message.content !== "");
   const options = {
@@ -19,6 +20,7 @@ export const sendMessage = async (
       userDetails: user,
       conversationId: currentConversation.conversationId,
       message: filteredMessages,
+      isSupportsVision: isSupportsVision,
     }),
     signal: signal,
   };
@@ -42,7 +44,8 @@ export const sendMessageStreamResponse = async (
   setCurrentConversation,
   newBotMessage,
   setIsStreaming,
-  signal
+  signal,
+  isSupportsVision
 ) => {
   const localMessages = filterMessages(currentConversation, newBotMessage);
   if (!localMessages.length) {
@@ -61,6 +64,7 @@ export const sendMessageStreamResponse = async (
         conversationId: currentConversation.conversationId,
         message: localMessages,
         stream: true,
+        isSupportsVision: isSupportsVision,
       }),
       signal: signal,
     };
@@ -120,6 +124,7 @@ export const sendMessageStreamResponse = async (
     await processText(); // Start processing the text
   } catch (error) {
     if (error.name === 'AbortError') {
+      // Do nothing, as the error is expected due to aborting the request.
     } else {
       console.error("Failed to send message:", error);
       throw error;

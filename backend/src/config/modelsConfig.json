@@ -18,12 +18,6 @@
         "isSupportsVision": false
     },
     {
-        "name": "claude-instant-1.2",
-        "available": true,
-        "vendor": "anthropic",
-        "isSupportsVision": false
-    },
-    {
         "name": "claude-3-sonnet-20240229",
         "available": true,
         "vendor": "anthropic",

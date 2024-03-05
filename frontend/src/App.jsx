@@ -146,7 +146,16 @@ function App() {
       isMounted = false;
     };
   }, [currentConversation, isLoggedIn, isStreaming]);
+  const doesModelSupportVision = (models, modelName) => {
 
+    const model = models.find(m => m.name === modelName);
+    if (!model) {
+      // Handle the case where the model is not found. This could be returning false, throwing an error, or logging a warning.
+      console.warn("Model not found:", modelName);
+      return false;
+    }
+    return model.isSupportsVision;
+  };
   useEffect(() => {
     // Only run this effect if the user is logged in
     if (isLoggedIn) {
@@ -161,7 +170,8 @@ function App() {
           const data = await sendMessage(
             currentConversation,
             user,
-            abortControllerRef.current.signal
+            abortControllerRef.current.signal,
+            doesModelSupportVision(models, user.settings.model),
           );
 
           setCurrentConversation((prevConversation) => ({
@@ -220,7 +230,8 @@ function App() {
                 setCurrentConversation,
                 newBotMessage,
                 setIsStreaming,
-                abortControllerRef.current.signal
+                abortControllerRef.current.signal,
+                doesModelSupportVision(models, user.settings.model),
               );
 
             } catch (err) {
@@ -364,6 +375,7 @@ function App() {
               abortFetch={abortFetch}
               isWaitingForResponse={isWaitingForResponse}
               setError={setError}
+              models={models}
             />
           </div>
         </div>

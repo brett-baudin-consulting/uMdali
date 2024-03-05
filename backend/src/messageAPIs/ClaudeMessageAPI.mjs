@@ -25,7 +25,7 @@ $map($filter($, function($message) {
               "source":
                 {
                     "type": "base64",
-                    mediatype: "image/jpeg",
+                    "media_type": $file.type,
                     "data": $file.base64
                 }
               }
@@ -125,7 +125,9 @@ class ClaudeMessageAPI extends MessageAPI {
             await encodeFiles(messages);
         }
         const updatedMessages = await messageToClaudeFormat(messages, isSupportsVision);
+        let systemMessage = messages.find(m => m.role === 'context');
         const requestOptions = this._prepareOptions({
+            system: systemMessage.content,
             model: userModel || this.MODEL,
             messages: updatedMessages,
             max_tokens: maxTokens || this.MAX_TOKENS,
@@ -140,7 +142,6 @@ class ClaudeMessageAPI extends MessageAPI {
             }
 
             const data = await response.json();
-            console.log(data);
             const content = data?.content[0]?.text;
             return content;
         } catch (err) {
@@ -159,8 +160,9 @@ class ClaudeMessageAPI extends MessageAPI {
             await encodeFiles(messages);
         }
         const updatedMessages = await messageToClaudeFormat(messages, isSupportsVision);
-
+        let systemMessage = messages.find(m => m.role === 'context');
         const requestOptions = this._prepareOptions({
+            system: systemMessage.content,
             model: userModel || this.MODEL,
             messages: updatedMessages,
             max_tokens: maxTokens || this.MAX_TOKENS,
@@ -179,22 +181,40 @@ class ClaudeMessageAPI extends MessageAPI {
     }
 
     async processResponseStream(response, resClient) {
-        // Node.js streams can be used directly
-        const reader = response.body;
+        const textDecoder = new TextDecoder();
+        let lastChunk = "";
 
-        // Handling the data as it is streamed
-        reader.on('data', (chunk) => {
-            // Assuming the server sends newline-separated JSON objects
-            chunk.toString().split('\n').forEach(line => {
-                if (line.trim()) {
-                    processEvent(resClient, line);
+        for await (const chunk of response.body) {
+            let decodedChunk = textDecoder.decode(chunk, { stream: true });
+            if (!decodedChunk.startsWith("data:")) {
+                decodedChunk = lastChunk + decodedChunk;
+            }
+            const lines = decodedChunk.split("\n");
+            lastChunk = this.handleStreamedContent(lines, resClient, lastChunk);
+        }
+        resClient.end();
+    }
+    async handleStreamedContent(lines, resClient, lastChunk) {
+        for (const line of lines) {
+            if (line.startsWith("data: ")) {
+                const content = line.replace(/^data: /, "").trim();
+                try {
+                    const event = JSON.parse(content);
+
+                    switch (event.type) {
+                        case 'content_block_delta':
+                            resClient.write(event.delta.text);
+                            break;
+                        case 'message_stop':
+                            break;
+                        default:
+                    }
+                } catch (error) {
+                    lastChunk = line; // Keep the partial line for the next iteration
                 }
-            });
-        });
-
-        reader.on('end', () => {
-            resClient.end();
-        });
+            }
+        }
+        return lastChunk; // Return the lastChunk for the next iteration
     }
 }
 
@@ -209,29 +229,5 @@ function handleStreamError(err) {
         throw err;
     }
 }
-function processEvent(resClient, line) {
-    try {
-        console.log("processEvent", line);
-        const jsonStartIndex = line.indexOf('{');
-        if (jsonStartIndex === -1) return;
 
-        const jsonString = line.substring(jsonStartIndex);
-        const event = JSON.parse(jsonString);
-
-        switch (event.type) {
-            case 'content_block_delta':
-                resClient.write(event.delta.text);
-                console.log('Content Block Delta:', event.delta.text);
-                break;
-            case 'message_stop':
-                console.log('Message Stop Event. Stream ended. Closing connection.');
-                break;
-            default:
-                console.log('Unknown event type:', event.type);
-        }
-    } catch (error) {
-        console.error('Error processing event:', error);
-        handleStreamError(error);
-    }
-}
 export default ClaudeMessageAPI;

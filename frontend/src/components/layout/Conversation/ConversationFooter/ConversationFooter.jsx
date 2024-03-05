@@ -9,12 +9,13 @@ import FileItem from './FileItem';
 import { conversationShape } from "../../../../model/conversationPropType";
 import { userShape } from "../../../../model/userPropType";
 import { handleKeyDown as handleKeyDownUtility } from "../../../common/util/useTextareaKeyHandlers";
+import {modelShape} from "../../../../model/modelPropType";
 import SpeechToText from "./SpeechToText";
 
 import "./ConversationFooter.scss";
 
 const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
-  onSendMessage, onResendMessage, isStreaming, setIsStreaming, abortFetch, isWaitingForResponse, setError }) => {
+  onSendMessage, onResendMessage, isStreaming, setIsStreaming, abortFetch, isWaitingForResponse, setError, models }) => {
   const { t } = useTranslation();
   const [input, setInput] = useState("");
   const textareaRef = useRef(null);
@@ -196,7 +197,16 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
   }, []);
 
   const BOT_ROLE = "bot";
+  const doesModelSupportVision = (models, modelName) => {
 
+    const model = models.find(m => m.name === modelName);
+    if (!model) {
+      // Handle the case where the model is not found. This could be returning false, throwing an error, or logging a warning.
+      console.warn("Model not found:", modelName);
+      return false;
+    }
+    return model.isSupportsVision;
+  };
   return (
     <div className="conversation-footer">
 
@@ -219,7 +229,7 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
         <button
           title={t("attach_title")}
           onClick={() => fileInputRef?.current?.click()}
-          disabled={isStreaming || !user?.settings?.model?.includes('vision')}
+          disabled={isStreaming || !doesModelSupportVision(models, user?.settings?.model)}
         >
           {t("attach")}
         </button>
@@ -277,6 +287,7 @@ ConversationFooter.propTypes = {
   setIsStreaming: PropTypes.func.isRequired,
   abortFetch: PropTypes.func.isRequired,
   isWaitingForResponse: PropTypes.bool.isRequired,
-  setError: PropTypes.func.isRequired
+  setError: PropTypes.func.isRequired,
+  models: modelShape.isRequired
 };
 export default ConversationFooter;

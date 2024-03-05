@@ -71,7 +71,7 @@ const GeneralTab = ({ user, setUser, models, speechModels }) => {
 
   const options = models.map((model) => (
     <option key={model.name} value={model.name}>
-      {model.name}
+      {model.name} {model.isSupportsVision ? `V` : ""}
     </option>
   ));
 
