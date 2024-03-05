@@ -86,7 +86,7 @@ function getAPI(req) {
 }
 
 async function handleRequest(req, res) {
-  const { userDetails: { settings }, message, stream } = req.body;
+  const { userDetails: { settings }, message, stream, isSupportsVision } = req.body;
   const messageAPI = getAPI(req);
   if (!messageAPI) {
     res.status(400).send({ error: `Unsupported API: ${settings.model}` });
@@ -105,7 +105,7 @@ async function handleRequest(req, res) {
     userModel: settings.model,
     maxTokens: settings.maxTokens,
     temperature: settings.temperature,
-    isSupportsVision: settings.model.includes("vision"),
+    isSupportsVision: isSupportsVision,
   };
 
   const abortController = new AbortController();

@@ -80,8 +80,9 @@ services:
       - GEMINI_MODEL=models/gemini-pro
       - GEMINI_MAX_TOKENS=1000
       - GEMINI_TEMPERATURE=0.7
-      #Anthropic
-      - ANTHROPIC_API_KEY=NA
+      # ANTHROPIC
+      - CLAUDE_API_URL=https://api.anthropic.com/v1/messages
+      - CLAUDE_API_KEY=NA
       - CLAUDE_MODEL=claude-2
       - CLAUDE_MAX_TOKENS=10000
       - CLAUDE_TEMPERATURE=0.7
