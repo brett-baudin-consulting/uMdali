@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
 import { userShape } from "../../../model/userPropType";
+import { modelShape } from "../../../model/modelPropType";
 import "./GeneralTab.scss";
 
 const GeneralTab = ({ user, setUser, models, speechModels }) => {
@@ -71,7 +72,7 @@ const GeneralTab = ({ user, setUser, models, speechModels }) => {
 
   const options = models.map((model) => (
     <option key={model.name} value={model.name}>
-      {model.name}
+      {model.name} {model.isSupportsVision ? `V` : ""}
     </option>
   ));
 
@@ -147,11 +148,7 @@ const GeneralTab = ({ user, setUser, models, speechModels }) => {
 GeneralTab.propTypes = {
   user: userShape.isRequired,
   setUser: PropTypes.func.isRequired,
-  models: PropTypes.arrayOf(
-    PropTypes.shape({
-      name: PropTypes.string.isRequired,
-    })
-  ).isRequired,
+  models: PropTypes.arrayOf(modelShape).isRequired,
   speechModels: PropTypes.arrayOf(
     PropTypes.shape({
       name: PropTypes.string.isRequired,

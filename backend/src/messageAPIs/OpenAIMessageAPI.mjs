@@ -200,7 +200,6 @@ class OpenAIMessageAPI extends MessageAPI {
             resClient.write(parsedLine.choices[0].delta.content);
           }
         } catch (error) {
-          logger.error(`JSON parse error: ${error}`);
           lastChunk = line; // Keep the partial line for the next iteration
         }
       }
