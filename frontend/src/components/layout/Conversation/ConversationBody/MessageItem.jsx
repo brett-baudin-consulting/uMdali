@@ -14,7 +14,6 @@ import { handleKeyDown as handleKeyDownUtility } from "../../../common/util/useT
 import { userShape } from "../../../../model/userPropType";
 
 import './MessageItem.scss';
-import { use } from 'i18next';
 
 function MessageItem({ message, onDelete, onEdit, userId, user }) {
   const { t } = useTranslation();
@@ -31,10 +30,6 @@ function MessageItem({ message, onDelete, onEdit, userId, user }) {
   const resetCopyState = useCallback(() => {
     setCopied(false);
   }, []);
-
-  useEffect(() => {
-    console.log('isSpeaking: ', isSpeaking);
-  }, [isSpeaking]);
 
   useEffect(() => {
     if (message.files && message.files.length > 0) {
