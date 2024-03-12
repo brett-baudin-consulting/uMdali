@@ -8,10 +8,11 @@ import Tab from "./Tab";
 import GeneralTab from "./GeneralTab";
 import ContextTab from "./ContextTab";
 import MacroTab from "./MacroTab";
+import SpeechTab from "./SpeechTab";
 
 import "./SettingsDialog.scss";
 
-function SettingsDialog({ onClose, models, user, setUser, speechToTextModels }) {
+function SettingsDialog({ onClose, models, user, setUser, speechToTextModels, textToSpeechModels }) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("general");
   const modalContentRef = useRef(null);
@@ -35,6 +36,7 @@ function SettingsDialog({ onClose, models, user, setUser, speechToTextModels }) 
   }, [user]);
   const contentMap = {
     general: <GeneralTab user={user} setUser={setUser} models={models} speechModels={speechToTextModels} />,
+    speech: <SpeechTab user={user} setUser={setUser} speechToTextModels={speechToTextModels} textToSpeechModels={textToSpeechModels} />,
     context: <ContextTab user={user} setUser={setUser} />,
     macro: <MacroTab user={user} setUser={setUser} />,
   };
@@ -71,6 +73,11 @@ function SettingsDialog({ onClose, models, user, setUser, speechToTextModels }) 
               onClick={() => setActiveTab("general")}
             />
             <Tab
+              label={t("speech_settings_title")}
+              isActive={activeTab === "speech"}
+              onClick={() => setActiveTab("speech")}
+            />
+            <Tab
               label={t("context_settings_title")}
               isActive={activeTab === "context"}
               onClick={() => setActiveTab("context")}
@@ -98,6 +105,11 @@ SettingsDialog.propTypes = {
     })
   ).isRequired,
   speechToTextModels: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string,
+    })
+  ).isRequired,
+  textToSpeechModels: PropTypes.arrayOf(
     PropTypes.shape({
       name: PropTypes.string,
     })

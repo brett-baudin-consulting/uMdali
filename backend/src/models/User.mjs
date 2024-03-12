@@ -16,6 +16,7 @@ const ContextSchema = new Schema({
 const SettingsSchema = new Schema({
   model: { type: String, required: true },
   speechToTextModel: { type: String, default: "whisper-1"},
+  textToSpeechModel: { type: String, default: "tts-1" },
   temperature: { type: Number, default: 0.5 },
   maxTokens: { type: Number, default: 1000 },
   isStreamResponse: { type: Boolean, default: true },

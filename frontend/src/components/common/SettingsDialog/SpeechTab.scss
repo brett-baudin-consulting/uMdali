@@ -1,0 +1,22 @@
+.speech-tab {
+  background-color: var(--color-background-primary);
+  color: var(--color-text-primary);
+  padding: 20px;
+
+  h1 {
+    margin-bottom: 20px;
+  }
+
+  label,
+  div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+
+  select,
+  input[type="range"] {
+    margin-left: 10px;
+  }
+}

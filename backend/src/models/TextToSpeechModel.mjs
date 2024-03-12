@@ -5,47 +5,23 @@ const TextToSpeechModelSchema = new Schema({
     type: String,
     required: true,
   },
+  id: {
+    type: String,
+    required: true,
+  },
   vendor: {
     type: String,
     required: true,
   },
-  voice_ids: [
+  voices: [
     {
+      name: {
+        type: String,
+        required: true,
+      },
       id: {
         type: String,
         required: true,
-      }
-    }
-  ],
-  query_parameters: [
-    {
-      key: {
-        type: String,
-        required: true,
-      },
-      value: {
-        type: String,
-        required: true,
-      }
-    }
-  ],
-  settings: [
-    {
-      similarity_boost: {
-        type: Number,
-        required: true,
-      },
-      stability: {
-        type: Number,
-        required: true,
-      },
-      style: {
-        type: Number,
-        required: false,
-      },
-      use_speaker_boost: {
-        type: Boolean,
-        required: false,
       }
     }
   ],

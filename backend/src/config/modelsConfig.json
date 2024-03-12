@@ -144,6 +144,12 @@
         "isSupportsVision": false
     },
     {
+        "name": "ollama_openai/gemma:2b",
+        "available": true,
+        "vendor": "ollama",
+        "isSupportsVision": false
+    },
+    {
         "name": "groq/llama2-70b-4096",
         "available": true,
         "vendor": "groq",
@@ -151,6 +157,12 @@
     },
     {
         "name": "groq/mixtral-8x7b-32768",
+        "available": true,
+        "vendor": "groq",
+        "isSupportsVision": false
+    },
+    {
+        "name": "groq/gemma-7b-it",
         "available": true,
         "vendor": "groq",
         "isSupportsVision": false

@@ -1,0 +1,438 @@
+[
+    {
+        "name": "Eleven Turbo v2",
+        "id": "eleven_turbo_v2",
+        "vendor": "Eleven Labs",
+        "voices": [
+            {
+                "id": "2EiwWnXFnvU5JabPnv8n",
+                "name": "Clyde"
+            },
+            {
+                "id": "CYw3kZ02Hs0563khs1Fj",
+                "name": "Dave"
+            },
+            {
+                "id": "D38z5RcWu1voky8WS1ja",
+                "name": "Fin"
+            },
+            {
+                "id": "GBv7mTt0atIp3Br8iCZE",
+                "name": "Thomas"
+            },
+            {
+                "id": "IKne3meq5aSn9XLyUdCD",
+                "name": "Charlie"
+            },
+            {
+                "id": "LcfcDJNUP1GQjkzn1xUU",
+                "name": "Emily"
+            },
+            {
+                "id": "N2lVS1w4EtoT3dr4eOWO",
+                "name": "Callum"
+            },
+            {
+                "id": "ODq5zmih8GrVes37Dizd",
+                "name": "Patrick"
+            },
+            {
+                "id": "SOYHLrjzK2X1ezoPC6cr",
+                "name": "Harry"
+            },
+            {
+                "id": "TX3LPaxmHKxFdv7VOQHJ",
+                "name": "Liam"
+            },
+            {
+                "id": "ThT5KcBeYPX3keUQqHPh",
+                "name": "Dorothy"
+            },
+            {
+                "id": "XB0fDUnXU5powFXDhCwa",
+                "name": "Charlotte"
+            },
+            {
+                "id": "XrExE9yKIg1WjnnlVkGX",
+                "name": "Matilda"
+            },
+            {
+                "id": "Yko7PKHZNXotIFUBG7I9",
+                "name": "Matthew"
+            },
+            {
+                "id": "ZQe5CZNOzWyzPSCn5a3c",
+                "name": "James"
+            },
+            {
+                "id": "Zlb1dXrM653N07WRdFW3",
+                "name": "Joseph"
+            },
+            {
+                "voice": "bVMeCyTHy58xNoL34h3p",
+                "name": "Jeremy"
+            },
+            {
+                "id": "flq6f7yk4E4fJM5XTYuZ",
+                "name": "Michael"
+            },
+            {
+                "id": "g5CIjZEefAph4nQFvHAz",
+                "name": "Ethan"
+            },
+            {
+                "id": "jBpfuIE2acCO8z3wKNLl",
+                "name": "Gigi"
+            },
+            {
+                "id": "jsCqWAovK2LkecY7zXl4",
+                "name": "Freya"
+            },
+            {
+                "id": "oWAxZDx7w5VEj9dCyTzz",
+                "name": "Grace"
+            },
+            {
+                "id": "onwK4e9ZLuTAKqWW03F9",
+                "name": "Daniel"
+            },
+            {
+                "id": "pMsXgVXv3BLzUgSXRplE",
+                "name": "Serena"
+            },
+            {
+                "id": "piTKgcLEGmPE4e6mEKli",
+                "name": "Nicole"
+            },
+            {
+                "id": "t0jbNlBVZ17f02VDIeMI",
+                "name": "Jessie"
+            },
+            {
+                "id": "z9fAnlkpzviPz146aGWa",
+                "name": "Glinda"
+            },
+            {
+                "id": "zcAOhNBS3c14rBihAFp1",
+                "name": "Giovanni"
+            },
+            {
+                "id": "zrHiDhphv9ZnVXBqCLjz",
+                "voice": "Mimi"
+            }
+        ],
+        "available": true
+    },
+    {
+        "name": "Eleven Multilingual v1",
+        "id": "eleven_multilingual_v1",
+        "vendor": "Eleven Labs",
+        "voices": [
+            {
+                "id": "2EiwWnXFnvU5JabPnv8n",
+                "name": "Clyde"
+            },
+            {
+                "id": "CYw3kZ02Hs0563khs1Fj",
+                "name": "Dave"
+            },
+            {
+                "id": "D38z5RcWu1voky8WS1ja",
+                "name": "Fin"
+            },
+            {
+                "id": "GBv7mTt0atIp3Br8iCZE",
+                "name": "Thomas"
+            },
+            {
+                "id": "IKne3meq5aSn9XLyUdCD",
+                "name": "Charlie"
+            },
+            {
+                "id": "LcfcDJNUP1GQjkzn1xUU",
+                "name": "Emily"
+            },
+            {
+                "id": "N2lVS1w4EtoT3dr4eOWO",
+                "name": "Callum"
+            },
+            {
+                "id": "ODq5zmih8GrVes37Dizd",
+                "name": "Patrick"
+            },
+            {
+                "id": "SOYHLrjzK2X1ezoPC6cr",
+                "name": "Harry"
+            },
+            {
+                "id": "TX3LPaxmHKxFdv7VOQHJ",
+                "name": "Liam"
+            },
+            {
+                "id": "ThT5KcBeYPX3keUQqHPh",
+                "name": "Dorothy"
+            },
+            {
+                "id": "XB0fDUnXU5powFXDhCwa",
+                "name": "Charlotte"
+            },
+            {
+                "id": "XrExE9yKIg1WjnnlVkGX",
+                "name": "Matilda"
+            },
+            {
+                "id": "Yko7PKHZNXotIFUBG7I9",
+                "name": "Matthew"
+            },
+            {
+                "id": "ZQe5CZNOzWyzPSCn5a3c",
+                "name": "James"
+            },
+            {
+                "id": "Zlb1dXrM653N07WRdFW3",
+                "name": "Joseph"
+            },
+            {
+                "voice": "bVMeCyTHy58xNoL34h3p",
+                "name": "Jeremy"
+            },
+            {
+                "id": "flq6f7yk4E4fJM5XTYuZ",
+                "name": "Michael"
+            },
+            {
+                "id": "g5CIjZEefAph4nQFvHAz",
+                "name": "Ethan"
+            },
+            {
+                "id": "jBpfuIE2acCO8z3wKNLl",
+                "name": "Gigi"
+            },
+            {
+                "id": "jsCqWAovK2LkecY7zXl4",
+                "name": "Freya"
+            },
+            {
+                "id": "oWAxZDx7w5VEj9dCyTzz",
+                "name": "Grace"
+            },
+            {
+                "id": "onwK4e9ZLuTAKqWW03F9",
+                "name": "Daniel"
+            },
+            {
+                "id": "pMsXgVXv3BLzUgSXRplE",
+                "name": "Serena"
+            },
+            {
+                "id": "piTKgcLEGmPE4e6mEKli",
+                "name": "Nicole"
+            },
+            {
+                "id": "t0jbNlBVZ17f02VDIeMI",
+                "name": "Jessie"
+            },
+            {
+                "id": "z9fAnlkpzviPz146aGWa",
+                "name": "Glinda"
+            },
+            {
+                "id": "zcAOhNBS3c14rBihAFp1",
+                "name": "Giovanni"
+            },
+            {
+                "id": "zrHiDhphv9ZnVXBqCLjz",
+                "voice": "Mimi"
+            }
+        ],
+        "available": true
+    },
+    {
+        "name": "Eleven Multilingual v2",
+        "id": "eleven_multilingual_v2",
+        "vendor": "Eleven Labs",
+        "voices": [
+            {
+                "id": "2EiwWnXFnvU5JabPnv8n",
+                "name": "Clyde"
+            },
+            {
+                "id": "CYw3kZ02Hs0563khs1Fj",
+                "name": "Dave"
+            },
+            {
+                "id": "D38z5RcWu1voky8WS1ja",
+                "name": "Fin"
+            },
+            {
+                "id": "GBv7mTt0atIp3Br8iCZE",
+                "name": "Thomas"
+            },
+            {
+                "id": "IKne3meq5aSn9XLyUdCD",
+                "name": "Charlie"
+            },
+            {
+                "id": "LcfcDJNUP1GQjkzn1xUU",
+                "name": "Emily"
+            },
+            {
+                "id": "N2lVS1w4EtoT3dr4eOWO",
+                "name": "Callum"
+            },
+            {
+                "id": "ODq5zmih8GrVes37Dizd",
+                "name": "Patrick"
+            },
+            {
+                "id": "SOYHLrjzK2X1ezoPC6cr",
+                "name": "Harry"
+            },
+            {
+                "id": "TX3LPaxmHKxFdv7VOQHJ",
+                "name": "Liam"
+            },
+            {
+                "id": "ThT5KcBeYPX3keUQqHPh",
+                "name": "Dorothy"
+            },
+            {
+                "id": "XB0fDUnXU5powFXDhCwa",
+                "name": "Charlotte"
+            },
+            {
+                "id": "XrExE9yKIg1WjnnlVkGX",
+                "name": "Matilda"
+            },
+            {
+                "id": "Yko7PKHZNXotIFUBG7I9",
+                "name": "Matthew"
+            },
+            {
+                "id": "ZQe5CZNOzWyzPSCn5a3c",
+                "name": "James"
+            },
+            {
+                "id": "Zlb1dXrM653N07WRdFW3",
+                "name": "Joseph"
+            },
+            {
+                "voice": "bVMeCyTHy58xNoL34h3p",
+                "name": "Jeremy"
+            },
+            {
+                "id": "flq6f7yk4E4fJM5XTYuZ",
+                "name": "Michael"
+            },
+            {
+                "id": "g5CIjZEefAph4nQFvHAz",
+                "name": "Ethan"
+            },
+            {
+                "id": "jBpfuIE2acCO8z3wKNLl",
+                "name": "Gigi"
+            },
+            {
+                "id": "jsCqWAovK2LkecY7zXl4",
+                "name": "Freya"
+            },
+            {
+                "id": "oWAxZDx7w5VEj9dCyTzz",
+                "name": "Grace"
+            },
+            {
+                "id": "onwK4e9ZLuTAKqWW03F9",
+                "name": "Daniel"
+            },
+            {
+                "id": "pMsXgVXv3BLzUgSXRplE",
+                "name": "Serena"
+            },
+            {
+                "id": "piTKgcLEGmPE4e6mEKli",
+                "name": "Nicole"
+            },
+            {
+                "id": "t0jbNlBVZ17f02VDIeMI",
+                "name": "Jessie"
+            },
+            {
+                "id": "z9fAnlkpzviPz146aGWa",
+                "name": "Glinda"
+            },
+            {
+                "id": "zcAOhNBS3c14rBihAFp1",
+                "name": "Giovanni"
+            },
+            {
+                "id": "zrHiDhphv9ZnVXBqCLjz",
+                "voice": "Mimi"
+            }
+        ],
+        "available": true
+    },
+    {
+        "name": "Text-to-speech 1",
+        "id": "tts-1",
+        "vendor": "OpenAI",
+        "voices": [
+            {
+                "name": "alloy",
+                "id": "alloy"
+            },
+            {
+                "name": "echo",
+                "id": "echo"
+            },
+            {
+                "name": "fable",
+                "id": "fable"
+            },
+            {
+                "name": "onyx",
+                "id": "onyx"
+            },
+            {
+                "name": "nova",
+                "id": "nova"
+            },
+            {
+                "name": "shimmer",
+                "id": "shimmer"
+            }
+        ],
+        "available": true
+    },
+    {
+        "name": "Text-to-speech 1 HD",
+        "id": "tts-1-hd",
+        "vendor": "OpenAI",
+        "voices": [
+            {
+                "name": "alloy",
+                "id": "alloy"
+            },
+            {
+                "name": "echo",
+                "id": "echo"
+            },
+            {
+                "name": "fable",
+                "id": "fable"
+            },
+            {
+                "name": "onyx",
+                "id": "onyx"
+            },
+            {
+                "name": "nova",
+                "id": "nova"
+            },
+            {
+                "name": "shimmer",
+                "id": "shimmer"
+            }
+        ],
+        "available": true
+    }
+]

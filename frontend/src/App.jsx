@@ -16,6 +16,7 @@ import LoginDialog from "./components/common/LoginDialog/LoginDialog";
 import { sendMessage, sendMessageStreamResponse } from "./api/messageService";
 import { fetchModels } from "./api/modelService";
 import { fetchSpeechToTextModels } from "./api/speechToTextModelService";
+import { fetchTextToSpeechModels } from "./api/textToSpeechModelService";
 import ErrorBoundary from './ErrorBoundary';
 
 import "./App.scss";
@@ -30,6 +31,7 @@ function App() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [models, setModels] = useState([]);
   const [speechToTextModels, setSpeechToTextModels] = useState([]);
+  const [textToSpeechModels, setTextToSpeechModels] = useState([]);
   const { t } = useTranslation();
   const fetchedConversations = useConversations(user ? user.userId : null);
   const [sendNewMessage, setSendNewMessage] = useState(false);
@@ -102,6 +104,8 @@ function App() {
         setModels(modelsData);
         const speechToTextModelsData = await fetchSpeechToTextModels();
         setSpeechToTextModels(speechToTextModelsData);
+        const textToSpeechModelsData = await fetchTextToSpeechModels();
+        setTextToSpeechModels(textToSpeechModelsData);
       } catch (error) {
         setError(error.message);
       }
@@ -352,6 +356,7 @@ function App() {
               isLoggedIn={isLoggedIn}
               setIsLoggedIn={setIsLoggedIn}
               speechToTextModels={speechToTextModels}
+              textToSpeechModels={textToSpeechModels}
             />
             <ConversationBody
               currentConversation={currentConversation}

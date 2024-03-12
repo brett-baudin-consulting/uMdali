@@ -8,11 +8,13 @@ import gfm from 'remark-gfm';
 import ModalDialog from '../../../common/ModalDialog/ModalDialog';
 import { messageShape } from '../../../../model/conversationPropType';
 import { fetchImage } from '../../../../api/fileService';
+import { convertTextToSpeech } from '../../../../api/textToSpeechModelService';
 import CodeBlock from './CodeBlock';
 import { handleKeyDown as handleKeyDownUtility } from "../../../common/util/useTextareaKeyHandlers";
 import { userShape } from "../../../../model/userPropType";
 
 import './MessageItem.scss';
+import { use } from 'i18next';
 
 function MessageItem({ message, onDelete, onEdit, userId, user }) {
   const { t } = useTranslation();
@@ -22,11 +24,17 @@ function MessageItem({ message, onDelete, onEdit, userId, user }) {
   const [editedMessage, setEditedMessage] = useState(message.content);
   const [imageUrls, setImageUrls] = useState([]);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const textareaRef = useRef(null);
+  const audioRef = useRef(null);
   const maxLineCount = 4;
   const resetCopyState = useCallback(() => {
     setCopied(false);
   }, []);
+
+  useEffect(() => {
+    console.log('isSpeaking: ', isSpeaking);
+  }, [isSpeaking]);
 
   useEffect(() => {
     if (message.files && message.files.length > 0) {
@@ -39,6 +47,35 @@ function MessageItem({ message, onDelete, onEdit, userId, user }) {
       fetchUrls().catch(console.error);
     }
   }, [message.files, userId]);
+
+  const handleSpeakClick = useCallback(async () => {
+    // If audio is currently playing, stop it and reset state
+    if (isSpeaking && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0; // Reset audio to start
+      setIsSpeaking(false);
+      return;
+    }
+  
+    try {
+      const audioBlob = await convertTextToSpeech(user.settings.textToSpeechModel, message.content);
+      const audioUrl = URL.createObjectURL(audioBlob);
+      if (audioRef.current) {
+        URL.revokeObjectURL(audioRef.current.src); // Clean up previous audio object URL
+      }
+      // Use the existing audio element if it exists, otherwise create a new one
+      const audioElement = audioRef.current || new Audio();
+      audioElement.src = audioUrl;
+      audioRef.current = audioElement; // Update the ref with the new or existing audio element
+  
+      setIsSpeaking(true);
+      audioRef.current.onended = () => setIsSpeaking(false); // Reset state when audio ends
+      audioRef.current.play();
+    } catch (error) {
+      console.error('Error playing text to speech:', error);
+      setIsSpeaking(false); // Ensure state is reset on error
+    }
+  }, [isSpeaking, message.content, user.settings.textToSpeechModel]);
 
   const handleModalClose = useCallback(() => setIsModalOpen(false), []);
 
@@ -169,6 +206,13 @@ function MessageItem({ message, onDelete, onEdit, userId, user }) {
                   ↑
                 </button>
               )}
+              <button
+                className="action-button"
+                title={t('speak_title')}
+                onClick={handleSpeakClick}
+              >
+                {t('speak')}
+              </button>
             </div>
           </div>
         </div>

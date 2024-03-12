@@ -22,6 +22,7 @@ export const settingsShape = PropTypes.shape({
   contexts: PropTypes.arrayOf(contextShape),
   macros: PropTypes.arrayOf(macroShape),
   speechToTextModel: PropTypes.string.isRequired,
+  textToSpeechModel: PropTypes.string.isRequired,
 });
 
 export const userShape = PropTypes.shape({

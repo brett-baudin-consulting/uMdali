@@ -11,7 +11,9 @@ const ConversationHeader = ({ models,
   setUser,
   isLoggedIn,
   setIsLoggedIn,
-  speechToTextModels }) => {
+  speechToTextModels,
+  textToSpeechModels
+ }) => {
   const { t } = useTranslation();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -39,6 +41,7 @@ const ConversationHeader = ({ models,
           setUser={setUser}
           models={models}
           speechToTextModels={speechToTextModels}
+          textToSpeechModels={textToSpeechModels}
         />
       )}
     </div>
@@ -64,6 +67,11 @@ ConversationHeader.propTypes = {
   isLoggedIn: PropTypes.bool.isRequired,
   setIsLoggedIn: PropTypes.func.isRequired,
   speechToTextModels: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string,
+    })
+  ).isRequired,
+  textToSpeechModels: PropTypes.arrayOf(
     PropTypes.shape({
       name: PropTypes.string,
     })
