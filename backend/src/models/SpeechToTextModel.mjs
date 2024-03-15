@@ -1,6 +1,10 @@
 import { Schema, model } from 'mongoose';
 
 const SpeechToTextModelSchema = new Schema({
+  id: {
+    type: String,
+    required: true,
+  },
   name: {
     type: String,
     required: true,

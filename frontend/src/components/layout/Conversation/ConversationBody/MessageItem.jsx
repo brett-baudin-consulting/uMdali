@@ -26,6 +26,7 @@ function MessageItem({ message, onDelete, onEdit, userId, user }) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const textareaRef = useRef(null);
   const audioRef = useRef(null);
+  const [pauseDuration, setPauseDuration] = useState(600);
   const maxLineCount = 4;
   const resetCopyState = useCallback(() => {
     setCopied(false);
@@ -44,51 +45,61 @@ function MessageItem({ message, onDelete, onEdit, userId, user }) {
   }, [message.files, userId]);
 
   const handleSpeakClick = useCallback(async () => {
-    // If audio is currently playing, stop it, reset state, and return
     if (isSpeaking) {
       if (audioRef.current) {
         audioRef.current.pause();
-        audioRef.current.currentTime = 0; // Reset audio to start
+        audioRef.current.currentTime = 0;
       }
       setIsSpeaking(false);
       return;
     }
-
+  
     setIsSpeaking(true);
-
-    // Split message.content by new lines to get chunks
     const textChunks = message.content.split('\n').filter(chunk => chunk.trim() !== '');
-
-    let playNextChunk; // Function to trigger playback of the next audio chunk
-
-    const playChunk = async (index) => {
-      if (index >= textChunks.length) {
-        setIsSpeaking(false); // All chunks have been played
-        return;
-      }
-
-      try {
-        const audioBlob = await convertTextToSpeech(user.settings.textToSpeechModel, textChunks[index]);
-        const audioUrl = URL.createObjectURL(audioBlob);
-        if (audioRef.current) {
-          URL.revokeObjectURL(audioRef.current.src); // Clean up previous audio object URL
-        }
-        // Use the existing audio element if it exists, otherwise create a new one
-        const audioElement = audioRef.current || new Audio();
-        audioElement.src = audioUrl;
-        audioRef.current = audioElement; // Update the ref with the new or existing audio element
-
-        audioRef.current.onended = () => playNextChunk(index + 1); // Play next chunk when current ends
-        audioRef.current.play();
-      } catch (error) {
-        console.error('Error playing text to speech:', error);
-        setIsSpeaking(false); // Ensure state is reset on error
-      }
+  
+    // Function to convert text to speech and return a promise that resolves to the audio blob
+    const convertChunkToSpeech = (chunk) => {
+      return convertTextToSpeech(user.settings.textToSpeechModel, chunk);
     };
-
-    playNextChunk = (index) => playChunk(index);
-
-    playNextChunk(0); // Start playing from the first chunk
+  
+    // Function to play the audio blob
+    const playAudioBlob = async (audioBlob) => {
+      const audioUrl = URL.createObjectURL(audioBlob);
+      if (audioRef.current) {
+        URL.revokeObjectURL(audioRef.current.src); // Clean up previous audio object URL
+      }
+      audioRef.current = new Audio(audioUrl);
+  
+      return new Promise((resolve) => {
+        audioRef.current.onended = () => resolve();
+        audioRef.current.play().catch(err => console.error('Playback error:', err));
+      });
+    };
+  
+    // Asynchronously prefetch and play audio chunks
+    const prefetchAndPlayChunks = async () => {
+      let nextAudioBlobPromise = convertChunkToSpeech(textChunks[0]);
+    
+      for (let i = 0; i < textChunks.length; i++) {
+        const currentAudioBlobPromise = nextAudioBlobPromise;
+        nextAudioBlobPromise = i + 1 < textChunks.length ? convertChunkToSpeech(textChunks[i + 1]) : null;
+    
+        const audioBlob = await currentAudioBlobPromise; // Wait for the current audio blob
+        await playAudioBlob(audioBlob); // Play current chunk
+    
+        // Wait for the specified pause duration before proceeding, unless it's the last chunk
+        if (nextAudioBlobPromise) {
+          await new Promise(resolve => setTimeout(resolve, pauseDuration));
+        }
+      }
+    
+      setIsSpeaking(false); // Reset state when all chunks have been played
+    };
+  
+    prefetchAndPlayChunks().catch(error => {
+      console.error('Error processing text to speech:', error);
+      setIsSpeaking(false);
+    });
   }, [isSpeaking, message.content, user.settings.textToSpeechModel]);
 
   const handleModalClose = useCallback(() => setIsModalOpen(false), []);

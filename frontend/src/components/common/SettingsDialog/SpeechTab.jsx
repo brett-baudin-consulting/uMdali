@@ -32,12 +32,16 @@ const SpeechTab = ({ user, setUser, speechToTextModels, textToSpeechModels }) =>
   ));
 
   const handleTextToSpeechModelChange = (e) => {
-    console.log('e.target.value: ', e.target.value);
+    console.log('e.target: ', e.target);
     setUser((prevSettings) => ({
       ...prevSettings,
       settings: {
         ...prevSettings.settings,
-        textToSpeechModel: e.target.value,
+        textToSpeechModel: {
+          ...prevSettings.settings.textToSpeechModel,
+          model_id: e.target.value,
+          vendor: e.target.options[e.target.selectedIndex].text.split(' / ')[0],
+        },
       },
     }));
   };
@@ -58,7 +62,7 @@ const SpeechTab = ({ user, setUser, speechToTextModels, textToSpeechModels }) =>
       </label>
       <label>
         {t('text_to_speech_model_title')}:
-        <select value={user.settings.textToSpeechModel} onChange={handleTextToSpeechModelChange}>
+        <select value={user.settings.textToSpeechModel.model_id} onChange={handleTextToSpeechModelChange}>
           {textToSpeechOptions}
         </select>
       </label>

@@ -12,7 +12,15 @@ export const contextShape = PropTypes.shape({
   text: PropTypes.string.isRequired,
   isDefault: PropTypes.bool,
 });
-
+export const textToSpeechShape = PropTypes.shape({
+  model_id: PropTypes.string.isRequired,
+  vendor: PropTypes.string.isRequired,
+  voice_id: PropTypes.string.isRequired,
+});
+export const speechToTextShape = PropTypes.shape({
+  model_id: PropTypes.string.isRequired,
+  vendor: PropTypes.string.isRequired,
+});
 export const settingsShape = PropTypes.shape({
   model: PropTypes.string.isRequired,
   temperature: PropTypes.number.isRequired,
@@ -21,8 +29,8 @@ export const settingsShape = PropTypes.shape({
   theme: PropTypes.string.isRequired,
   contexts: PropTypes.arrayOf(contextShape),
   macros: PropTypes.arrayOf(macroShape),
-  speechToTextModel: PropTypes.string.isRequired,
-  textToSpeechModel: PropTypes.string.isRequired,
+  speechToTextModel: speechToTextShape.isRequired,
+  textToSpeechModel: textToSpeechShape.isRequired,
 });
 
 export const userShape = PropTypes.shape({

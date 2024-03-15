@@ -23,6 +23,7 @@ const LoginDialog = ({ setUser }) => {
         return;
       }
       const userDetails = await getUser(username);
+      console.log('userDetails: ', userDetails);
       setUser(userDetails);
     } catch (fetchError) {
       console.error(fetchError);

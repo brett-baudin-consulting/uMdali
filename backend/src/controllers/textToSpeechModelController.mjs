@@ -1,22 +1,24 @@
 // textToSpeechModelController.mjs
 import TextToSpeechModel from '../models/TextToSpeechModel.mjs';
 import { logger } from '../logger.mjs';
-import ElevenLabsAPI from '../ttsAPIs/ElevenLabsAPI.mjs';
+import ElevenLabsAPI from '../ttsAPIs/ElevenLabsTTSAPI.mjs';
+import OpenAITTSAPI from '../ttsAPIs/OpenAITTSAPI.mjs';
 
 export const ttsAPIs = {
   elevenlabs: new ElevenLabsAPI(),
+  openai: new OpenAITTSAPI(), 
 };
 
-function getAPI(textToSpeechModel) {
-  const vendors = ["elevenlabs", "openai"];
-  const vendor = vendors.find(m => textToSpeechModel?.vendor === m);
+function getAPI(vendorName) {
+  const vendors = ["Eleven Labs", "OpenAI"];
+  const vendor = vendors.find(m => vendorName === m);
   // return ttsAPIs[vendor];
-  return ttsAPIs.elevenlabs;
+  return ttsAPIs.openai;
 }
 
 async function handleRequest(req, res) {
   console.log('handleRequest textToSpeechModelController.mjs');
-  const { textToSpeechModel, text } = req.body;
+  const {textToSpeechModel, text } = req.body;
   const ttsAPI = getAPI(textToSpeechModel);
   if (!ttsAPI) {
     res.status(400).json({ error: `Unsupported API: ${textToSpeechModel?.vendor}` });

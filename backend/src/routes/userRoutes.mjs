@@ -7,23 +7,49 @@ import { logger } from "../logger.mjs";
 const router = express.Router();
 
 // Joi validation schema for creating/updating a user
+const MacroSchema = Joi.object({
+  shortcut: Joi.string().required(),
+  text: Joi.string().required(),
+  macroId: Joi.string().required(),
+});
+
+const ContextSchema = Joi.object({
+  name: Joi.string().required(),
+  contextId: Joi.string().required(),
+  text: Joi.string().required(),
+  isDefault: Joi.boolean().default(false),
+});
+
+const SpeechToTextModelSchema = Joi.object({
+  model_id: Joi.string().required(),
+  vendor: Joi.string().required(),
+});
+
+const TextToSpeechModelSchema = Joi.object({
+  model_id: Joi.string().required(),
+  vendor: Joi.string().required(),
+  voice_id: Joi.string().required(),
+});
+
+const SettingsSchema = Joi.object({
+  model: Joi.string().required(),
+  speechToTextModel: SpeechToTextModelSchema.required(),
+  textToSpeechModel: TextToSpeechModelSchema.required(),
+  temperature: Joi.number().default(0.5),
+  maxTokens: Joi.number().default(1000),
+  isStreamResponse: Joi.boolean().default(true),
+  theme: Joi.string().default('dark'),
+  contexts: Joi.array().items(ContextSchema),
+  macros: Joi.array().items(MacroSchema),
+});
+
 const userSchema = Joi.object({
   userId: Joi.string().required(),
   name: Joi.string().required(),
-  settings: Joi.object({
-    model: Joi.string().required(),
-    temperature: Joi.number().default(0.5),
-    maxTokens: Joi.number().default(1000),
-    contexts: Joi.array().items(
-      Joi.object({
-        name: Joi.string().required(),
-        contextId: Joi.string().required(),
-        text: Joi.string().required(),
-        isDefault: Joi.boolean().default(false),
-      }).unknown()
-    ),
-  }).required().unknown(),
-}).unknown();
+  settings: SettingsSchema.required(),
+  createdAt: Joi.date(),
+  updatedAt: Joi.date(),
+});
 
 // Validation middleware
 const validate = (schema) => (req, res, next) => {
@@ -65,6 +91,24 @@ router.post("/", validate(userSchema), async (req, res) => {
   }
 });
 
+const cleanObject = (obj) => {
+  // Convert Mongoose documents to plain objects
+  obj = obj.toObject ? obj.toObject() : obj;
+
+  // Iterate over the properties of the object
+  Object.keys(obj).forEach(key => {
+    // If the property starts with an underscore, delete it
+    if (key.startsWith('_')) {
+      delete obj[key];
+    }
+    // If the property is an object, recursively clean it
+    else if (typeof obj[key] === 'object' && obj[key] !== null) {
+      obj[key] = cleanObject(obj[key]);
+    }
+  });
+  return obj;
+};
+
 // GET route to fetch a user by userId
 router.get("/:userId", async (req, res) => {
   try {
@@ -72,7 +116,9 @@ router.get("/:userId", async (req, res) => {
     if (!user) {
       return res.status(404).send();
     }
-    res.send(user);
+    // Clean the user object before sending it
+    const sanitizedUser = cleanObject(user);
+    res.send(sanitizedUser);
   } catch (error) {
     logger.error(error);
     res.status(500).send(error);
@@ -82,6 +128,7 @@ router.get("/:userId", async (req, res) => {
 // GET route to fetch all users
 router.get("/", async (req, res) => {
   try {
+    console.log('req: ', req);
     const users = await User.find({});
     res.send(users);
   } catch (error) {

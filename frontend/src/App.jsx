@@ -40,6 +40,10 @@ function App() {
   const [theme, setTheme] = useState('dark');
   const [error, setError] = useState(null);
 
+  useEffect(() => {
+    console.log('user: ', user);
+  }, [user]);
+  
   const handleLogin = async (user) => {
     setUser(user);
     setIsLoggedIn(true);

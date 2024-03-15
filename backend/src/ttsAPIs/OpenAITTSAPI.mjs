@@ -3,23 +3,24 @@ import TTSAPI from "./TTSAPI.mjs";
 import { logger } from "../logger.mjs";
 
 const VOICEID = '2EiwWnXFnvU5JabPnv8n';
-class ElevenLabsAPI extends TTSAPI {
+class OpenAITTSAPI extends TTSAPI {
     async sendRequest(textToSpeechModel, text, signal) {
-        console.log('ElevenLabsAPI sendRequest');
-        const { ELEVENLABS_API_URL, ELEVENLABS_API_KEY } = process.env;
+        console.log('OpenAIAPI sendRequest');
+        const { OPENAI_TTS_API_URL, OPENAI_TTS_API_KEY } = process.env;
         const body = {
-            text,
-            modE_id: textToSpeechModel
+            input: text,
+            model: textToSpeechModel,
+            voice: "alloy",
         };
         const headers = {
+            Authorization: `Bearer ${OPENAI_TTS_API_KEY}`,
             "Content-Type": "application/json",
-            "xi-api-key": `${ELEVENLABS_API_KEY}`
         };
 
         try {
-            console.log('ELEVENLABS_API_URL:', `${ELEVENLABS_API_URL}/${VOICEID}`);
+            console.log('OPENAI_TTS_API_URL:', `${OPENAI_TTS_API_URL}`);
             console.log('body:', body);
-            const response = await fetch(`${ELEVENLABS_API_URL}/${VOICEID}`, {
+            const response = await fetch(`${OPENAI_TTS_API_URL}`, {
                 method: "POST",
                 headers,
                 body: JSON.stringify(body)
@@ -27,9 +28,9 @@ class ElevenLabsAPI extends TTSAPI {
 
             if (!response.ok) {
                 const error = await response.text();
-                console.log('ElevenLabsAPI sendRequest error:', error);
-                logger.error(`ElevenLabs API error: ${error}, Status Code: ${response.status}`);
-                throw new Error(`ElevenLabs API error: ${error}, Status Code: ${response.status}`);
+                console.log('OpenAI API sendRequest error:', error);
+                logger.error(`OpenAI API error: ${error}, Status Code: ${response.status}`);
+                throw new Error(`OpenAI API error: ${error}, Status Code: ${response.status}`);
             }
 
             // Using response.arrayBuffer() and converting it to a Buffer
@@ -37,10 +38,10 @@ class ElevenLabsAPI extends TTSAPI {
             const audio = Buffer.from(arrayBuffer);
             return audio;
         } catch (error) {
-            logger.error(`Error sending request to ElevenLabs API: ${error.message}`);
+            logger.error(`Error sending request to OpenAI API: ${error.message}`);
             throw error;
         }
     }
 }
 
-export default ElevenLabsAPI;
+export default OpenAITTSAPI;

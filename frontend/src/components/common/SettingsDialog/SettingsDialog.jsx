@@ -35,7 +35,7 @@ function SettingsDialog({ onClose, models, user, setUser, speechToTextModels, te
   useEffect(() => {
   }, [user]);
   const contentMap = {
-    general: <GeneralTab user={user} setUser={setUser} models={models} speechModels={speechToTextModels} />,
+    general: <GeneralTab user={user} setUser={setUser} models={models} />,
     speech: <SpeechTab user={user} setUser={setUser} speechToTextModels={speechToTextModels} textToSpeechModels={textToSpeechModels} />,
     context: <ContextTab user={user} setUser={setUser} />,
     macro: <MacroTab user={user} setUser={setUser} />,
@@ -48,8 +48,10 @@ function SettingsDialog({ onClose, models, user, setUser, speechToTextModels, te
         ...user,
         settings: {
           ...user.settings,
-          contexts: user.settings.contexts.filter(context => context.name), // Filter out contexts with null or empty name
-          macros: user.settings.macros.filter(macro => macro.shortcut) // Filter out macros with null or empty name
+          contexts: user.settings.contexts.filter(context => context.name),
+          macros: user.settings.macros.filter(macro => macro.shortcut),
+          textToSpeechModel: user.settings.textToSpeechModel,
+          speechToTextModel: user.settings.speechToTextModel,
         }
       };
       await updateUser(updatedUser);
