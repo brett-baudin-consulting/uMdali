@@ -4,13 +4,13 @@ import { logger } from "../logger.mjs";
 
 const VOICEID = '2EiwWnXFnvU5JabPnv8n';
 class OpenAITTSAPI extends TTSAPI {
-    async sendRequest(textToSpeechModel, text, signal) {
+    async sendRequest(textToSpeechModel, text, signal, voice_id) {
         console.log('OpenAIAPI sendRequest');
         const { OPENAI_TTS_API_URL, OPENAI_TTS_API_KEY } = process.env;
         const body = {
             input: text,
             model: textToSpeechModel,
-            voice: "alloy",
+            voice: voice_id,
         };
         const headers = {
             Authorization: `Bearer ${OPENAI_TTS_API_KEY}`,

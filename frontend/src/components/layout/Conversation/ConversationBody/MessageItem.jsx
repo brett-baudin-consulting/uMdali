@@ -53,15 +53,20 @@ function MessageItem({ message, onDelete, onEdit, userId, user }) {
       setIsSpeaking(false);
       return;
     }
-  
+
     setIsSpeaking(true);
     const textChunks = message.content.split('\n').filter(chunk => chunk.trim() !== '');
-  
+
     // Function to convert text to speech and return a promise that resolves to the audio blob
     const convertChunkToSpeech = (chunk) => {
-      return convertTextToSpeech(user.settings.textToSpeechModel, chunk);
+      return convertTextToSpeech(
+        user.settings.textToSpeechModel.model_id,
+        chunk,
+        user.settings.textToSpeechModel.voice_id,
+        user.settings.textToSpeechModel.vendor
+        );
     };
-  
+
     // Function to play the audio blob
     const playAudioBlob = async (audioBlob) => {
       const audioUrl = URL.createObjectURL(audioBlob);
@@ -69,33 +74,33 @@ function MessageItem({ message, onDelete, onEdit, userId, user }) {
         URL.revokeObjectURL(audioRef.current.src); // Clean up previous audio object URL
       }
       audioRef.current = new Audio(audioUrl);
-  
+
       return new Promise((resolve) => {
         audioRef.current.onended = () => resolve();
         audioRef.current.play().catch(err => console.error('Playback error:', err));
       });
     };
-  
+
     // Asynchronously prefetch and play audio chunks
     const prefetchAndPlayChunks = async () => {
       let nextAudioBlobPromise = convertChunkToSpeech(textChunks[0]);
-    
+
       for (let i = 0; i < textChunks.length; i++) {
         const currentAudioBlobPromise = nextAudioBlobPromise;
         nextAudioBlobPromise = i + 1 < textChunks.length ? convertChunkToSpeech(textChunks[i + 1]) : null;
-    
+
         const audioBlob = await currentAudioBlobPromise; // Wait for the current audio blob
         await playAudioBlob(audioBlob); // Play current chunk
-    
+
         // Wait for the specified pause duration before proceeding, unless it's the last chunk
         if (nextAudioBlobPromise) {
           await new Promise(resolve => setTimeout(resolve, pauseDuration));
         }
       }
-    
+
       setIsSpeaking(false); // Reset state when all chunks have been played
     };
-  
+
     prefetchAndPlayChunks().catch(error => {
       console.error('Error processing text to speech:', error);
       setIsSpeaking(false);

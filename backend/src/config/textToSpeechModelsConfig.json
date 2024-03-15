@@ -69,7 +69,7 @@
                 "name": "Joseph"
             },
             {
-                "voice": "bVMeCyTHy58xNoL34h3p",
+                "id": "bVMeCyTHy58xNoL34h3p",
                 "name": "Jeremy"
             },
             {
@@ -193,7 +193,7 @@
                 "name": "Joseph"
             },
             {
-                "voice": "bVMeCyTHy58xNoL34h3p",
+                "id": "bVMeCyTHy58xNoL34h3p",
                 "name": "Jeremy"
             },
             {
@@ -317,7 +317,7 @@
                 "name": "Joseph"
             },
             {
-                "voice": "bVMeCyTHy58xNoL34h3p",
+                "id": "bVMeCyTHy58xNoL34h3p",
                 "name": "Jeremy"
             },
             {
@@ -377,27 +377,27 @@
         "vendor": "OpenAI",
         "voices": [
             {
-                "name": "alloy",
+                "name": "Alloy",
                 "id": "alloy"
             },
             {
-                "name": "echo",
+                "name": "Echo",
                 "id": "echo"
             },
             {
-                "name": "fable",
+                "name": "Fable",
                 "id": "fable"
             },
             {
-                "name": "onyx",
+                "name": "Onyx",
                 "id": "onyx"
             },
             {
-                "name": "nova",
+                "name": "Nova",
                 "id": "nova"
             },
             {
-                "name": "shimmer",
+                "name": "Shimmer",
                 "id": "shimmer"
             }
         ],
@@ -409,27 +409,27 @@
         "vendor": "OpenAI",
         "voices": [
             {
-                "name": "alloy",
+                "name": "Alloy",
                 "id": "alloy"
             },
             {
-                "name": "echo",
+                "name": "Echo",
                 "id": "echo"
             },
             {
-                "name": "fable",
+                "name": "Fable",
                 "id": "fable"
             },
             {
-                "name": "onyx",
+                "name": "Onyx",
                 "id": "onyx"
             },
             {
-                "name": "nova",
+                "name": "Nova",
                 "id": "nova"
             },
             {
-                "name": "shimmer",
+                "name": "Shimmer",
                 "id": "shimmer"
             }
         ],

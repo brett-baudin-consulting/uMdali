@@ -77,5 +77,6 @@
     "type_a_message": "Type a message...\nShift + Enter for new line",
     "user_title": "User",
     "user": "👤",
-    "username": "Username"
+    "username": "Username",
+    "voice_settings_title": "Voice"
 }

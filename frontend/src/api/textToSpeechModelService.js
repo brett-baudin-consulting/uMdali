@@ -21,7 +21,7 @@ const fetchTextToSpeechModels = async () => {
     }
 };
 
-const convertTextToSpeech = async (textToSpeechModel, text) => {
+const convertTextToSpeech = async (textToSpeechModel, text, voice_id, vendor) => {
     try {
         console.log('textToSpeechModel:', textToSpeechModel);
         console.log('text:', text);
@@ -30,7 +30,7 @@ const convertTextToSpeech = async (textToSpeechModel, text) => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ textToSpeechModel, text }),
+            body: JSON.stringify({ textToSpeechModel, text, vendor, voice_id }),
         });
         if (response.ok) {
             const audioBlob = await response.blob();
