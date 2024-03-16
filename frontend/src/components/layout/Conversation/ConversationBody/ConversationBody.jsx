@@ -12,6 +12,7 @@ const ConversationBody = ({
   setCurrentConversation,
   setConversations,
   user,
+  setError
 }) => {
 
   const messagesEndRef = useRef(null);
@@ -76,6 +77,7 @@ const ConversationBody = ({
                 onEdit={(newContent) => editMessage(msg.messageId, newContent)}
                 userId={currentConversation.userId}
                 user={user}
+                setError={setError}
               />
             </li>
           ))}
@@ -90,6 +92,7 @@ ConversationBody.propTypes = {
   setConversations: PropTypes.func.isRequired,
   setCurrentConversation: PropTypes.func.isRequired,
   user: userShape.isRequired,
+  setError: PropTypes.func.isRequired
 };
 
 export default ConversationBody;

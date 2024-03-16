@@ -15,7 +15,7 @@ import { userShape } from "../../../../model/userPropType";
 
 import './MessageItem.scss';
 
-function MessageItem({ message, onDelete, onEdit, userId, user }) {
+function MessageItem({ message, onDelete, onEdit, userId, user, setError }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,12 +59,13 @@ function MessageItem({ message, onDelete, onEdit, userId, user }) {
 
     // Function to convert text to speech and return a promise that resolves to the audio blob
     const convertChunkToSpeech = (chunk) => {
-      return convertTextToSpeech(
+      const speech = convertTextToSpeech(
         user.settings.textToSpeechModel.model_id,
         chunk,
         user.settings.textToSpeechModel.voice_id,
         user.settings.textToSpeechModel.vendor
-        );
+      );
+      return speech;
     };
 
     // Function to play the audio blob
@@ -83,22 +84,36 @@ function MessageItem({ message, onDelete, onEdit, userId, user }) {
 
     // Asynchronously prefetch and play audio chunks
     const prefetchAndPlayChunks = async () => {
-      let nextAudioBlobPromise = convertChunkToSpeech(textChunks[0]);
-
-      for (let i = 0; i < textChunks.length; i++) {
-        const currentAudioBlobPromise = nextAudioBlobPromise;
-        nextAudioBlobPromise = i + 1 < textChunks.length ? convertChunkToSpeech(textChunks[i + 1]) : null;
-
-        const audioBlob = await currentAudioBlobPromise; // Wait for the current audio blob
-        await playAudioBlob(audioBlob); // Play current chunk
-
-        // Wait for the specified pause duration before proceeding, unless it's the last chunk
-        if (nextAudioBlobPromise) {
-          await new Promise(resolve => setTimeout(resolve, pauseDuration));
+      try {
+        if (textChunks.length === 0) {
+          throw new Error('No text chunks to process');
         }
-      }
 
-      setIsSpeaking(false); // Reset state when all chunks have been played
+        let hasNextChunk = true;
+        let nextChunkIndex = 0;
+        let nextAudioBlobPromise = convertChunkToSpeech(textChunks[nextChunkIndex]);
+
+        while (hasNextChunk) {
+          const currentAudioBlobPromise = nextAudioBlobPromise;
+
+          nextChunkIndex++;
+          hasNextChunk = nextChunkIndex < textChunks.length;
+          nextAudioBlobPromise = hasNextChunk ? convertChunkToSpeech(textChunks[nextChunkIndex]) : null;
+
+          const audioBlob = await currentAudioBlobPromise; // Wait for the current audio blob
+          await playAudioBlob(audioBlob); // Play current chunk
+
+          // Wait for the specified pause duration before proceeding, unless it's the last chunk
+          if (hasNextChunk) {
+            await new Promise(resolve => setTimeout(resolve, pauseDuration));
+          }
+        }
+      } catch (error) {
+        console.log('Error processing text to speech:', error);
+        setError(error.message); // Use setError here to handle the error
+      } finally {
+        setIsSpeaking(false); // Reset state when all chunks have been played or an error occurs
+      }
     };
 
     prefetchAndPlayChunks().catch(error => {
@@ -279,6 +294,7 @@ MessageItem.propTypes = {
   onEdit: PropTypes.func.isRequired,
   userId: PropTypes.string.isRequired,
   user: userShape.isRequired,
+  setError: PropTypes.func.isRequired,
 };
 
 export default MessageItem;

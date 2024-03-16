@@ -1,3 +1,4 @@
+import { t } from 'i18next';
 import { SERVER_BASE_URL } from '../config/config';
 
 const API_ENDPOINTS = {
@@ -36,12 +37,13 @@ const convertTextToSpeech = async (textToSpeechModel, text, voice_id, vendor) =>
             const audioBlob = await response.blob();
             return audioBlob; 
         } else {
-            console.error('Error:', response.statusText);
-            return { success: false, error: response.statusText }; 
+            const errorText = await response.text();
+            console.error('Error1:', errorText);
+            throw new Error(errorText);
         }
     } catch (error) {
-        console.error('Error:', error);
-        return { success: false, error };
+        console.error('Error2:', error);
+        throw error;
     }
 };
 

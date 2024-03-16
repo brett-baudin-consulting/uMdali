@@ -367,6 +367,7 @@ function App() {
               setCurrentConversation={setCurrentConversation}
               setConversations={setConversations}
               user={user}
+              setError={setError}
             />
             {/* {error && ( */}
             <div className="error">
