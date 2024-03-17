@@ -15,6 +15,9 @@ import { userShape } from "../../../../model/userPropType";
 
 import './MessageItem.scss';
 
+const maxLineCount = 4;
+const pauseDuration = 600;
+
 function MessageItem({ message, onDelete, onEdit, userId, user, setError }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
@@ -26,8 +29,6 @@ function MessageItem({ message, onDelete, onEdit, userId, user, setError }) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const textareaRef = useRef(null);
   const audioRef = useRef(null);
-  const [pauseDuration, setPauseDuration] = useState(600);
-  const maxLineCount = 4;
   const resetCopyState = useCallback(() => {
     setCopied(false);
   }, []);
@@ -120,7 +121,7 @@ function MessageItem({ message, onDelete, onEdit, userId, user, setError }) {
       console.error('Error processing text to speech:', error);
       setIsSpeaking(false);
     });
-  }, [isSpeaking, message.content, user.settings.textToSpeechModel]);
+  }, [isSpeaking, message.content, pauseDuration, setError, user.settings.textToSpeechModel.model_id, user.settings.textToSpeechModel.vendor, user.settings.textToSpeechModel.voice_id]);
 
   const handleModalClose = useCallback(() => setIsModalOpen(false), []);
 
@@ -262,8 +263,8 @@ function MessageItem({ message, onDelete, onEdit, userId, user, setError }) {
           </div>
         </div>
         <div className="message-images">
-          {imageUrls.map((url, index) => (
-            <img key={index} src={url} alt={`Message attachment ${index + 1}`} />
+          {imageUrls.map((url) => (
+            <img key={url} src={url} alt="Message attachment" />
           ))}
         </div>
         <div className={`message-content ${!isExpanded ? 'message-content-shrink' : ''}`}>
