@@ -1,5 +1,6 @@
-// textToSpeechModelRoutes.mjs
 import express from 'express';
+import { StatusCodes } from 'http-status-codes';
+
 import { logger } from '../logger.mjs';
 import TextToSpeechModel from '../models/TextToSpeechModel.mjs';
 import { handleRequest, ttsAPIs } from '../controllers/textToSpeechModelController.mjs';
@@ -14,18 +15,18 @@ router.post('/abort', async (req, res, next) => {
 
   if (!messageAPI) {
     logger.error(`Unsupported API: ${api}`);
-    return res.status(400).json({ error: `Unsupported API: ${api}` });
+    return res.status(StatusCodes.BAD_REQUEST).json({ error: `Unsupported API: ${api}` });
   }
 
   if (typeof messageAPI.abortRequest !== 'function') {
     logger.error(`API ${api} does not support aborting requests.`);
-    return res.status(400).json({ error: `API ${api} does not support aborting requests.` });
+    return res.status(StatusCodes.BAD_REQUEST).json({ error: `API ${api} does not support aborting requests.` });
   }
 
   try {
     await messageAPI.abortRequest();
     logger.info(`Request to API ${api} has been aborted.`);
-    res.status(202).json({ message: `Request to API ${api} has been aborted.` });
+    res.status(StatusCodes.ACCEPTED).json({ message: `Request to API ${api} has been aborted.` });
   } catch (error) {
     next(error);
   }
@@ -42,7 +43,11 @@ router.get('/', async (req, res, next) => {
 
 router.use((err, req, res, next) => {
   logger.error(err);
-  res.status(500).json({ error: 'An unexpected error occurred' });
+
+  const statusCode = err.isOperational ? StatusCodes.BAD_REQUEST : StatusCodes.INTERNAL_SERVER_ERROR;
+  const errorMessage = err.isOperational ? err.message : 'An unexpected error occurred';
+
+  res.status(statusCode).json({ error: errorMessage });
 });
 
 export default router;

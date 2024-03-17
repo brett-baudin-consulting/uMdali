@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
 import { upsertModel } from '../controllers/textToSpeechModelController.mjs';
 import { logger } from '../logger.mjs';
 
@@ -11,6 +12,8 @@ export default async function loadSpeechToTextModels() {
   try {
     const modelsConfigJson = await fs.readFile(modelsConfigPath, 'utf8');
     let modelsConfig;
+
+    // Attempt to parse the JSON, log and return on failure.
     try {
       modelsConfig = JSON.parse(modelsConfigJson);
     } catch (parseError) {
@@ -18,6 +21,7 @@ export default async function loadSpeechToTextModels() {
       return;
     }
 
+    // Process each model in the configuration.
     for (const modelData of modelsConfig) {
       try {
         await upsertModel(modelData);

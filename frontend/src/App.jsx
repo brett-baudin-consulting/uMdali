@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef} from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
+
 import { ThemeProvider } from './ThemeContext';
 import {
   useConversations,
@@ -40,10 +41,6 @@ function App() {
   const [theme, setTheme] = useState('dark');
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    console.log('user: ', user);
-  }, [user]);
-  
   const handleLogin = async (user) => {
     setUser(user);
     setIsLoggedIn(true);
@@ -163,7 +160,7 @@ function App() {
     }
     return model.isSupportsVision;
   };
-  
+
   useEffect(() => {
     // Only run this effect if the user is logged in
     if (isLoggedIn) {

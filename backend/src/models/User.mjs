@@ -26,8 +26,8 @@ const TextToSpeechModelSchema = new Schema({
 
 const SettingsSchema = new Schema({
   model: { type: String, required: true },
-  speechToTextModel: {type: SpeechToTextModelSchema, required: true},
-  textToSpeechModel: {type: TextToSpeechModelSchema, required: true},
+  speechToTextModel: { type: SpeechToTextModelSchema, required: true },
+  textToSpeechModel: { type: TextToSpeechModelSchema, required: true },
   temperature: { type: Number, default: 0.5 },
   maxTokens: { type: Number, default: 1000 },
   isStreamResponse: { type: Boolean, default: true },

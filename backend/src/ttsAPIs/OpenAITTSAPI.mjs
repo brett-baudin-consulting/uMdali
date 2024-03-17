@@ -2,11 +2,15 @@ import fetch from "node-fetch";
 import TTSAPI from "./TTSAPI.mjs";
 import { logger } from "../logger.mjs";
 
-const VOICEID = '2EiwWnXFnvU5JabPnv8n';
 class OpenAITTSAPI extends TTSAPI {
-    async sendRequest(textToSpeechModel, text, signal, voice_id) {
-        console.log('OpenAIAPI sendRequest');
+    async sendRequest(textToSpeechModel, text, voice_id, signal) {
         const { OPENAI_TTS_API_URL, OPENAI_TTS_API_KEY } = process.env;
+
+        if (!OPENAI_TTS_API_URL || !OPENAI_TTS_API_KEY) {
+            logger.error('OPENAI_TTS_API_URL or OPENAI_TTS_API_KEY is not defined in environment variables.');
+            throw new Error('Required environment variables are not set.');
+        }
+
         const body = {
             input: text,
             model: textToSpeechModel,
@@ -18,22 +22,19 @@ class OpenAITTSAPI extends TTSAPI {
         };
 
         try {
-            console.log('OPENAI_TTS_API_URL:', `${OPENAI_TTS_API_URL}`);
-            console.log('body:', body);
-            const response = await fetch(`${OPENAI_TTS_API_URL}`, {
+            const response = await fetch(OPENAI_TTS_API_URL, {
                 method: "POST",
                 headers,
-                body: JSON.stringify(body)
-            }, { signal });
+                body: JSON.stringify(body),
+                signal: signal
+            });
 
             if (!response.ok) {
                 const error = await response.text();
-                console.log('OpenAI API sendRequest error:', error);
                 logger.error(`OpenAI API error: ${error}, Status Code: ${response.status}`);
                 throw new Error(`OpenAI API error: ${error}, Status Code: ${response.status}`);
             }
 
-            // Using response.arrayBuffer() and converting it to a Buffer
             const arrayBuffer = await response.arrayBuffer();
             const audio = Buffer.from(arrayBuffer);
             return audio;

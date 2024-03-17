@@ -55,6 +55,7 @@ function MessageItem({ message, onDelete, onEdit, userId, user, setError }) {
       return;
     }
 
+    setError(null);
     setIsSpeaking(true);
     const textChunks = message.content.split('\n').filter(chunk => chunk.trim() !== '');
 
@@ -110,7 +111,6 @@ function MessageItem({ message, onDelete, onEdit, userId, user, setError }) {
           }
         }
       } catch (error) {
-        console.log('Error processing text to speech:', error);
         setError(error.message); // Use setError here to handle the error
       } finally {
         setIsSpeaking(false); // Reset state when all chunks have been played or an error occurs
@@ -121,7 +121,7 @@ function MessageItem({ message, onDelete, onEdit, userId, user, setError }) {
       console.error('Error processing text to speech:', error);
       setIsSpeaking(false);
     });
-  }, [isSpeaking, message.content, pauseDuration, setError, user.settings.textToSpeechModel.model_id, user.settings.textToSpeechModel.vendor, user.settings.textToSpeechModel.voice_id]);
+  }, [isSpeaking, message.content, setError, user.settings.textToSpeechModel.model_id, user.settings.textToSpeechModel.vendor, user.settings.textToSpeechModel.voice_id]);
 
   const handleModalClose = useCallback(() => setIsModalOpen(false), []);
 
@@ -257,7 +257,7 @@ function MessageItem({ message, onDelete, onEdit, userId, user, setError }) {
                 title={isSpeaking ? t('stop_speaking_title') : t('speak_title')}
                 onClick={handleSpeakClick}
               >
-                {isSpeaking ? t('stop') : t('speak')}
+                {isSpeaking ? t('stop_speaking') : t('speak')}
               </button>
             </div>
           </div>

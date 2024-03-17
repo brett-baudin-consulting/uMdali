@@ -24,8 +24,6 @@ const fetchTextToSpeechModels = async () => {
 
 const convertTextToSpeech = async (textToSpeechModel, text, voice_id, vendor) => {
     try {
-        console.log('textToSpeechModel:', textToSpeechModel);
-        console.log('text:', text);
         const response = await fetch(`${SERVER_BASE_URL}${API_ENDPOINTS.TEXT_TO_SPEECH_MODEL}`, {
             method: 'POST',
             headers: {

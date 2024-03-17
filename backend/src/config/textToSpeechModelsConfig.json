@@ -118,7 +118,7 @@
             },
             {
                 "id": "zrHiDhphv9ZnVXBqCLjz",
-                "voice": "Mimi"
+                "name": "Mimi"
             }
         ],
         "available": true
@@ -242,7 +242,7 @@
             },
             {
                 "id": "zrHiDhphv9ZnVXBqCLjz",
-                "voice": "Mimi"
+                "name": "Mimi"
             }
         ],
         "available": true
@@ -366,7 +366,7 @@
             },
             {
                 "id": "zrHiDhphv9ZnVXBqCLjz",
-                "voice": "Mimi"
+                "name": "Mimi"
             }
         ],
         "available": true

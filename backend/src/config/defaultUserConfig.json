@@ -11,7 +11,7 @@
     "textToSpeechModel": {
       "model_id": "tts-1",
       "vendor": "OpenAI",
-      "voice_id": "jason"
+      "voice_id": "shimmer"
     },    
     "theme": "dark",
     "contexts": [

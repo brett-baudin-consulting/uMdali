@@ -1,5 +1,6 @@
 import express from "express";
 import Joi from "joi";
+import { StatusCodes } from "http-status-codes";
 
 import User from "../models/User.mjs";
 import { logger } from "../logger.mjs";
@@ -53,10 +54,11 @@ const userSchema = Joi.object({
 
 // Validation middleware
 const validate = (schema) => (req, res, next) => {
-  const { error } = schema.validate(req.body);
+  const { error } = schema.validate(req.body, { abortEarly: false }); // Disable abortEarly to get all errors
   if (error) {
     logger.error(error);
-    return res.status(400).send(error.details[0].message);
+    const errors = error.details.map(detail => detail.message);
+    return res.status(StatusCodes.BAD_REQUEST).json({ errors });
   }
   next();
 };
@@ -70,12 +72,12 @@ router.put("/:userId", validate(userSchema), async (req, res) => {
       { new: true, overwrite: true, runValidators: true }
     );
     if (!user) {
-      return res.status(404).send();
+      return res.status(StatusCodes.NOT_FOUND).send();
     }
     res.send(user);
   } catch (error) {
     logger.error(error);
-    res.status(400).send(error);
+    res.status(StatusCodes.BAD_REQUEST).send(error);
   }
 });
 
@@ -87,25 +89,22 @@ router.post("/", validate(userSchema), async (req, res) => {
     res.status(201).send(user);
   } catch (error) {
     logger.error(error);
-    res.status(400).send(error);
+    res.status(StatusCodes.BAD_REQUEST).send(error);
   }
 });
 
 const cleanObject = (obj) => {
-  // Convert Mongoose documents to plain objects
-  obj = obj.toObject ? obj.toObject() : obj;
-
-  // Iterate over the properties of the object
-  Object.keys(obj).forEach(key => {
-    // If the property starts with an underscore, delete it
-    if (key.startsWith('_')) {
-      delete obj[key];
+  obj = obj.toObject ? obj.toObject({
+    versionKey: false, transform: (doc, ret) => {
+      Object.keys(ret).forEach(key => {
+        if (key.startsWith('_')) {
+          delete ret[key];
+        } else if (typeof ret[key] === 'object' && ret[key] !== null) {
+          ret[key] = cleanObject(ret[key]);
+        }
+      });
     }
-    // If the property is an object, recursively clean it
-    else if (typeof obj[key] === 'object' && obj[key] !== null) {
-      obj[key] = cleanObject(obj[key]);
-    }
-  });
+  }) : obj;
   return obj;
 };
 
@@ -114,26 +113,25 @@ router.get("/:userId", async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.params.userId });
     if (!user) {
-      return res.status(404).send();
+      return res.status(StatusCodes.NOT_FOUND).send();
     }
     // Clean the user object before sending it
     const sanitizedUser = cleanObject(user);
     res.send(sanitizedUser);
   } catch (error) {
     logger.error(error);
-    res.status(500).send(error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(error);
   }
 });
 
 // GET route to fetch all users
 router.get("/", async (req, res) => {
   try {
-    console.log('req: ', req);
     const users = await User.find({});
     res.send(users);
   } catch (error) {
     logger.error(error);
-    res.status(500).send(error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(error);
   }
 });
 
@@ -142,12 +140,12 @@ router.delete("/:userId", async (req, res) => {
   try {
     const user = await User.findOneAndDelete({ userId: req.params.userId });
     if (!user) {
-      return res.status(404).send();
+      return res.status(StatusCodes.NOT_FOUND).send();
     }
     res.send(user);
   } catch (error) {
     logger.error(error);
-    res.status(500).send(error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(error);
   }
 });
 

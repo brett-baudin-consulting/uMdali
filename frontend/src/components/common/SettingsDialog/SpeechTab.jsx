@@ -6,27 +6,22 @@ import { userShape } from "../../../model/userPropType";
 import "./SpeechTab.scss";
 
 const SpeechTab = ({ user, setUser, speechToTextModels, textToSpeechModels }) => {
-  useEffect(() => {
-    console.log('textToSpeechModels: ', textToSpeechModels);
-  }, [textToSpeechModels]);
   const { t } = useTranslation();
-  const initialModel = textToSpeechModels.find(model => model.id === user.settings.textToSpeechModel.model_id);
-  const initialVoices = initialModel && Array.isArray(initialModel.voices) 
-    ? initialModel.voices
-        .filter(voice => voice?.name)
-        .sort((a, b) => a.name.localeCompare(b.name)) 
-    : [];
-      const [selectedModelVoices, setSelectedModelVoices] = useState(initialVoices);
+  const [selectedModelVoices, setSelectedModelVoices] = useState([]);
 
   useEffect(() => {
-    console.log('user: ', user);
-  }, [user]);
+    const initialModel = textToSpeechModels.find(
+      (model) => model.id === user.settings.textToSpeechModel.model_id
+    );
+    const initialVoices = initialModel?.voices?.filter((voice) => voice?.name).sort((a, b) => a.name.localeCompare(b.name)) || [];
+    setSelectedModelVoices(initialVoices);
+  }, [user.settings.textToSpeechModel.model_id, textToSpeechModels]);
 
   const handleSpeechToTextModelChange = (e) => {
-    setUser((prevSettings) => ({
-      ...prevSettings,
+    setUser((prevUser) => ({
+      ...prevUser,
       settings: {
-        ...prevSettings.settings,
+        ...prevUser.settings,
         speechToTextModel: e.target.value,
       },
     }));
@@ -39,28 +34,34 @@ const SpeechTab = ({ user, setUser, speechToTextModels, textToSpeechModels }) =>
   ));
 
   const handleTextToSpeechModelChange = (e) => {
-    const selectedModel = textToSpeechModels.find(model => model.id === e.target.value);
-    
-    if (selectedModel && Array.isArray(selectedModel.voices)) {
+    const selectedModel = textToSpeechModels.find((model) => model.id === e.target.value);
+
+    if (selectedModel) {
       const sortedVoices = selectedModel.voices
-        .filter(voice => voice?.name)
-        .sort((a, b) => a.name.localeCompare(b.name));
+        ?.filter((voice) => voice?.name)
+        .sort((a, b) => a.name.localeCompare(b.name)) || [];
       setSelectedModelVoices(sortedVoices);
+
+      // Check if the currently selected voice is in the new list of voices
+      const currentVoiceId = user.settings.textToSpeechModel.voice_id;
+      const defaultVoiceId = sortedVoices.length > 0 ? sortedVoices[0].id : '';
+      const isCurrentVoiceInList = sortedVoices.some(voice => voice.id === currentVoiceId);
+
+      setUser((prevUser) => ({
+        ...prevUser,
+        settings: {
+          ...prevUser.settings,
+          textToSpeechModel: {
+            ...prevUser.settings.textToSpeechModel,
+            model_id: e.target.value,
+            voice_id: isCurrentVoiceInList ? currentVoiceId : defaultVoiceId, // Use default voice if current is not in list
+            vendor: selectedModel.vendor,
+          },
+        },
+      }));
     } else {
       setSelectedModelVoices([]);
     }
-  
-    setUser((prevSettings) => ({
-      ...prevSettings,
-      settings: {
-        ...prevSettings.settings,
-        textToSpeechModel: {
-          ...prevSettings.settings.textToSpeechModel,
-          model_id: e.target.value,
-          vendor: selectedModel ? selectedModel.vendor : '',
-        },
-      },
-    }));
   };
 
   const textToSpeechOptions = textToSpeechModels.map((model) => (
@@ -68,11 +69,13 @@ const SpeechTab = ({ user, setUser, speechToTextModels, textToSpeechModels }) =>
       {model.vendor} / {model.name}
     </option>
   ));
+
   const voiceOptions = selectedModelVoices.map((voice) => (
     <option key={voice.id} value={voice.id}>
       {voice.name}
     </option>
-  ));  
+  ));
+
   const handleVoiceChange = (e) => {
     const selectedVoiceId = e.target.value;
     setUser((prevUser) => ({
@@ -86,10 +89,7 @@ const SpeechTab = ({ user, setUser, speechToTextModels, textToSpeechModels }) =>
       },
     }));
   };
-  useEffect(() => {
-    console.log('voiceOptions: ', voiceOptions);
-  }
-  , [voiceOptions]);
+
   return (
     <div className="speech-tab">
       <label>
@@ -125,17 +125,20 @@ SpeechTab.propTypes = {
   speechToTextModels: PropTypes.arrayOf(
     PropTypes.shape({
       name: PropTypes.string.isRequired,
+      vendor: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  textToSpeechModels: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      vendor: PropTypes.string.isRequired,
       voices: PropTypes.arrayOf(
         PropTypes.shape({
           id: PropTypes.string.isRequired,
           name: PropTypes.string.isRequired,
         })
       ),
-    })
-  ).isRequired,
-  textToSpeechModels: PropTypes.arrayOf(
-    PropTypes.shape({
-      name: PropTypes.string.isRequired,
     })
   ).isRequired,
 };

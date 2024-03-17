@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import PropTypes from "prop-types";
+
 import SettingsDialog from "../../../common/SettingsDialog/SettingsDialog";
 import UserMenu from "./UserMenu";
 
@@ -13,12 +14,16 @@ const ConversationHeader = ({ models,
   setIsLoggedIn,
   speechToTextModels,
   textToSpeechModels
- }) => {
+}) => {
   const { t } = useTranslation();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleSettingsClick = useCallback(() => {
     setIsSettingsOpen((isOpen) => !isOpen);
+  }, []);
+
+  const handleCloseSettings = useCallback(() => {
+    setIsSettingsOpen(false);
   }, []);
 
   return (
@@ -36,7 +41,7 @@ const ConversationHeader = ({ models,
       </button>
       {isSettingsOpen && (
         <SettingsDialog
-          onClose={() => setIsSettingsOpen(false)}
+          onClose={handleCloseSettings}
           user={user}
           setUser={setUser}
           models={models}
