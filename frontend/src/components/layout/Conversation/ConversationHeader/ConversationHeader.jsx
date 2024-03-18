@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import PropTypes from "prop-types";
+
 import SettingsDialog from "../../../common/SettingsDialog/SettingsDialog";
 import UserMenu from "./UserMenu";
 
@@ -11,12 +12,18 @@ const ConversationHeader = ({ models,
   setUser,
   isLoggedIn,
   setIsLoggedIn,
-  speechToTextModels }) => {
+  speechToTextModels,
+  textToSpeechModels
+}) => {
   const { t } = useTranslation();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleSettingsClick = useCallback(() => {
     setIsSettingsOpen((isOpen) => !isOpen);
+  }, []);
+
+  const handleCloseSettings = useCallback(() => {
+    setIsSettingsOpen(false);
   }, []);
 
   return (
@@ -34,11 +41,12 @@ const ConversationHeader = ({ models,
       </button>
       {isSettingsOpen && (
         <SettingsDialog
-          onClose={() => setIsSettingsOpen(false)}
+          onClose={handleCloseSettings}
           user={user}
           setUser={setUser}
           models={models}
           speechToTextModels={speechToTextModels}
+          textToSpeechModels={textToSpeechModels}
         />
       )}
     </div>
@@ -64,6 +72,11 @@ ConversationHeader.propTypes = {
   isLoggedIn: PropTypes.bool.isRequired,
   setIsLoggedIn: PropTypes.func.isRequired,
   speechToTextModels: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string,
+    })
+  ).isRequired,
+  textToSpeechModels: PropTypes.arrayOf(
     PropTypes.shape({
       name: PropTypes.string,
     })

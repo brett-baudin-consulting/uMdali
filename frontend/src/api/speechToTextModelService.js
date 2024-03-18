@@ -2,7 +2,7 @@ import { SERVER_BASE_URL } from '../config/config';
 
 const fetchSpeechToTextModels = async () => {
     try {
-        const response = await fetch(`${SERVER_BASE_URL}/speechToTextModel`);
+        const response = await fetch(`${SERVER_BASE_URL}/speechToText`);
         if (!response.ok) {
             throw new Error("Network response was not ok");
         }

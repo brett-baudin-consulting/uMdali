@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef} from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
+
 import { ThemeProvider } from './ThemeContext';
 import {
   useConversations,
@@ -16,6 +17,7 @@ import LoginDialog from "./components/common/LoginDialog/LoginDialog";
 import { sendMessage, sendMessageStreamResponse } from "./api/messageService";
 import { fetchModels } from "./api/modelService";
 import { fetchSpeechToTextModels } from "./api/speechToTextModelService";
+import { fetchTextToSpeechModels } from "./api/textToSpeechModelService";
 import ErrorBoundary from './ErrorBoundary';
 
 import "./App.scss";
@@ -30,6 +32,7 @@ function App() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [models, setModels] = useState([]);
   const [speechToTextModels, setSpeechToTextModels] = useState([]);
+  const [textToSpeechModels, setTextToSpeechModels] = useState([]);
   const { t } = useTranslation();
   const fetchedConversations = useConversations(user ? user.userId : null);
   const [sendNewMessage, setSendNewMessage] = useState(false);
@@ -102,6 +105,8 @@ function App() {
         setModels(modelsData);
         const speechToTextModelsData = await fetchSpeechToTextModels();
         setSpeechToTextModels(speechToTextModelsData);
+        const textToSpeechModelsData = await fetchTextToSpeechModels();
+        setTextToSpeechModels(textToSpeechModelsData);
       } catch (error) {
         setError(error.message);
       }
@@ -155,7 +160,7 @@ function App() {
     }
     return model.isSupportsVision;
   };
-  
+
   useEffect(() => {
     // Only run this effect if the user is logged in
     if (isLoggedIn) {
@@ -352,12 +357,14 @@ function App() {
               isLoggedIn={isLoggedIn}
               setIsLoggedIn={setIsLoggedIn}
               speechToTextModels={speechToTextModels}
+              textToSpeechModels={textToSpeechModels}
             />
             <ConversationBody
               currentConversation={currentConversation}
               setCurrentConversation={setCurrentConversation}
               setConversations={setConversations}
               user={user}
+              setError={setError}
             />
             {/* {error && ( */}
             <div className="error">

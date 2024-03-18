@@ -3,6 +3,7 @@ import { logger } from './logger.mjs';
 import dotenv from 'dotenv';
 import loadModels from './config/loadModels.mjs';
 import loadSpeechToTextModels from './config/loadSpeechToTextModels.mjs';
+import loadTextToSpeechModels from './config/loadTextToSpeechModels.mjs';
 
 dotenv.config();
 
@@ -25,7 +26,9 @@ const initDatabase = async () => {
       logger.info('Models loaded');
       await loadSpeechToTextModels();
       logger.info('Speech to text models loaded');
-      break; // Break the loop if connection is successful
+      await loadTextToSpeechModels();
+      logger.info('Text to speech models loaded');
+      break;
     } catch (err) {
       logger.error(err);
       retries++;

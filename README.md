@@ -12,6 +12,7 @@ Pronounced "oom-DAH-lee"
 
 ![Screenshot of the uMdali chat application interface](ApplicationImage1.png)
 ![Screenshot of the uMdali settings for general](ApplicationSettingsGeneral.png)
+![Screenshot of the uMdali settings for general](ApplicationSettingsSpeech.png)
 ![Screenshot of the uMdali settings for context](ApplicationSettingsContext.png)
 ![Screenshot of the uMdali settings for macros](ApplicationSettingsMacro.png)
 
@@ -49,6 +50,9 @@ uMdali offers a broad range of features designed to enhance the user experience 
 
 - **Speech to Text for Voice Input**
   - Incorporates speech-to-text functionality, allowing for voice input into chats.
+
+- **Text to Speech for Voice Output**
+  - Incorporates text-to-speech functionality, allowing for voice output in chats.
 
 - **Multi-Lingual Support**
   - Supports multiple languages, enabling seamless interaction for users from various linguistic backgrounds.

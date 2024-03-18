@@ -8,52 +8,71 @@ import Tab from "./Tab";
 import GeneralTab from "./GeneralTab";
 import ContextTab from "./ContextTab";
 import MacroTab from "./MacroTab";
+import SpeechTab from "./SpeechTab";
 
 import "./SettingsDialog.scss";
 
-function SettingsDialog({ onClose, models, user, setUser, speechToTextModels }) {
+function SettingsDialog({ onClose, models, user, setUser, speechToTextModels, textToSpeechModels }) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("general");
   const modalContentRef = useRef(null);
 
-  // Memoize handleClickOutside with useCallback
   const handleClickOutside = useCallback((event) => {
     if (modalContentRef.current && !modalContentRef.current.contains(event.target)) {
       onClose();
     }
-  }, [onClose]); // Only re-create if onClose changes
+  }, [onClose]);
 
-  // Attach the event listener on mount and remove it on unmount
   useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+    const listener = (event) => {
+      if (modalContentRef.current && !modalContentRef.current.contains(event.target)) {
+        onClose();
+      }
     };
-  }, [handleClickOutside]);
+    document.addEventListener('mousedown', listener);
+    document.addEventListener('touchstart', listener);
+    return () => {
+      document.removeEventListener('mousedown', listener);
+      document.removeEventListener('touchstart', listener);
+    };
+  }, [onClose]);
 
-  useEffect(() => {
-  }, [user]);
-  const contentMap = {
-    general: <GeneralTab user={user} setUser={setUser} models={models} speechModels={speechToTextModels} />,
-    context: <ContextTab user={user} setUser={setUser} />,
-    macro: <MacroTab user={user} setUser={setUser} />,
+  const renderActiveTabContent = () => {
+    switch (activeTab) {
+      case 'general':
+        return <GeneralTab user={user} setUser={setUser} models={models} />;
+      case 'speech':
+        return <SpeechTab user={user} setUser={setUser} speechToTextModels={speechToTextModels} textToSpeechModels={textToSpeechModels} />;
+      case 'context':
+        return <ContextTab user={user} setUser={setUser} />;
+      case 'macro':
+        return <MacroTab user={user} setUser={setUser} />;
+      default:
+        return null; // or a default component
+    }
   };
 
-  // Function to handle close and save user data
   const handleClose = async () => {
-    if (user?.userId) {
-      const updatedUser = {
-        ...user,
-        settings: {
-          ...user.settings,
-          contexts: user.settings.contexts.filter(context => context.name), // Filter out contexts with null or empty name
-          macros: user.settings.macros.filter(macro => macro.shortcut) // Filter out macros with null or empty name
-        }
-      };
-      await updateUser(updatedUser);
-      setUser(updatedUser);
+    try {
+      if (user?.userId) {
+        const updatedUser = {
+          ...user,
+          settings: {
+            ...user.settings,
+            contexts: user.settings.contexts.filter(context => context.name),
+            macros: user.settings.macros.filter(macro => macro.shortcut),
+            textToSpeechModel: user.settings.textToSpeechModel,
+            speechToTextModel: user.settings.speechToTextModel,
+          }
+        };
+        await updateUser(updatedUser);
+        setUser(updatedUser);
+      }
+      onClose();
+    } catch (error) {
+      console.error("Failed to update user:", error);
+      // Handle error appropriately
     }
-    onClose();
   };
 
   return (
@@ -71,6 +90,11 @@ function SettingsDialog({ onClose, models, user, setUser, speechToTextModels }) 
               onClick={() => setActiveTab("general")}
             />
             <Tab
+              label={t("speech_settings_title")}
+              isActive={activeTab === "speech"}
+              onClick={() => setActiveTab("speech")}
+            />
+            <Tab
               label={t("context_settings_title")}
               isActive={activeTab === "context"}
               onClick={() => setActiveTab("context")}
@@ -81,7 +105,7 @@ function SettingsDialog({ onClose, models, user, setUser, speechToTextModels }) 
               onClick={() => setActiveTab("macro")}
             />
           </div>
-          <div className="tab-content">{contentMap[activeTab]}</div>
+          <div className="tab-content">{renderActiveTabContent()}</div>
         </div>
       </div>
     </div>
@@ -94,12 +118,17 @@ SettingsDialog.propTypes = {
   setUser: PropTypes.func.isRequired,
   models: PropTypes.arrayOf(
     PropTypes.shape({
-      name: PropTypes.string,
+      name: PropTypes.string.isRequired,
     })
   ).isRequired,
   speechToTextModels: PropTypes.arrayOf(
     PropTypes.shape({
-      name: PropTypes.string,
+      name: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  textToSpeechModels: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string.isRequired,
     })
   ).isRequired,
 };

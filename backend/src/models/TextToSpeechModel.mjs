@@ -1,11 +1,11 @@
 import { Schema, model } from 'mongoose';
 
-const SpeechToTextModelSchema = new Schema({
-  id: {
+const TextToSpeechModelSchema = new Schema({
+  name: {
     type: String,
     required: true,
   },
-  name: {
+  id: {
     type: String,
     required: true,
   },
@@ -13,6 +13,18 @@ const SpeechToTextModelSchema = new Schema({
     type: String,
     required: true,
   },
+  voices: [
+    {
+      name: {
+        type: String,
+        required: true,
+      },
+      id: {
+        type: String,
+        required: true,
+      }
+    }
+  ],
   available: {
     type: Boolean,
     required: true,
@@ -27,4 +39,4 @@ const SpeechToTextModelSchema = new Schema({
   }
 });
 
-export default model('SpeechToTextModel', SpeechToTextModelSchema);
+export default model('TextToSpeechModel', TextToSpeechModelSchema);

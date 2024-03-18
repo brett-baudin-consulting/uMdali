@@ -6,7 +6,7 @@ import { userShape } from "../../../model/userPropType";
 import { modelShape } from "../../../model/modelPropType";
 import "./GeneralTab.scss";
 
-const GeneralTab = ({ user, setUser, models, speechModels }) => {
+const GeneralTab = ({ user, setUser, models }) => {
   const { t } = useTranslation();
 
   const handleModelChange = (e) => {
@@ -18,17 +18,6 @@ const GeneralTab = ({ user, setUser, models, speechModels }) => {
       },
     }));
   };
-
-  const handleSpeechModelChange = (e) => {
-    setUser((prevSettings) => ({
-      ...prevSettings,
-      settings: {
-        ...prevSettings.settings,
-        speechToTextModel: e.target.value,
-      },
-    }));
-  };
-
 
   const handleTemperatureChange = (e) => {
     setUser((prevSettings) => ({
@@ -76,24 +65,12 @@ const GeneralTab = ({ user, setUser, models, speechModels }) => {
     </option>
   ));
 
-  const speechOptions = speechModels.map((model) => ( 
-    <option key={model.name} value={model.name}>
-      {model.name}
-    </option>
-  ));
-
   return (
     <div className="general-tab">
       <label>
         {t('model_title')}:
         <select value={user.settings.model} onChange={handleModelChange}>
           {options}
-        </select>
-      </label>
-      <label> {/* Add a new label and select for speech to text model */}
-        {t('speech_to_text_model_title')}:
-        <select value={user.settings.speechToTextModel} onChange={handleSpeechModelChange}>
-          {speechOptions}
         </select>
       </label>
 
@@ -149,11 +126,6 @@ GeneralTab.propTypes = {
   user: userShape.isRequired,
   setUser: PropTypes.func.isRequired,
   models: PropTypes.arrayOf(modelShape).isRequired,
-  speechModels: PropTypes.arrayOf(
-    PropTypes.shape({
-      name: PropTypes.string.isRequired,
-    })
-  ).isRequired,
 };
 
 export default GeneralTab;

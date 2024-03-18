@@ -8,13 +8,17 @@ import gfm from 'remark-gfm';
 import ModalDialog from '../../../common/ModalDialog/ModalDialog';
 import { messageShape } from '../../../../model/conversationPropType';
 import { fetchImage } from '../../../../api/fileService';
+import { convertTextToSpeech } from '../../../../api/textToSpeechModelService';
 import CodeBlock from './CodeBlock';
 import { handleKeyDown as handleKeyDownUtility } from "../../../common/util/useTextareaKeyHandlers";
 import { userShape } from "../../../../model/userPropType";
 
 import './MessageItem.scss';
 
-function MessageItem({ message, onDelete, onEdit, userId, user }) {
+const maxLineCount = 4;
+const pauseDuration = 600;
+
+function MessageItem({ message, onDelete, onEdit, userId, user, setError }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,8 +26,9 @@ function MessageItem({ message, onDelete, onEdit, userId, user }) {
   const [editedMessage, setEditedMessage] = useState(message.content);
   const [imageUrls, setImageUrls] = useState([]);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const textareaRef = useRef(null);
-  const maxLineCount = 4;
+  const audioRef = useRef(null);
   const resetCopyState = useCallback(() => {
     setCopied(false);
   }, []);
@@ -39,6 +44,84 @@ function MessageItem({ message, onDelete, onEdit, userId, user }) {
       fetchUrls().catch(console.error);
     }
   }, [message.files, userId]);
+
+  const handleSpeakClick = useCallback(async () => {
+    if (isSpeaking) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+      setIsSpeaking(false);
+      return;
+    }
+
+    setError(null);
+    setIsSpeaking(true);
+    const textChunks = message.content.split('\n').filter(chunk => chunk.trim() !== '');
+
+    // Function to convert text to speech and return a promise that resolves to the audio blob
+    const convertChunkToSpeech = (chunk) => {
+      const speech = convertTextToSpeech(
+        user.settings.textToSpeechModel.model_id,
+        chunk,
+        user.settings.textToSpeechModel.voice_id,
+        user.settings.textToSpeechModel.vendor
+      );
+      return speech;
+    };
+
+    // Function to play the audio blob
+    const playAudioBlob = async (audioBlob) => {
+      const audioUrl = URL.createObjectURL(audioBlob);
+      if (audioRef.current) {
+        URL.revokeObjectURL(audioRef.current.src); // Clean up previous audio object URL
+      }
+      audioRef.current = new Audio(audioUrl);
+
+      return new Promise((resolve) => {
+        audioRef.current.onended = () => resolve();
+        audioRef.current.play().catch(err => console.error('Playback error:', err));
+      });
+    };
+
+    // Asynchronously prefetch and play audio chunks
+    const prefetchAndPlayChunks = async () => {
+      try {
+        if (textChunks.length === 0) {
+          throw new Error('No text chunks to process');
+        }
+
+        let hasNextChunk = true;
+        let nextChunkIndex = 0;
+        let nextAudioBlobPromise = convertChunkToSpeech(textChunks[nextChunkIndex]);
+
+        while (hasNextChunk) {
+          const currentAudioBlobPromise = nextAudioBlobPromise;
+
+          nextChunkIndex++;
+          hasNextChunk = nextChunkIndex < textChunks.length;
+          nextAudioBlobPromise = hasNextChunk ? convertChunkToSpeech(textChunks[nextChunkIndex]) : null;
+
+          const audioBlob = await currentAudioBlobPromise; // Wait for the current audio blob
+          await playAudioBlob(audioBlob); // Play current chunk
+
+          // Wait for the specified pause duration before proceeding, unless it's the last chunk
+          if (hasNextChunk) {
+            await new Promise(resolve => setTimeout(resolve, pauseDuration));
+          }
+        }
+      } catch (error) {
+        setError(error.message); // Use setError here to handle the error
+      } finally {
+        setIsSpeaking(false); // Reset state when all chunks have been played or an error occurs
+      }
+    };
+
+    prefetchAndPlayChunks().catch(error => {
+      console.error('Error processing text to speech:', error);
+      setIsSpeaking(false);
+    });
+  }, [isSpeaking, message.content, setError, user.settings.textToSpeechModel.model_id, user.settings.textToSpeechModel.vendor, user.settings.textToSpeechModel.voice_id]);
 
   const handleModalClose = useCallback(() => setIsModalOpen(false), []);
 
@@ -169,12 +252,19 @@ function MessageItem({ message, onDelete, onEdit, userId, user }) {
                   ↑
                 </button>
               )}
+              <button
+                className="action-button"
+                title={isSpeaking ? t('stop_speaking_title') : t('speak_title')}
+                onClick={handleSpeakClick}
+              >
+                {isSpeaking ? t('stop_speaking') : t('speak')}
+              </button>
             </div>
           </div>
         </div>
         <div className="message-images">
-          {imageUrls.map((url, index) => (
-            <img key={index} src={url} alt={`Message attachment ${index + 1}`} />
+          {imageUrls.map((url) => (
+            <img key={url} src={url} alt="Message attachment" />
           ))}
         </div>
         <div className={`message-content ${!isExpanded ? 'message-content-shrink' : ''}`}>
@@ -205,6 +295,7 @@ MessageItem.propTypes = {
   onEdit: PropTypes.func.isRequired,
   userId: PropTypes.string.isRequired,
   user: userShape.isRequired,
+  setError: PropTypes.func.isRequired,
 };
 
 export default MessageItem;

@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 
-const MarcroSchema = new Schema({
+const MacroSchema = new Schema({
   shortcut: { type: String, required: true },
   text: { type: String, required: true },
   macroId: { type: String, required: true, unique: true },
@@ -13,15 +13,27 @@ const ContextSchema = new Schema({
   isDefault: { type: Boolean, default: false },
 });
 
+const SpeechToTextModelSchema = new Schema({
+  model_id: { type: String, required: true },
+  vendor: { type: String, required: true },
+});
+
+const TextToSpeechModelSchema = new Schema({
+  model_id: { type: String, required: true },
+  vendor: { type: String, required: true },
+  voice_id: { type: String, required: true },
+});
+
 const SettingsSchema = new Schema({
   model: { type: String, required: true },
-  speechToTextModel: { type: String, default: "whisper-1"},
+  speechToTextModel: { type: SpeechToTextModelSchema, required: true },
+  textToSpeechModel: { type: TextToSpeechModelSchema, required: true },
   temperature: { type: Number, default: 0.5 },
   maxTokens: { type: Number, default: 1000 },
   isStreamResponse: { type: Boolean, default: true },
   theme: { type: String, default: "dark" },
   contexts: [ContextSchema],
-  macros: [MarcroSchema],
+  macros: [MacroSchema],
 });
 
 const UserSchema = new Schema(

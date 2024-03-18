@@ -1,7 +1,8 @@
 [
   {
-    "name": "whisper-1",
+    "id": "whisper-1",
+    "name": "Whisper 1",
     "available": true,
-    "vendor": "openai"
+    "vendor": "OpenAI"
   }
 ]
