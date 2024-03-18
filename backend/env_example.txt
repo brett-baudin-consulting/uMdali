@@ -80,8 +80,18 @@ BIND_CREDENTIALS=welcome1
 SEARCH_BASE=ou=people,dc=mydomain,dc=com
 SEARCH_FILTER=(uid={{username}})
 
-# Audio transcription
+# Audio transcription Speech to Text
 OPENAI_TRANSCRIPTION_API_KEY=NA
 OPENAI_TRANSCRIPTION_ENDPOINT=https://api.openai.com/v1/audio/transcriptions
 OPENAI_TRANSCRIPTION_MODEL=whisper-1
 OPENAI_TRANSCRIPTION_TIMEOUT_MS=30000
+
+# TTS Text to Speech
+ELEVENLABS_API_KEY=NA
+ELEVENLABS_API_URL=https://api.elevenlabs.io/v1/text-to-speech
+ELEVENLABS_MODEL_ID=elevenlabs/eleven_multilingual_v2
+
+OPENAI_TTS_API_KEY=NA
+OPENAI_TTS_API_URL=https://api.openai.com/v1/audio/speech
+OPENAI_TTS_API_MODEL=tts-1
+OPENAI_TTS_API_TIMEOUT_MS=30000
