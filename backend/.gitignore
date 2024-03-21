@@ -27,6 +27,5 @@ yarn-debug.log*
 yarn-error.log*
 combined.log
 error.log
-client/src/source.txt
-server/source.txt
-server/source.txt
+frontend/src/source.txt
+backend/src/source.txt

@@ -1,13 +1,32 @@
-import React from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
 import { userShape } from "../../../model/userPropType";
 import { modelShape } from "../../../model/modelPropType";
+import i18n from "../../../i18n";
 import "./GeneralTab.scss";
 
 const GeneralTab = ({ user, setUser, models }) => {
   const { t } = useTranslation();
+  const [selectedLanguage, setSelectedLanguage] = useState(user.settings.language || 'en');
+  const languageOptions = [
+    { value: 'en', label: t('english_language_title') },
+    { value: 'es', label: t('spanish_language_title') },
+    { value: 'fr', label: t('french_language_title') },
+    { value: 'de', label: t('german_language_title') },
+    { value: 'hi', label: t('hindi_language_title') },
+  ];
+
+  const handleLanguageChange = (e) => {
+    const newLanguage = e.target.value;
+    setSelectedLanguage(newLanguage);
+    i18n.changeLanguage(newLanguage);
+    setUser((prevUser) => ({
+      ...prevUser,
+      settings: { ...prevUser.settings, language: newLanguage },
+    }));
+  };
 
   const handleModelChange = (e) => {
     setUser((prevSettings) => ({
@@ -67,6 +86,7 @@ const GeneralTab = ({ user, setUser, models }) => {
 
   return (
     <div className="general-tab">
+
       <label>
         {t('model_title')}:
         <select value={user.settings.model} onChange={handleModelChange}>
@@ -108,7 +128,18 @@ const GeneralTab = ({ user, setUser, models }) => {
           />
         </label>
       </div>
-
+      <div>
+        <label>
+          {t('language_title')}:
+          <select value={selectedLanguage} onChange={handleLanguageChange}>
+            {languageOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
       <div>
         <label>
           {t('theme_title')}:

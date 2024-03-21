@@ -19,6 +19,7 @@ import { fetchModels } from "./api/modelService";
 import { fetchSpeechToTextModels } from "./api/speechToTextModelService";
 import { fetchTextToSpeechModels } from "./api/textToSpeechModelService";
 import ErrorBoundary from './ErrorBoundary';
+import i18n from "./i18n";
 
 import "./App.scss";
 import "./styles/main.scss";
@@ -45,6 +46,12 @@ function App() {
     setUser(user);
     setIsLoggedIn(true);
   };
+
+  useEffect(() => {
+    if (user?.settings?.language) {
+      i18n.changeLanguage(user.settings.language);
+    }
+  }, [user]);
 
   const isMountedRef = useRef(true);
   const createNewConversationRef = useRef(null);

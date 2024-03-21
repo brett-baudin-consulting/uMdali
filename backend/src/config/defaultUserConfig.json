@@ -14,6 +14,7 @@
       "voice_id": "shimmer"
     },    
     "theme": "dark",
+    "language": "en",
     "contexts": [
       {
         "name": "default",
