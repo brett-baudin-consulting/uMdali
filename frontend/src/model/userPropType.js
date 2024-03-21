@@ -25,6 +25,7 @@ export const settingsShape = PropTypes.shape({
   model: PropTypes.string.isRequired,
   temperature: PropTypes.number.isRequired,
   maxTokens: PropTypes.number.isRequired,
+  language: PropTypes.string.isRequired,
   isStreamResponse: PropTypes.bool.isRequired,
   theme: PropTypes.string.isRequired,
   contexts: PropTypes.arrayOf(contextShape),

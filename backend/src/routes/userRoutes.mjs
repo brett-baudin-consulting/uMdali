@@ -34,6 +34,7 @@ const TextToSpeechModelSchema = Joi.object({
 
 const SettingsSchema = Joi.object({
   model: Joi.string().required(),
+  language: Joi.string().default("en"),
   speechToTextModel: SpeechToTextModelSchema.required(),
   textToSpeechModel: TextToSpeechModelSchema.required(),
   temperature: Joi.number().default(0.5),
