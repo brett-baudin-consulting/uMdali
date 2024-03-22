@@ -8,8 +8,9 @@ import "./ContextTab.scss";
 
 function ContextTab({ user, setUser }) {
   const { t } = useTranslation();
-  const [selectedItemIndex, setSelectedItemIndex] = useState(null);
+  const [selectedItemId, setSelectedItemId] = useState(null);
   const [contexts, setContexts] = useState(user.settings.contexts);
+  const [sortedContexts, setSortedContexts] = useState([]);
 
   useEffect(() => {
     setContexts(user.settings.contexts);
@@ -22,9 +23,14 @@ function ContextTab({ user, setUser }) {
     }));
   }, [contexts, setUser]);
 
-  const handleContextChange = (index, key, value) => {
-    const updatedContexts = contexts.map((context, idx) => {
-      if (idx === index) {
+  useEffect(() => {
+    const sorted = [...contexts].sort((a, b) => a.name.localeCompare(b.name));
+    setSortedContexts(sorted);
+  }, [contexts, selectedItemId]);
+
+  const handleContextChange = (contextId, key, value) => {
+    const updatedContexts = contexts.map((context) => {
+      if (context.contextId === contextId) {
         return { ...context, [key]: value };
       }
       return context;
@@ -38,22 +44,23 @@ function ContextTab({ user, setUser }) {
       text: "",
       contextId: `${uuidv4()}`,
     };
-    setContexts([...contexts, newItem]);
-    setSelectedItemIndex(contexts.length);
+    const newContexts = [...contexts, newItem];
+    setContexts(newContexts);
+    setSelectedItemId(newItem.contextId);
   };
 
   const handleDelete = () => {
     const updatedContexts = contexts.filter(
-      (_, idx) => idx !== selectedItemIndex
+      (context) => context.contextId !== selectedItemId
     );
     setContexts(updatedContexts);
-    // Adjust selectedItemIndex based on deletion context
+    // Adjust selectedItem based on deletion context
     if (updatedContexts.length === 0) {
       // No items left, deselect
-      setSelectedItemIndex(null);
-    } else if (selectedItemIndex >= updatedContexts.length) {
-      // If the last item or an out-of-range item was selected, adjust the index to the new last item
-      setSelectedItemIndex(updatedContexts.length - 1);
+      setSelectedItemId(null);
+    } else if (!updatedContexts.find(context => context.contextId === selectedItemId)) {
+      // If the selected item was deleted, adjust the selection
+      setSelectedItemId(updatedContexts[0].contextId);
     }
   };
 
@@ -62,12 +69,11 @@ function ContextTab({ user, setUser }) {
       <div className="content">
         <div className="left-panel">
           <ul className="list">
-            {contexts.map((context, index) => (
+            {sortedContexts.map((context) => (
               <li
-                className={`list-item ${index === selectedItemIndex ? "active" : ""
-                  }`}
+                className={`list-item ${context.contextId === selectedItemId ? "active" : ""}`}
                 key={context.contextId}
-                onClick={() => setSelectedItemIndex(index)}
+                onClick={() => setSelectedItemId(context.contextId)}
               >
                 {context.name}
               </li>
@@ -75,33 +81,37 @@ function ContextTab({ user, setUser }) {
           </ul>
         </div>
         <div className="right-panel">
-          {selectedItemIndex !== null && (
+          {selectedItemId !== null && (
             <div className="input-container">
               <input
                 type="text"
-                value={contexts[selectedItemIndex].name}
+                value={contexts.find(context => context.contextId === selectedItemId).name}
                 onChange={(e) =>
-                  handleContextChange(selectedItemIndex, "name", e.target.value)
+                  handleContextChange(selectedItemId, "name", e.target.value)
                 }
-                placeholder={t('name_placeholder')}
+                placeholder={t("name_placeholder")}
               />
               <textarea
-                value={contexts[selectedItemIndex].text}
+                value={contexts.find(context => context.contextId === selectedItemId).text}
                 onChange={(e) =>
-                  handleContextChange(selectedItemIndex, "text", e.target.value)
+                  handleContextChange(selectedItemId, "text", e.target.value)
                 }
-                placeholder={t('context_placeholder')}
+                placeholder={t("context_placeholder")}
               />
             </div>
           )}
         </div>
       </div>
       <div className="footer">
-        <button title={t('add_title')} onClick={handleAdd}>{t('add')}</button>
+        <button title={t("add_title")} onClick={handleAdd}>
+          {t("add")}
+        </button>
         <button
-          title={t('delete_title')}
-          onClick={handleDelete} disabled={selectedItemIndex === null}>
-          {t('delete')}
+          title={t("delete_title")}
+          onClick={handleDelete}
+          disabled={selectedItemId === null}
+        >
+          {t("delete")}
         </button>
       </div>
     </div>
