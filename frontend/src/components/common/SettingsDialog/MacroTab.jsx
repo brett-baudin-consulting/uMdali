@@ -9,12 +9,18 @@ import "./MacroTab.scss";
 
 function MacroTab({ user, setUser }) {
   const { t } = useTranslation();
-  const [selectedItemIndex, setSelectedItemIndex] = useState(null);
+  const [selectedItemId, setSelectedItemId] = useState(null);
   const [macros, setMacros] = useState(() => user.settings.macros || []);
+  const [sortedMacros, setSortedMacros] = useState([]);
 
   useEffect(() => {
     setMacros(user.settings.macros);
   }, [user.settings.macros]);
+
+  useEffect(() => {
+    const sorted = [...macros].sort((a, b) => a.shortcut.localeCompare(b.shortcut));
+    setSortedMacros(sorted);
+  }, [macros, selectedItemId]);
 
   useEffect(() => {
     setUser((prevUser) => ({
@@ -23,13 +29,12 @@ function MacroTab({ user, setUser }) {
     }));
   }, [macros, setUser]);
 
-  const handleMacroChange = (index, key, value) => {
-
-    const updatedMacros = macros.map((macro, idx) => {
-      if (idx === index) {
-        return { ...macro, [key]: value };
+  const handleMacroChange = (macro, key, value) => {
+    const updatedMacros = macros.map((m) => {
+      if (m.macroId === macro.macroId) {
+        return { ...m, [key]: value };
       }
-      return macro;
+      return m;
     });
     setMacros(updatedMacros);
   };
@@ -40,45 +45,39 @@ function MacroTab({ user, setUser }) {
       text: "",
       macroId: `${uuidv4()}`,
     };
-    setMacros([...macros, newItem]);
-    setSelectedItemIndex(macros.length);
+    setMacros([newItem, ...macros]);
+    setSelectedItemId(newItem.macroId);
   };
 
   const handleDelete = () => {
-    const updatedMacros = macros.filter((_, idx) => idx !== selectedItemIndex);
+    const updatedMacros = macros.filter(macro => macro.macroId !== selectedItemId);
     setMacros(updatedMacros);
-
-    // Adjust selectedItemIndex based on deletion context
-    if (updatedMacros.length === 0) {
-      // No items left, deselect
-      setSelectedItemIndex(null);
-    } else if (selectedItemIndex >= updatedMacros.length) {
-      // If the last item or an out-of-range item was selected, adjust the index to the new last item
-      setSelectedItemIndex(updatedMacros.length - 1);
-    }
-    // If an item before the currently selected one is deleted, selectedItemIndex is automatically adjusted by React's re-render
+    setSelectedItemId(updatedMacros.length > 0 ? updatedMacros[0].macroId : null);
   };
-  const handleShortcutValidation = (index, value) => {
+
+  const handleShortcutValidation = (macro, value) => {
     if (!isShortcutAllowed(value)) {
       alert(t('shortcutNotAllowed', { value }));
 
-      // Set focus back to the input field using a more direct method
-      setTimeout(() => { // Ensure this runs after the alert is dismissed
-        document.querySelector(`input[data-index='${index}'][name='shortcut']`).focus();
+      setTimeout(() => {
+        document.querySelector(`input[data-id='${macro.macroId}'][name='shortcut']`).focus();
       }, 0);
     }
   };
+
+  // Finding the selected macro
+  const selectedMacro = macros.find(macro => macro.macroId === selectedItemId);
+
   return (
     <div className="macro-tab">
       <div className="content">
         <div className="left-panel">
           <ul className="list">
-            {macros.map((macro, index) => (
+            {sortedMacros.map((macro) => (
               <li
-                className={`list-item ${index === selectedItemIndex ? "active" : ""
-                  }`}
+                className={`list-item ${macro.macroId === selectedItemId ? "active" : ""}`}
                 key={macro.macroId}
-                onClick={() => setSelectedItemIndex(index)}
+                onClick={() => setSelectedItemId(macro.macroId)}
               >
                 {macro.shortcut}
               </li>
@@ -86,26 +85,20 @@ function MacroTab({ user, setUser }) {
           </ul>
         </div>
         <div className="right-panel">
-          {selectedItemIndex !== null && (
+          {selectedMacro && (
             <div className="input-container">
               <input
                 type="text"
-                data-index={selectedItemIndex} 
-                name="shortcut" 
-                value={macros[selectedItemIndex].shortcut}
-                onChange={(e) =>
-                  handleMacroChange(selectedItemIndex, "shortcut", e.target.value)
-                }
-                onBlur={(e) =>
-                  handleShortcutValidation(selectedItemIndex, e.target.value)
-                }
+                data-id={selectedMacro.macroId}
+                name="shortcut"
+                value={selectedMacro.shortcut || ""}
+                onChange={(e) => handleMacroChange(selectedMacro, "shortcut", e.target.value)}
+                onBlur={(e) => handleShortcutValidation(selectedMacro, e.target.value)}
                 placeholder={t('shortcut_placeholder')}
               />
               <textarea
-                value={macros[selectedItemIndex].text}
-                onChange={(e) =>
-                  handleMacroChange(selectedItemIndex, "text", e.target.value)
-                }
+                value={selectedMacro.text || ""}
+                onChange={(e) => handleMacroChange(selectedMacro, "text", e.target.value)}
                 placeholder={t('macro_placeholder')}
               />
             </div>
@@ -116,7 +109,7 @@ function MacroTab({ user, setUser }) {
         <button title={t('add_title')} onClick={handleAdd}>{t('add')}</button>
         <button
           title={t('delete_title')}
-          onClick={handleDelete} disabled={selectedItemIndex === null}>
+          onClick={handleDelete} disabled={!selectedMacro}>
           {t('delete')}
         </button>
       </div>

@@ -56,24 +56,42 @@ const disallowedShortcuts = new Set([
 ]);
 
 export const isShortcutAllowed = (shortcut) => {
-  // Trim and convert to lower case to standardize input
-  const standardizedShortcut = shortcut.trim().toLowerCase();
+  // Trim, convert to lower case, and split to standardize input
+  let parts = shortcut.trim().toLowerCase().split('+');
 
-  // Validate the format to ensure keys are only separated by '+'
-  // This regex checks for a valid pattern of keys separated by '+'
-  if (!/^(ctrl|cmd|alt|\b\w\b)(\+(ctrl|cmd|alt|\b\w\b))*$/.test(standardizedShortcut)) {
+  // Normalize the shortcut parts
+  parts = parts.map(part => {
+    switch (part) {
+      case 'control':
+      case 'ctr':
+        return 'ctrl';
+      case 'command':
+        return 'cmd';
+      case 'option':
+        return 'alt';
+      case 'leftarrow':
+        return 'left';
+      case 'rightarrow':
+        return 'right';
+      case 'uparrow':
+        return 'up';
+      case 'downarrow':
+        return 'down';
+      default:
+        return part;
+    }
+  });
+
+  // Sort parts to ensure consistent ordering
+  parts.sort();
+
+  const normalizedShortcut = parts.join('+');
+
+  // Ensure the normalizedShortcut matches the expected pattern
+  if (!/^(ctrl|cmd|alt|shift|\b\w\b)(\+(ctrl|cmd|alt|shift|\b\w\b))*$/.test(normalizedShortcut)) {
     console.error('Invalid shortcut format. Keys must be separated by \'+\' without spaces.');
     return false;
   }
-
-  // Normalize the shortcut by replacing variations of key names
-  const normalizedShortcut = standardizedShortcut
-    .replace(/\b(control|ctrl|ctr)\b/g, 'ctrl')
-    .replace(/\b(command|cmd)\b/g, 'cmd')
-    .replace(/\b(option|alt)\b/g, 'alt')
-    .replace(/\b(arrow)?(left|right|up|down)\b/g, (match, p1, direction) => direction)
-    // Any additional normalization rules can be added here
-    ;
 
   return !disallowedShortcuts.has(normalizedShortcut);
 };
