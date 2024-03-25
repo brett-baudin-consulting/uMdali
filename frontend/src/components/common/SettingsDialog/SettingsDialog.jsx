@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
@@ -16,12 +16,6 @@ function SettingsDialog({ onClose, models, user, setUser, speechToTextModels, te
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("general");
   const modalContentRef = useRef(null);
-
-  const handleClickOutside = useCallback((event) => {
-    if (modalContentRef.current && !modalContentRef.current.contains(event.target)) {
-      onClose();
-    }
-  }, [onClose]);
 
   useEffect(() => {
     const listener = (event) => {
