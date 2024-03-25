@@ -1,4 +1,3 @@
-import { t } from 'i18next';
 import { SERVER_BASE_URL } from '../config/config';
 
 const API_ENDPOINTS = {

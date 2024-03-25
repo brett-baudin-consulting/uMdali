@@ -65,7 +65,13 @@ const AudioRecorder = ({ setInput, isStreaming, setError }) => {
                 audioChunks.push(event.data);
             };
 
+            mediaRecorderRef.current.onstart = () => {
+                setIsRecording(true);
+            };
+
             mediaRecorderRef.current.onstop = async () => {
+                setIsRecording(false); // Move setIsRecording(false) from stopRecording to here
+
                 const audioBlob = new Blob(audioChunks);
                 const base64Data = await convertBlobToBase64(audioBlob);
                 if (webSocketRef.current.readyState === WebSocket.OPEN) {
@@ -89,9 +95,9 @@ const AudioRecorder = ({ setInput, isStreaming, setError }) => {
     const stopRecording = useCallback(() => {
         if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
             mediaRecorderRef.current.stop();
-            setIsRecording(false);
         }
     }, []);
+
     useEffect(() => {
         return () => {
             if (webSocketRef.current) {
