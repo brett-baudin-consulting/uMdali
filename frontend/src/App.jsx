@@ -11,7 +11,7 @@ import {
 } from "./api/conversationService";
 import Sidebar from "./components/layout/Sidebar/Sidebar";
 import ConversationHeader from "./components/layout/Conversation/ConversationHeader/ConversationHeader";
-import ConversationBody from "./components/layout/Conversation/ConversationBody/ConversationBody";
+import AIConversationBody from "./components/layout/Conversation/AIConversationBody/AIConversationBody";
 import ConversationFooter from "./components/layout/Conversation/ConversationFooter/ConversationFooter";
 import LoginDialog from "./components/common/LoginDialog/LoginDialog";
 import { sendMessage, sendMessageStreamResponse } from "./api/messageService";
@@ -348,50 +348,52 @@ function App() {
     <ThemeProvider>
       <ErrorBoundary>
         <div className={`App`} data-theme={theme}>
-          <Sidebar
-            conversations={conversations}
-            currentConversation={currentConversation}
-            setCurrentConversation={setCurrentConversation}
-            setConversations={setConversations}
-            createNewConversation={createNewConversationRef.current}
-            user={user}
-          />
-          <div className="conversation-section">
-            <ConversationHeader
-              user={user}
-              setUser={setUser}
-              models={models}
-              isLoggedIn={isLoggedIn}
-              setIsLoggedIn={setIsLoggedIn}
-              speechToTextModels={speechToTextModels}
-              textToSpeechModels={textToSpeechModels}
-            />
-            <ConversationBody
-              currentConversation={currentConversation}
-              setCurrentConversation={setCurrentConversation}
-              setConversations={setConversations}
-              user={user}
-              setError={setError}
-            />
-            {/* {error && ( */}
-            <div className="error">
-              {error}
-            </div>
-            {/* )} */}
-            <ConversationFooter
-              user={user}
-              currentConversation={currentConversation}
-              setCurrentConversation={setCurrentConversation}
-              onSendMessage={handleNewUserMessage}
-              onResendMessage={handleResendMessage}
-              isStreaming={isStreaming}
-              setIsStreaming={setIsStreaming}
-              abortFetch={abortFetch}
-              isWaitingForResponse={isWaitingForResponse}
-              setError={setError}
-              models={models}
-            />
-          </div>
+          {isLoggedIn && (
+            <>
+              <Sidebar
+                conversations={conversations}
+                currentConversation={currentConversation}
+                setCurrentConversation={setCurrentConversation}
+                setConversations={setConversations}
+                createNewConversation={createNewConversationRef.current}
+                user={user}
+              />
+              <div className="conversation-section">
+                <ConversationHeader
+                  user={user}
+                  setUser={setUser}
+                  models={models}
+                  isLoggedIn={isLoggedIn}
+                  setIsLoggedIn={setIsLoggedIn}
+                  speechToTextModels={speechToTextModels}
+                  textToSpeechModels={textToSpeechModels}
+                />
+                <AIConversationBody
+                  currentConversation={currentConversation}
+                  setCurrentConversation={setCurrentConversation}
+                  setConversations={setConversations}
+                  user={user}
+                  setError={setError}
+                />
+                {/* Optionally show error */}
+                {error && <div className="error">{error}</div>}
+                <ConversationFooter
+                  user={user}
+                  currentConversation={currentConversation}
+                  setCurrentConversation={setCurrentConversation}
+                  onSendMessage={handleNewUserMessage}
+                  onResendMessage={handleResendMessage}
+                  isStreaming={isStreaming}
+                  setIsStreaming={setIsStreaming}
+                  abortFetch={abortFetch}
+                  isWaitingForResponse={isWaitingForResponse}
+                  setError={setError}
+                  models={models}
+                />
+              </div>
+            </>
+          )}
+          {!isLoggedIn && <LoginDialog setUser={handleLogin} />}
         </div>
       </ErrorBoundary>
     </ThemeProvider>
