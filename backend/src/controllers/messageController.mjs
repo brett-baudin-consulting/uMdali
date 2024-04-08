@@ -79,15 +79,15 @@ async function filterMessages(messages, res) {
   }
 }
 
-function getAPI(req) {
+function getAPI(model) {
   let models = ["ollama_openai","gemini", "ollama", "gpt", "mistral", "claude", "groq"];
-  let model = models.find(m => req.body.userDetails.settings.model.includes(m));
-  return messageAPIs[model];
+  let modelImplementation = models.find(m => model?.includes(m));
+  return messageAPIs[modelImplementation];
 }
 
 async function handleRequest(req, res) {
-  const { userDetails: { settings }, message, stream, isSupportsVision } = req.body;
-  const messageAPI = getAPI(req);
+  const { userDetails: { settings }, message, stream, isSupportsVision, model } = req.body;
+  const messageAPI = getAPI(model);
   if (!messageAPI) {
     res.status(400).send({ error: `Unsupported API: ${settings.model}` });
     return;
@@ -102,7 +102,7 @@ async function handleRequest(req, res) {
   }
 
   const options = {
-    userModel: settings.model,
+    userModel: model,
     maxTokens: settings.maxTokens,
     temperature: settings.temperature,
     isSupportsVision: isSupportsVision,

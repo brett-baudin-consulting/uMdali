@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from "react-i18next";
 
 import { conversationShape, fileShape } from "../../../../model/conversationPropType";
 import { fetchIcon } from "../../../../api/fileService";
@@ -7,6 +8,8 @@ import { fetchIcon } from "../../../../api/fileService";
 import './FileItem.scss';
 
 const FileItem = ({ file, onDelete, currentConversation }) => {
+    const { t } = useTranslation();
+
     const [iconUrl, setIconUrl] = useState('');
 
     useEffect(() => {
@@ -31,9 +34,10 @@ const FileItem = ({ file, onDelete, currentConversation }) => {
                 <button
                     className="delete-button"
                     onClick={() => onDelete(file)}
+                    title={t('delete_title')}
                     aria-label={`Delete ${file.originalName}`}
                 >
-                    x
+                    {t('delete')}
                 </button>
             </div>
         </div>

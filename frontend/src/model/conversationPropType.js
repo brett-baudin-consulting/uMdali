@@ -15,6 +15,7 @@ export const messageShape = PropTypes.shape({
   messageId: PropTypes.string.isRequired,
   modelName: PropTypes.string,
   files: PropTypes.arrayOf(fileShape),
+  alias: PropTypes.string,
 });
 
 export const conversationShape = PropTypes.shape({
@@ -22,4 +23,11 @@ export const conversationShape = PropTypes.shape({
   conversationId: PropTypes.string.isRequired,
   userId: PropTypes.string.isRequired,
   messages: PropTypes.arrayOf(messageShape),
+  model1: PropTypes.string,
+  model2: PropTypes.string,
+  contextId1: PropTypes.string,
+  contextId2: PropTypes.string,
+  alias1: PropTypes.string,
+  alias2: PropTypes.string,
+  isAIConversation: PropTypes.bool,
 });
