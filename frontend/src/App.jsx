@@ -373,7 +373,7 @@ function App() {
     <ThemeProvider>
       <ErrorBoundary>
         <div className={`App`} data-theme={theme}>
-          {isLoggedIn && currentConversation && (
+          {isLoggedIn && (
             <>
               <Sidebar
                 conversations={conversations}
@@ -403,7 +403,7 @@ function App() {
                 />
                 {/* Optionally show error */}
                 {error && <div className="error">{error}</div>}
-                {!currentConversation?.isAIConversation && <ConversationFooter
+                {currentConversation && !currentConversation?.isAIConversation && <ConversationFooter
                   user={user}
                   currentConversation={currentConversation}
                   setCurrentConversation={setCurrentConversation}

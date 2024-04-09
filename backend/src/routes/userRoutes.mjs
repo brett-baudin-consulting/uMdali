@@ -127,7 +127,7 @@ router.get("/:userId", async (req, res) => {
     }
 
     // Add default textToSpeechModel if it's not present
-    if (!user?.settings?.textToSpeechModel) {
+    if (!user?.settings?.textToSpeechModel?.model_id) {
       const defaultTextToSpeechModel = {
         model_id: "tts-1",
         vendor: "OpenAI",
@@ -137,9 +137,9 @@ router.get("/:userId", async (req, res) => {
     }
 
     // Add default speechToTextModel if it's not present
-    if (!user?.settings?.speechToTextModel) {
+    if (!user?.settings?.speechToTextModel?.model_id) {
       const defaultSpeechToTextModel = {
-        model_id: "tts-1",
+        model_id: "whisper-1",
         vendor: "OpenAI",
       };
       user.settings.speechToTextModel = defaultSpeechToTextModel;
