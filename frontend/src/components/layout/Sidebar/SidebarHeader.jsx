@@ -19,7 +19,13 @@ const SidebarHeader = ({
     const [showInitialOptions, setShowInitialOptions] = useState(false);
     const [showUserContexts, setShowUserContexts] = useState(false);
     const containerRef = useRef(null);
+    const initialOptions = ['ai_human_conversation_title', 'ai_ai_conversation_title'].map(key => t(key));
 
+    const renderOption = (translatedOption, handleClick) => (
+        <li key={translatedOption} onClick={() => handleClick(translatedOption)}>
+            {translatedOption}
+        </li>
+    );
     useEffect(() => {
         function handleClickOutside(event) {
             if (containerRef.current && !containerRef.current.contains(event.target)) {
@@ -75,12 +81,7 @@ const SidebarHeader = ({
                 </button>
                 {showInitialOptions && (
                     <ul className="new-conversation-options">
-                        <li onClick={() => handleInitialOptionClick(t('ai_human_conversation_title'))}>
-                            {t('ai_human_conversation_title')}
-                        </li>
-                        <li onClick={() => handleInitialOptionClick(t('ai_ai_conversation_title'))}>
-                            {t('ai_ai_conversation_title')}
-                        </li>
+                        {initialOptions.map(option => renderOption(option, handleInitialOptionClick))}
                     </ul>
                 )}
                 {showUserContexts && (
