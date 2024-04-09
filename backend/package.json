@@ -25,7 +25,7 @@
     "ioredis": "^5.3.2",
     "joi": "^17.12.3",
     "jsonata": "^2.0.4",
-    "mongoose": "^8.3.0",
+    "mongoose": "^8.3.1",
     "multer": "^1.4.5-lts.1",
     "node-fetch": "^3.3.2",
     "passport": "^0.7.0",

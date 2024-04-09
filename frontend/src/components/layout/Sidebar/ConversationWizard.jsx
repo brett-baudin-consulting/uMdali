@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { v4 as uuidv4 } from 'uuid';
 import { useTranslation } from "react-i18next";
+import moment from 'moment';
 
 
 import { userShape } from '../../../model/userPropType';
@@ -72,7 +73,7 @@ export const ConversationWizard = ({
             modelName: selectedModel1,
         };
         const newConversation = {
-            title: "AI to AI Conversation",
+            title: moment().format(t("title_date_format")),
             conversationId: uuidv4(),
             userId: user.userId,
             model1: selectedModel1,

@@ -49,7 +49,7 @@ const SidebarHeader = ({
     };
 
     const handleInitialOptionClick = (option) => {
-        if (option === t('ai_human_convesation_title')) {
+        if (option === t('ai_human_conversation_title')) {
             setShowUserContexts(true);
         } else if (option === t('ai_ai_conversation_title')) {
             setShowUserContexts(false);
@@ -75,8 +75,8 @@ const SidebarHeader = ({
                 </button>
                 {showInitialOptions && (
                     <ul className="new-conversation-options">
-                        <li onClick={() => handleInitialOptionClick(t('ai_human_convesation_title'))}>
-                            {t('ai_human_convesation_title')}
+                        <li onClick={() => handleInitialOptionClick(t('ai_human_conversation_title'))}>
+                            {t('ai_human_conversation_title')}
                         </li>
                         <li onClick={() => handleInitialOptionClick(t('ai_ai_conversation_title'))}>
                             {t('ai_ai_conversation_title')}
