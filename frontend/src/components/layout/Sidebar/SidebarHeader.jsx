@@ -69,6 +69,7 @@ const SidebarHeader = ({
         setShowUserContexts(false);
     };
 
+    const sortedContexts = [...user.settings.contexts].sort((a, b) => a.name.localeCompare(b.name));
     return (
         <div className="sidebar-buttons" ref={containerRef}>
             <div className="new-conversation-container">
@@ -86,7 +87,7 @@ const SidebarHeader = ({
                 )}
                 {showUserContexts && (
                     <ul className="new-conversation-options">
-                        {user.settings.contexts.map((context) => (
+                        {sortedContexts.map((context) => (
                             <li key={context.name} onClick={() => handleOptionClick(context.name)}>
                                 {context.name}
                             </li>

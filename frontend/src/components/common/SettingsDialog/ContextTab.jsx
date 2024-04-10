@@ -26,6 +26,10 @@ function ContextTab({ user, setUser }) {
   useEffect(() => {
     const sorted = [...contexts].sort((a, b) => a.name.localeCompare(b.name));
     setSortedContexts(sorted);
+    // Select the first item if no item is currently selected and the list is not empty
+    if (sorted.length > 0 && selectedItemId === null) {
+      setSelectedItemId(sorted[0].contextId);
+    }
   }, [contexts, selectedItemId]);
 
   const handleContextChange = (contextId, key, value) => {

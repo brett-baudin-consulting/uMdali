@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from "react-i18next";
 import { v4 as uuidv4 } from "uuid";
@@ -13,27 +13,33 @@ const AIConversationFooter = ({ user, currentConversation, setCurrentConversatio
     isWaitingForResponse }) => {
     const { t } = useTranslation();
 
-    let context1 = '';
-    let context2 = '';
-    context1 = user.settings.contexts.filter(
-        context => context.contextId === currentConversation.contextId1)[0].text;
-    context2 = user.settings.contexts.filter(
-        context => context.contextId === currentConversation.contextId2)[0].text;
+    const getContextText = useCallback((contextId) => {
+        return user.settings.contexts.find(context => context.contextId === contextId)?.text || '';
+    }, [user.settings.contexts]);
 
-
+    const context1 = useMemo(() => getContextText(currentConversation.contextId1), [getContextText, currentConversation.contextId1]);
+    const context2 = useMemo(() => getContextText(currentConversation.contextId2), [getContextText, currentConversation.contextId2]);
 
     const handleAbort = useCallback(() => {
         setIsStreaming(false);
         abortFetch();
     }, [setIsStreaming, abortFetch]);
 
+    const getModelAndAlias = useCallback((index) => {
+        return {
+            model: index % 2 === 0 ? currentConversation.model1 : currentConversation.model2,
+            alias: index % 2 === 0 ? currentConversation.alias1 : currentConversation.alias2
+        };
+    }, [currentConversation.model1, currentConversation.model2, currentConversation.alias1, currentConversation.alias2]);
+
     const handleRetry = useCallback(async () => {
-        const newMessages = [...currentConversation.messages.slice(0, -1)];
-        setCurrentConversation(prevState => ({ ...prevState, messages: newMessages }));
-        const alias = currentConversation.messages.length % 2 === 0 ? currentConversation.alias2 : currentConversation.alias1;
-        const model = currentConversation.messages.length % 2 === 0 ? currentConversation.model2 : currentConversation.model1;
-        await onResendMessage(model, alias);
-    }, [currentConversation, setCurrentConversation, onResendMessage]);
+        setCurrentConversation(prevState => {
+            const newMessages = prevState.messages.slice(0, -1);
+            const { model, alias } = getModelAndAlias(prevState.messages.length);
+            onResendMessage(model, alias);
+            return { ...prevState, messages: newMessages };
+        });
+    }, [setCurrentConversation, onResendMessage, getModelAndAlias]);
 
     const turn = useCallback(async () => {
         const model = currentConversation.messages.length % 2 === 0 ? currentConversation.model1 : currentConversation.model2;
@@ -78,7 +84,11 @@ const AIConversationFooter = ({ user, currentConversation, setCurrentConversatio
             ...prevConversation,
             messages: filteredMessages,
         }));
-        await onResendMessage(model, alias);
+        try {
+            await onResendMessage(model, alias);
+        } catch (error) {
+            console.error("Failed to resend message:", error);
+        };
         // add the human message back to the conversation
         if (humanMessage) {
             setCurrentConversation((prevConversation) => {
@@ -113,7 +123,7 @@ const AIConversationFooter = ({ user, currentConversation, setCurrentConversatio
 
 AIConversationFooter.propTypes = {
     user: userShape.isRequired,
-    currentConversation: PropTypes.shape(conversationShape),
+    currentConversation: conversationShape.isRequired,
     setCurrentConversation: PropTypes.func.isRequired,
     onResendMessage: PropTypes.func.isRequired,
     isStreaming: PropTypes.bool.isRequired,

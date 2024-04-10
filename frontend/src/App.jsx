@@ -403,7 +403,7 @@ function App() {
                 />
                 {/* Optionally show error */}
                 {error && <div className="error">{error}</div>}
-                {currentConversation && !currentConversation?.isAIConversation && <ConversationFooter
+                {!currentConversation?.isAIConversation && <ConversationFooter
                   user={user}
                   currentConversation={currentConversation}
                   setCurrentConversation={setCurrentConversation}

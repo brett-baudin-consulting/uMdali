@@ -20,6 +20,9 @@ function MacroTab({ user, setUser }) {
   useEffect(() => {
     const sorted = [...macros].sort((a, b) => a.shortcut.localeCompare(b.shortcut));
     setSortedMacros(sorted);
+    if (sorted.length > 0 && selectedItemId === null) {
+      setSelectedItemId(sorted[0].macroId);
+    }
   }, [macros, selectedItemId]);
 
   useEffect(() => {
