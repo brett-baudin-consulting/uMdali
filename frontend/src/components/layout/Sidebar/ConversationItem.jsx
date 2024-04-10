@@ -44,12 +44,18 @@ const ConversationItem = ({
         messageId: uuidv4(),
         files: null,
       };
-      const filteredMessages = conversation.messages.filter(message => message.role !== "context");
+      let filteredMessages = conversation.messages.filter(message => message.role !== "context");
+      let model = user.settings.model;
+      if(conversation.isAIConversation) {
+        model = conversation.model1;
+        filteredMessages = filteredMessages.slice(1);
+      }
       const updatedConversation = {
         ...conversation,
         messages: [...filteredMessages, newUserMessage],
       };
-      const data = await sendMessage(updatedConversation, user, signal);
+
+      const data = await sendMessage(updatedConversation, user, signal, false,  model);
       if (data?.content) {
         const titleWithoutQuotes = data.content.replace(/"/g, '');
         updateConversation({ ...conversation, title: titleWithoutQuotes });
@@ -112,7 +118,16 @@ const ConversationItem = ({
   }, [copied]);
 
   const areButtonsDisabled = isCreatingTitle || isEditing;
-
+  function renderConversationTitle(conversation, title) {
+    const participantType = conversation.isAIConversation ? t('bot') : t('user');
+    const conversationTitle = `${participantType} ↔️ ${t('bot')} (${conversation.messages.length}) ${title}`;
+  
+    return (
+      <div className="conversation-title" title={conversation.title}>
+        {conversationTitle}
+      </div>
+    );
+  }
   return (
     <>
       {isModalOpen && (
@@ -137,9 +152,7 @@ const ConversationItem = ({
             autoFocus
           />
         ) : (
-          <div className="conversation-title" title={conversation.title}>
-            {`(${conversation.messages.length}) ${title}`}
-          </div>
+          renderConversationTitle(conversation, title)
         )}
         {isSelected && (
           <div className="conversation-actions">

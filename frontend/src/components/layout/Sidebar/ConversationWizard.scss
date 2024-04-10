@@ -1,0 +1,90 @@
+// Define variables for consistent values
+$border-basic: 1px solid #ccc;
+$border-radius-basic: 4px;
+$padding-basic: 8px;
+$margin-vertical: 10px 0;
+$gap-basic: 10px;
+$flex-center: (
+    display: flex,
+    justify-content: center,
+    align-items: center
+);
+
+// Mixin for flex container styles
+@mixin flex-container($direction: column, $justify: center, $align: center, $gap: $gap-basic) {
+    display: flex;
+    flex-direction: $direction;
+    justify-content: $justify;
+    align-items: $align;
+    gap: $gap;
+}
+
+.conversationWizard {
+    @include flex-container(column, space-around);
+    padding: 20px;
+    border: $border-basic;
+    border-radius: 8px;
+    background-color: var(--color-border-light);
+
+    .selectContainer,
+    .buttonsContainer {
+        @include flex-container(row, center);
+    }
+
+    .selectContainer>div {
+        @include flex-container(column);
+    }
+
+    select,
+    button,
+    .contextText,
+    .inputField,
+    // Ensure inputField is styled consistently
+    .conversationStarter {
+        // Target conversationStarter specifically
+        margin: $margin-vertical;
+        padding: $padding-basic;
+        border-radius: $border-radius-basic;
+        border: $border-basic;
+    }
+
+    select {
+        width: 200px;
+    }
+
+    .buttonsContainer {
+        gap: $gap-basic;
+
+        button {
+            flex-grow: 1;
+            cursor: pointer;
+        }
+    }
+
+    .contextText,
+    .conversationStarter {
+        // Ensure specific styles for conversationStarter
+        width: 100%; // Adjusted for full width to maintain layout
+        height: 100px; // Height adjusted as needed
+        resize: none;
+        margin: $margin-vertical auto; // Centered with auto margins
+    }
+
+    // Styles for indicating an error without breaking layout
+    .inputField.error,
+    .conversationStarter.error {
+        // Apply error indication without affecting layout
+        border: var(--color-border-error); // Use the error border variable
+
+        &:focus {
+            outline-color: var(--color-error); // Highlight focus with error color
+        }
+    }
+
+    // Styles for displaying error messages
+    .errorMessage {
+        color: var(--color-error); // Use the error color variable
+        font-size: 0.8rem;
+        margin-top: 4px;
+    }
+}

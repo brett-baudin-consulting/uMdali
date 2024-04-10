@@ -19,7 +19,9 @@ const Sidebar = ({
   setCurrentConversation,
   setConversations,
   createNewConversation,
-  user
+  user,
+  setIsWizardVisible
+
 }) => {
   const [searchText, setSearchText] = useState('');
   const [searchResults, setSearchResults] = useState(null);
@@ -123,6 +125,7 @@ const Sidebar = ({
         createNewConversation={createNewConversation}
         isSearchDisabled={conversations.length === 0 || searchText.trim() === ''}
         user={user}
+        setIsWizardVisible={setIsWizardVisible}
       />
       <div className="conversation-list-container">
         <ul className="conversation-list">
@@ -141,7 +144,8 @@ Sidebar.propTypes = {
   setCurrentConversation: PropTypes.func.isRequired,
   setConversations: PropTypes.func.isRequired,
   createNewConversation: PropTypes.func.isRequired,
-  user: userShape.isRequired
+  user: userShape.isRequired,
+  setIsWizardVisible: PropTypes.func.isRequired,
 };
 
 export default Sidebar;

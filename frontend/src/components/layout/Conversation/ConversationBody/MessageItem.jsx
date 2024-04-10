@@ -12,13 +12,14 @@ import { convertTextToSpeech } from '../../../../api/textToSpeechModelService';
 import CodeBlock from './CodeBlock';
 import { handleKeyDown as handleKeyDownUtility } from "../../../common/util/useTextareaKeyHandlers";
 import { userShape } from "../../../../model/userPropType";
+import { conversationShape } from '../../../../model/conversationPropType';
 
 import './MessageItem.scss';
 
 const maxLineCount = 4;
 const pauseDuration = 600;
 
-function MessageItem({ message, onDelete, onEdit, userId, user, setError }) {
+function MessageItem({ message, onDelete, onEdit, userId, user, setError, currentConversation }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -218,8 +219,12 @@ function MessageItem({ message, onDelete, onEdit, userId, user, setError }) {
       )}
       <div className="message-item">
         <div className="message-header">
-          <div className="message-type" title={t(message.role + '_title')}>{t(message.role)}</div>
-          <div className="message-actions">
+          <div className="message-header">
+            <div className="message-type" title={t(message.role + '_title')}>
+              {!currentConversation.isAIConversation && `${t(message.role)}`}
+              {currentConversation.isAIConversation && `${t("bot")} ${message.alias} (${message.modelName})`}
+            </div>
+          </div>          <div className="message-actions">
             <div className="message-tool-bar">
               <button
                 className="action-button"
@@ -296,6 +301,7 @@ MessageItem.propTypes = {
   userId: PropTypes.string.isRequired,
   user: userShape.isRequired,
   setError: PropTypes.func.isRequired,
+  currentConversation: conversationShape.isRequired,
 };
 
 export default MessageItem;

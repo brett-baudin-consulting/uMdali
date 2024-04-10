@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 
@@ -12,10 +12,36 @@ const SidebarHeader = ({
     handleSearchClick,
     createNewConversation,
     isSearchDisabled,
-    user
+    user,
+    setIsWizardVisible
 }) => {
     const { t } = useTranslation();
-    const [showOptions, setShowOptions] = useState(false);
+    const [showInitialOptions, setShowInitialOptions] = useState(false);
+    const [showUserContexts, setShowUserContexts] = useState(false);
+    const containerRef = useRef(null);
+    const initialOptions = ['ai_human_conversation_title', 'ai_ai_conversation_title'].map(key => t(key));
+
+    const renderOption = (translatedOption, handleClick) => (
+        <li key={translatedOption} onClick={() => handleClick(translatedOption)}>
+            {translatedOption}
+        </li>
+    );
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (containerRef.current && !containerRef.current.contains(event.target)) {
+                // Close the appropriate menu based on which one is currently open
+                if (showInitialOptions) setShowInitialOptions(false);
+                if (showUserContexts) setShowUserContexts(false);
+            }
+        }
+
+        // Add event listener when either menu is visible
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            // Cleanup the event listener when the component unmounts or states change
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showInitialOptions, showUserContexts]);
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
@@ -24,16 +50,28 @@ const SidebarHeader = ({
     };
 
     const handleNewConversationClick = () => {
-        setShowOptions(!showOptions);
+        setShowInitialOptions(!showInitialOptions);
+        setShowUserContexts(false); // Reset the display of user contexts
+    };
+
+    const handleInitialOptionClick = (option) => {
+        if (option === t('ai_human_conversation_title')) {
+            setShowUserContexts(true);
+        } else if (option === t('ai_ai_conversation_title')) {
+            setShowUserContexts(false);
+            setIsWizardVisible(true);
+        }
+        setShowInitialOptions(false); // Hide initial options after selection
     };
 
     const handleOptionClick = (contextName) => {
         createNewConversation(contextName);
-        setShowOptions(false);
+        setShowUserContexts(false);
     };
 
+    const sortedContexts = [...user.settings.contexts].sort((a, b) => a.name.localeCompare(b.name));
     return (
-        <div className="sidebar-buttons">
+        <div className="sidebar-buttons" ref={containerRef}>
             <div className="new-conversation-container">
                 <button
                     title={t('new_conversation_title')}
@@ -42,9 +80,14 @@ const SidebarHeader = ({
                 >
                     {t("new_conversation")}
                 </button>
-                {showOptions && (
+                {showInitialOptions && (
                     <ul className="new-conversation-options">
-                        {user.settings.contexts.map((context) => (
+                        {initialOptions.map(option => renderOption(option, handleInitialOptionClick))}
+                    </ul>
+                )}
+                {showUserContexts && (
+                    <ul className="new-conversation-options">
+                        {sortedContexts.map((context) => (
                             <li key={context.name} onClick={() => handleOptionClick(context.name)}>
                                 {context.name}
                             </li>
@@ -78,7 +121,8 @@ SidebarHeader.propTypes = {
     handleSearchClick: PropTypes.func.isRequired,
     createNewConversation: PropTypes.func.isRequired,
     isSearchDisabled: PropTypes.bool.isRequired,
-    user: userShape.isRequired
+    user: userShape.isRequired,
+    setIsWizardVisible: PropTypes.func.isRequired,
 };
 
 export default SidebarHeader;

@@ -48,6 +48,12 @@ For a comprehensive understanding of uMdali's technology stack, design choices, 
 
 uMdali offers a broad range of features designed to enhance the user experience and provide a high level of adaptability for enterprise environments. Below is an overview of the key features available in uMdali:
 
+- **AI and Human chats**
+  - Industry standard AI and human chats
+
+- **AI and AI chats**
+  - Unique interface to allow AI to AI chats. Find out what AIs talk about with each other.
+
 - **Speech to Text for Voice Input**
   - Incorporates speech-to-text functionality, allowing for voice input into chats.
 

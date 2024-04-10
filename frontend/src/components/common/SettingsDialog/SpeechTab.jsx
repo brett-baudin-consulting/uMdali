@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
@@ -17,15 +17,19 @@ const SpeechTab = ({ user, setUser, speechToTextModels, textToSpeechModels }) =>
     setSelectedModelVoices(initialVoices);
   }, [user.settings.textToSpeechModel.model_id, textToSpeechModels]);
 
-  const handleSpeechToTextModelChange = (e) => {
+  const handleSpeechToTextModelChange = useCallback((e) => {
+    const selectedModel = speechToTextModels.find((model) => model.name === e.target.value);
     setUser((prevUser) => ({
       ...prevUser,
       settings: {
         ...prevUser.settings,
-        speechToTextModel: e.target.value,
+        speechToTextModel: {
+          model: selectedModel.name,
+          vendor: selectedModel.vendor,
+        },
       },
     }));
-  };
+  }, [setUser, speechToTextModels]);
 
   const speechToTextOptions = speechToTextModels.map((model) => (
     <option key={model.name} value={model.name}>

@@ -16,6 +16,7 @@ const messageSchema = new Schema({
   messageId: { type: String, required: true, unique: true },
   modelName: { type: String, required: false },
   files: { type: [fileSchema], default: [] },
+  alias: { type: String, required: false }
 });
 
 const conversationSchema = new Schema(
@@ -24,7 +25,14 @@ const conversationSchema = new Schema(
     conversationId: { type: String, required: true, unique: true },
     userId: { type: String, required: true },
     messages: [messageSchema],
-  },
+    model1: { type: String, required: false },
+    model2: { type: String, required: false },
+    contextId1: { type: String, required: false },
+    contextId2: { type: String, required: false },
+    alias1: { type: String, required: false },
+    alias2: { type: String, required: false },
+    isAIConversation: { type: Boolean, required: false, default: false },
+    },
   {
     timestamps: {
       createdAt: "createdTimestamp",

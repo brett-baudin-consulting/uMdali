@@ -127,7 +127,7 @@ class ClaudeMessageAPI extends MessageAPI {
         const updatedMessages = await messageToClaudeFormat(messages, isSupportsVision);
         let systemMessage = messages.find(m => m.role === 'context');
         const requestOptions = this._prepareOptions({
-            system: systemMessage.content,
+            system: systemMessage?.content,
             model: userModel || this.MODEL,
             messages: updatedMessages,
             max_tokens: maxTokens || this.MAX_TOKENS,
@@ -162,7 +162,7 @@ class ClaudeMessageAPI extends MessageAPI {
         const updatedMessages = await messageToClaudeFormat(messages, isSupportsVision);
         let systemMessage = messages.find(m => m.role === 'context');
         const requestOptions = this._prepareOptions({
-            system: systemMessage.content,
+            system: systemMessage?.content,
             model: userModel || this.MODEL,
             messages: updatedMessages,
             max_tokens: maxTokens || this.MAX_TOKENS,

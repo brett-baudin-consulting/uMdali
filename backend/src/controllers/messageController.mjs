@@ -39,25 +39,28 @@ async function sendMessageToAPI(messageAPI, message, options, signal) {
   try {
     return await messageAPI.sendRequest(message, signal, options);
   } catch (error) {
+    if (error.name === 'AbortError') {
+      logger.info('Request was aborted');
+      return; // Optionally return a specific value or simply exit
+    }
     logger.error("Error sending request to message API:", error);
     throw error;
   }
 }
 
-async function sendMessageToAPIStreamResponse(
-  messageAPI,
-  message,
-  options,
-  res,
-  signal
-) {
+async function sendMessageToAPIStreamResponse(messageAPI, message, options, res, signal) {
   try {
     return await messageAPI.sendRequestStreamResponse(message, res, signal, options);
   } catch (error) {
+    if (error.name === 'AbortError') {
+      logger.info('Stream request was aborted');
+      return; // Optionally return a specific value or simply exit
+    }
     logger.error("Error sending request to message API:", error);
     throw error;
   }
 }
+
 async function filterMessages(messages, res) {
   let filters;
   try {
@@ -79,15 +82,15 @@ async function filterMessages(messages, res) {
   }
 }
 
-function getAPI(req) {
-  let models = ["ollama_openai","gemini", "ollama", "gpt", "mistral", "claude", "groq"];
-  let model = models.find(m => req.body.userDetails.settings.model.includes(m));
-  return messageAPIs[model];
+function getAPI(model) {
+  let models = ["ollama_openai", "gemini", "ollama", "gpt", "mistral", "claude", "groq"];
+  let modelImplementation = models.find(m => model?.includes(m));
+  return messageAPIs[modelImplementation];
 }
 
 async function handleRequest(req, res) {
-  const { userDetails: { settings }, message, stream, isSupportsVision } = req.body;
-  const messageAPI = getAPI(req);
+  const { userDetails: { settings }, message, stream, isSupportsVision, model } = req.body;
+  const messageAPI = getAPI(model);
   if (!messageAPI) {
     res.status(400).send({ error: `Unsupported API: ${settings.model}` });
     return;
@@ -102,7 +105,7 @@ async function handleRequest(req, res) {
   }
 
   const options = {
-    userModel: settings.model,
+    userModel: model,
     maxTokens: settings.maxTokens,
     temperature: settings.temperature,
     isSupportsVision: isSupportsVision,
@@ -110,9 +113,6 @@ async function handleRequest(req, res) {
 
   const abortController = new AbortController();
   const { signal } = abortController;
-  res.on("close", () => {
-    abortController.abort();
-  });
 
   try {
     if (stream) {

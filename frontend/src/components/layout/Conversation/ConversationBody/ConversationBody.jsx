@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 
-import MessageItem from "./MessageItem";
+import MessageItem from "../ConversationBody/MessageItem";
 import { conversationShape } from "../../../../model/conversationPropType";
 import { userShape } from "../../../../model/userPropType";
 
@@ -13,9 +13,11 @@ const ConversationBody = ({
   setConversations,
   user,
   setError
+
 }) => {
 
   const messagesEndRef = useRef(null);
+
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -36,7 +38,7 @@ const ConversationBody = ({
     setConversations((prevConversations) =>
       prevConversations.map((conversation) =>
         conversation.conversationId === updatedConversation.conversationId
-          ? updatedConversation
+          ? { ...updatedConversation }
           : conversation
       )
     );
@@ -78,6 +80,7 @@ const ConversationBody = ({
                 userId={currentConversation.userId}
                 user={user}
                 setError={setError}
+                currentConversation={currentConversation}
               />
             </li>
           ))}
@@ -85,6 +88,7 @@ const ConversationBody = ({
       </div>
     </div>
   );
+
 };
 
 ConversationBody.propTypes = {

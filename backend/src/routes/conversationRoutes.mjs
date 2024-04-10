@@ -18,7 +18,8 @@ const messageSchema = Joi.object({
   role: Joi.string().valid('user', 'bot', 'context').required(),
   messageId: Joi.string().required(),
   modelName: Joi.string().optional(),
-  files: Joi.array().items(fileSchema).default({ value: [], description: 'default files' })
+  files: Joi.array().items(fileSchema).default({ value: [], description: 'default files' }),
+  alias: Joi.string().optional()
 });
 
 const conversationSchema = Joi.object({
@@ -26,6 +27,13 @@ const conversationSchema = Joi.object({
   conversationId: Joi.string().required(),
   userId: Joi.string().required(),
   messages: Joi.array().items(messageSchema),
+  model1: Joi.string().optional(),
+  model2: Joi.string().optional(),
+  contextId1: Joi.string().optional(),
+  contextId2: Joi.string().optional(),
+  alias1: Joi.string().optional(),
+  alias2: Joi.string().optional(),
+  isAIConversation: Joi.boolean().default(false),
   createdTimestamp: Joi.date(),
   updatedTimestamp: Joi.date()
 });

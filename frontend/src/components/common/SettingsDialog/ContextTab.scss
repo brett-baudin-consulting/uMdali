@@ -6,35 +6,67 @@
   gap: 1rem;
   width: 100%;
   max-width: 100%;
-  height: 500px;
+  max-height: 100%;
+
 
   .content {
     flex: 1;
     display: flex;
     justify-content: space-between;
     gap: 1rem;
+    overflow: hidden;
 
     .left-panel {
       flex: 0 0 30%;
+      display: flex;
+      flex-direction: column;
+      max-height: 100%;
+      scrollbar-width: none; // For Firefox
+
+      &::-webkit-scrollbar {
+        display: none; // For WebKit browsers like Chrome and Safari
+      }
 
       .list {
         list-style-type: none;
         padding: 0;
+        margin: 0;
+        overflow-y: auto;
+        max-height: 100%;
         color: var(--color-text-secondary);
-
+    
         .list-item {
           padding: 0.5rem;
           cursor: pointer;
-
+    
           &:hover {
-            background-color: var(--color-background-primary);
+            background-color: var(--color-background-hover);
           }
-
+    
           &.active {
             background-color: var(--color-background-selected);
             color: var(--color-text-selected);
             font-weight: bold;
           }
+        }
+    
+        // Scrollbar styles
+        &::-webkit-scrollbar {
+          width: 8px;
+        }
+    
+        &::-webkit-scrollbar-track {
+          background: var(--color-background-secondary);
+        }
+    
+        &::-webkit-scrollbar-thumb {
+          background-color: var(--color-background-selected);
+          border-radius: 4px;
+          border: 2px solid var(--color-background-secondary);
+        }
+    
+        &::-webkit-scrollbar-thumb:hover {
+          background: var(--color-background-hover);
         }
       }
     }

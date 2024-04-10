@@ -15,7 +15,8 @@ import SpeechToText from "./SpeechToText";
 import "./ConversationFooter.scss";
 
 const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
-  onSendMessage, onResendMessage, isStreaming, setIsStreaming, abortFetch, isWaitingForResponse, setError, models }) => {
+  onSendMessage, onResendMessage, isStreaming, setIsStreaming, abortFetch, 
+  isWaitingForResponse, setError, models }) => {
   const { t } = useTranslation();
   const [input, setInput] = useState("");
   const textareaRef = useRef(null);
@@ -93,7 +94,7 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
     const trimmedInput = input.trim();
     if (trimmedInput || fileList) {
       try {
-        await onSendMessage(trimmedInput, fileList);
+        await onSendMessage(trimmedInput, fileList, user.settings.model);
         focusOnTextArea();
         setInput("");
         setFileList([]); // Clear file list after sending a message
@@ -102,7 +103,7 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
         console.error('Failed to send message:', error);
       }
     }
-  }, [input, onSendMessage, currentConversation, fileList]);
+  }, [currentConversation, input, fileList, onSendMessage, user.settings.model]);
 
   function handleAbort() {
     setIsStreaming(false);
@@ -113,7 +114,7 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
   async function handleRetry() {
     const newMessages = [...currentConversation.messages.slice(0, -1)];
     setCurrentConversation(prevState => ({ ...prevState, messages: newMessages }));
-    await onResendMessage();
+    await onResendMessage(user.settings.model);
     focusOnTextArea();
   };
 
@@ -204,6 +205,9 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
     }
     return model.isSupportsVision;
   };
+
+  const handleFileButtonClick = () => fileInputRef.current?.click();
+
   return (
     <div className="conversation-footer">
 
@@ -225,7 +229,7 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
       <div className="footer-body" >
         <button
           title={t("attach_title")}
-          onClick={() => fileInputRef?.current?.click()}
+          onClick={handleFileButtonClick}
           disabled={isStreaming || !doesModelSupportVision(models, user?.settings?.model)}
         >
           {t("attach")}

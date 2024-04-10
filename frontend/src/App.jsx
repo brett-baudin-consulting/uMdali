@@ -13,6 +13,7 @@ import Sidebar from "./components/layout/Sidebar/Sidebar";
 import ConversationHeader from "./components/layout/Conversation/ConversationHeader/ConversationHeader";
 import ConversationBody from "./components/layout/Conversation/ConversationBody/ConversationBody";
 import ConversationFooter from "./components/layout/Conversation/ConversationFooter/ConversationFooter";
+import AIConversationFooter from "./components/layout/Conversation/ConversationFooter/AIConversationFooter";
 import LoginDialog from "./components/common/LoginDialog/LoginDialog";
 import { sendMessage, sendMessageStreamResponse } from "./api/messageService";
 import { fetchModels } from "./api/modelService";
@@ -20,6 +21,7 @@ import { fetchSpeechToTextModels } from "./api/speechToTextModelService";
 import { fetchTextToSpeechModels } from "./api/textToSpeechModelService";
 import ErrorBoundary from './ErrorBoundary';
 import i18n from "./i18n";
+import { ConversationWizard } from "./components/layout/Sidebar/ConversationWizard";
 
 import "./App.scss";
 import "./styles/main.scss";
@@ -41,6 +43,11 @@ function App() {
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const [theme, setTheme] = useState('dark');
   const [error, setError] = useState(null);
+  const [isWizardVisible, setIsWizardVisible] = useState(false);
+
+  const handleClose = () => {
+    setIsWizardVisible(false);
+  }
 
   const handleLogin = async (user) => {
     setUser(user);
@@ -179,11 +186,16 @@ function App() {
         setIsStreaming(false);
         setIsWaitingForResponse(true);
         try {
+          let model = user.settings.model;
+          if (currentConversation.isAIConversation) {
+            model = currentConversation.messages.length % 2 === 0 ? currentConversation.model2 : currentConversation.model1;
+          }
           const data = await sendMessage(
             currentConversation,
             user,
             abortControllerRef.current.signal,
             doesModelSupportVision(models, user.settings.model),
+            model
           );
 
           setCurrentConversation((prevConversation) => ({
@@ -236,6 +248,10 @@ function App() {
           ) {
             setIsStreaming(true);
             try {
+              let model = user.settings.model;
+              if (currentConversation.isAIConversation) {
+                model = currentConversation.messages.length % 2 === 0 ? currentConversation.model2 : currentConversation.model1;
+              }
               await sendMessageStreamResponse(
                 user,
                 currentConversation,
@@ -244,6 +260,7 @@ function App() {
                 setIsStreaming,
                 abortControllerRef.current.signal,
                 doesModelSupportVision(models, user.settings.model),
+                model,
               );
 
             } catch (err) {
@@ -268,14 +285,15 @@ function App() {
     return <LoginDialog setUser={handleLogin} />;
   }
 
-  const createNewBotMessageAndUpdateConversation = (input) => {
+  const createNewBotMessageAndUpdateConversation = (model, alias) => {
     setIsStreaming(false);
 
     const newBotMessage = {
       content: "",
       role: "bot",
       messageId: uuidv4(),
-      modelName: user.settings.model,
+      modelName: model,
+      alias: alias,
     };
 
     updateMessages(newBotMessage);
@@ -283,22 +301,29 @@ function App() {
     setNewBotMessage(newBotMessage);
   };
 
-  const handleNewUserMessage = async (input, files) => {
+  const handleNewUserMessage = async (input, files, model, alias1, alias2) => {
+    let userModel = model;
+    if (currentConversation.isAIConversation) {
+      userModel = 'human'
+    }
+    model = model || user.settings.model;
     const newUserMessage = {
       content: input,
       role: "user",
       messageId: uuidv4(),
       files: files,
+      alias: alias2,
+      modelName: userModel,
     };
 
     updateMessages(newUserMessage);
 
-    createNewBotMessageAndUpdateConversation(input);
+    createNewBotMessageAndUpdateConversation(model, alias1);
   };
 
-  const handleResendMessage = async (input) => {
+  const handleResendMessage = async (model, alias) => {
     setError(null);
-    createNewBotMessageAndUpdateConversation(input);
+    createNewBotMessageAndUpdateConversation(model, alias);
   };
 
   const updateMessages = (message) => {
@@ -348,50 +373,76 @@ function App() {
     <ThemeProvider>
       <ErrorBoundary>
         <div className={`App`} data-theme={theme}>
-          <Sidebar
-            conversations={conversations}
-            currentConversation={currentConversation}
-            setCurrentConversation={setCurrentConversation}
-            setConversations={setConversations}
-            createNewConversation={createNewConversationRef.current}
-            user={user}
-          />
-          <div className="conversation-section">
-            <ConversationHeader
-              user={user}
-              setUser={setUser}
-              models={models}
-              isLoggedIn={isLoggedIn}
-              setIsLoggedIn={setIsLoggedIn}
-              speechToTextModels={speechToTextModels}
-              textToSpeechModels={textToSpeechModels}
-            />
-            <ConversationBody
-              currentConversation={currentConversation}
-              setCurrentConversation={setCurrentConversation}
-              setConversations={setConversations}
-              user={user}
-              setError={setError}
-            />
-            {/* {error && ( */}
-            <div className="error">
-              {error}
-            </div>
-            {/* )} */}
-            <ConversationFooter
-              user={user}
-              currentConversation={currentConversation}
-              setCurrentConversation={setCurrentConversation}
-              onSendMessage={handleNewUserMessage}
-              onResendMessage={handleResendMessage}
-              isStreaming={isStreaming}
-              setIsStreaming={setIsStreaming}
-              abortFetch={abortFetch}
-              isWaitingForResponse={isWaitingForResponse}
-              setError={setError}
-              models={models}
-            />
-          </div>
+          {isLoggedIn && (
+            <>
+              <Sidebar
+                conversations={conversations}
+                currentConversation={currentConversation}
+                setCurrentConversation={setCurrentConversation}
+                setConversations={setConversations}
+                createNewConversation={createNewConversationRef.current}
+                user={user}
+                setIsWizardVisible={setIsWizardVisible}
+              />
+              <div className="conversation-section">
+                <ConversationHeader
+                  user={user}
+                  setUser={setUser}
+                  models={models}
+                  isLoggedIn={isLoggedIn}
+                  setIsLoggedIn={setIsLoggedIn}
+                  speechToTextModels={speechToTextModels}
+                  textToSpeechModels={textToSpeechModels}
+                />
+                <ConversationBody
+                  currentConversation={currentConversation}
+                  setCurrentConversation={setCurrentConversation}
+                  setConversations={setConversations}
+                  user={user}
+                  setError={setError}
+                />
+                {/* Optionally show error */}
+                {error && <div className="error">{error}</div>}
+                {!currentConversation?.isAIConversation && <ConversationFooter
+                  user={user}
+                  currentConversation={currentConversation}
+                  setCurrentConversation={setCurrentConversation}
+                  onSendMessage={handleNewUserMessage}
+                  onResendMessage={handleResendMessage}
+                  isStreaming={isStreaming}
+                  setIsStreaming={setIsStreaming}
+                  abortFetch={abortFetch}
+                  isWaitingForResponse={isWaitingForResponse}
+                  setError={setError}
+                  models={models}
+                />}
+                {currentConversation?.isAIConversation && <AIConversationFooter
+                  user={user}
+                  currentConversation={currentConversation}
+                  setCurrentConversation={setCurrentConversation}
+                  onSendMessage={handleNewUserMessage}
+                  onResendMessage={handleResendMessage}
+                  isStreaming={isStreaming}
+                  setIsStreaming={setIsStreaming}
+                  abortFetch={abortFetch}
+                  isWaitingForResponse={isWaitingForResponse}
+                />}
+              </div>
+              {isWizardVisible && (
+                <div className="conversationWizardOverlay">
+                  <ConversationWizard
+                    user={user}
+                    onClose={handleClose}
+                    setCurrentConversation={setCurrentConversation}
+                    setConversations={setConversations}
+                    onSendMessage={handleNewUserMessage}
+                    models={models}
+                  />
+                </div>
+              )}
+            </>
+          )}
+          {!isLoggedIn && <LoginDialog setUser={handleLogin} />}
         </div>
       </ErrorBoundary>
     </ThemeProvider>

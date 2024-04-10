@@ -12,6 +12,7 @@
   --color-error: #EA4335;
   --color-border-light: #DDDDDD;
   --color-border-accent: #1A73E8;
+  --color-border-error: 1px solid red;
   --color-shadow-drop: rgba(0, 0, 0, 0.1);
 }
 
@@ -29,6 +30,7 @@
   --color-error: #CF6679;
   --color-border-light: #333333;
   --color-border-accent: #BB86FC;
+  --color-border-error: 1px solid red;
   --color-shadow-drop: rgba(255, 255, 255, 0.1);
 }
 
@@ -43,6 +45,24 @@
 
   .sidebar {
     width: 25%;
+  }
+  .conversationWizardOverlay {
+    position: fixed; // Use fixed positioning to cover the entire viewport
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex; // Use flexbox to center the child component
+    justify-content: center; // Center horizontally
+    align-items: center; // Center vertically
+    background-color: rgba(0, 0, 0, 0.5); // Optional: add a semi-transparent background
+    z-index: 1000; // High z-index to ensure it's on top of other content
+  }
+  
+  // Ensure your ConversationWizard component has a defined max-width and is not wider than the viewport
+  .ConversationWizard {
+    max-width: 90%; // Example to prevent it from being too wide on large screens
+    z-index: 1001; // Ensure it's above the overlay background if needed
   }
 
   .error {
