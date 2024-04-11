@@ -15,6 +15,7 @@ Pronounced "oom-DAH-lee"
 ![Screenshot of the uMdali settings for general](ApplicationSettingsSpeech.png)
 ![Screenshot of the uMdali settings for context](ApplicationSettingsContext.png)
 ![Screenshot of the uMdali settings for macros](ApplicationSettingsMacro.png)
+![Screenshot of the uMdali AI to AI converstation configuration.](AItoAIDialog.png)
 
 # Table of Contents
 1. [Project Overview](#project-overview)
