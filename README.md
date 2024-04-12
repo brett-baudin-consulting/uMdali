@@ -167,7 +167,7 @@ uMdali offers a broad range of features designed to enhance the user experience 
   - Supports an unlimited number of user context/system prompts for comprehensive interactions with language models.
 
 # Tutorials
-1. ![AI to AI converstation tutorial.](https://twitter.com/BaudinBrett/status/1778781792348291360)
+1. [AI to AI converstation tutorial.](https://twitter.com/BaudinBrett/status/1778781792348291360)
 
 # Getting Started with uMdali
 
