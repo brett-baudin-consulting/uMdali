@@ -55,6 +55,12 @@ export const fetchImage = (userId, fileName) => {
   return fetchBlobUrl(`${SERVER_BASE_URL}/file/${userId}/image/${fileName}`);
 };
 
-export const fetchIcon = (userId, fileName) => {
-  return fetchBlobUrl(`${SERVER_BASE_URL}/file/${userId}/icon/${fileName}`);
+export const fetchIcon = (userId, file) => {
+  if (file.type.startsWith('image/')) {
+    return fetchBlobUrl(`${SERVER_BASE_URL}/file/${userId}/image/${file.name}`);
+  }
+  else
+  {
+    return fetchBlobUrl(`${SERVER_BASE_URL}/public/images/standard_icon.png`);
+  }
 };

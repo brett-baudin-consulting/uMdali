@@ -30,7 +30,7 @@ OLLAMA_MODEL=ollama/mistral
 # OLLAMA OPENAI API
 OLLAMA_OPENAI_API_URL=http://localhost:11434/v1/chat/completions
 OLLAMA_OPENAI_API_KEY=NA
-OLLAMA_OPENAI_MODEL=ollama_openai/mistral
+OLLAMA_OPENAI_MODEL=ollama/mistral
 OLLAMA_OPENAI_MAX_TOKENS=2000
 OLLAMA_OPENAI_TEMPERATURE=0.7
 
@@ -44,28 +44,29 @@ OPENAI_TEMPERATURE=0.7
 # Mistral AI
 MISTRALAI_API_URL=https://api.mistral.ai/v1/chat/completions
 MISTRALAI_API_KEY=NA
-MISTRALAI_MODEL=mistral-tiny
+MISTRALAI_MODEL=mistral/mistral-tiny
 MISTRALAI_MAX_TOKENS=1000
 MISTRALAI_TEMPERATURE=0.7
 
 #Google
-GEMINI_API_URL=https://generativelanguage.googleapis.com/v1/
+#GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/models
+GEMINI_API_URL=https://generativelanguage.googleapis.com/v1/models
 GEMINI_API_KEY=NA
-GEMINI_MODEL=models/gemini-pro
+GEMINI_MODEL=google/gemini-pro
 GEMINI_MAX_TOKENS=1000
 GEMINI_TEMPERATURE=0.7
 
 # Groq
 GROQ_API_URL=https://api.groq.com/openai/v1/chat/completions
 GROQ_API_KEY=NA
-GROQ_MODEL=mixtral-8x7b-32768
+GROQ_MODEL=groq/mixtral-8x7b-32768
 GROQ_MAX_TOKENS=2000
 GROQ_TEMPERATURE=0.7
 
 # ANTHROPIC
 CLAUDE_API_URL=https://api.anthropic.com/v1/messages
 CLAUDE_API_KEY=NA
-CLAUDE_MODEL=claude-2
+CLAUDE_MODEL=anthropic/claude-3-haiku
 CLAUDE_MAX_TOKENS=10000
 CLAUDE_TEMPERATURE=0.7
 

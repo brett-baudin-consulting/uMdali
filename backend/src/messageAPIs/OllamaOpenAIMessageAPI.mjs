@@ -59,7 +59,7 @@ async function handleApiErrorResponse(response) {
   }
 
   // Log the error
-  logger.error("Ollama_OpenAI API response error: ", parsedText);
+  logger.error("Ollama_OpenAI API response error: ", { statusCode: response.status, body: parsedText });
 
   // Throw an error with a message, checking if parsedText is an object and has an error.message
   const errorMessage = `Ollama_OpenAI API Error: ${parsedText?.error?.message || 'Unknown error occurred'}`;
@@ -100,7 +100,7 @@ class OllamaOpenAIMessageAPI extends MessageAPI {
     }
     const updatedMessages = await messageToOllamaOpenAIFormat(messages, isSupportsVision);
     const requestOptions = this._prepareOptions({
-      model: userModel.substring(userModel.indexOf("ollama_openai/") + 14) || this.MODEL,
+      model: userModel,
       messages: updatedMessages,
       max_tokens: maxTokens || this.MAX_TOKENS,
       temperature: temperature || this.TEMPERATURE,
@@ -111,10 +111,10 @@ class OllamaOpenAIMessageAPI extends MessageAPI {
 
       if (!response.ok) {
         await handleApiErrorResponse(response);
-     }
+      }
 
       const data = await response.json();
-      const content = data?.choices?.[0]?.message?.content;
+      const content = data?.choices?.[0]?.message?.content || 'No content returned';
       return content;
     } catch (err) {
       if (err.name === 'AbortError') {
@@ -134,7 +134,7 @@ class OllamaOpenAIMessageAPI extends MessageAPI {
     const updatedMessages = await messageToOllamaOpenAIFormat(messages, isSupportsVision);
 
     const requestOptions = this._prepareOptions({
-      model: userModel.substring(userModel.indexOf("ollama_openai/") + 14) || this.MODEL,
+      model: userModel,
       messages: updatedMessages,
       max_tokens: maxTokens || this.MAX_TOKENS,
       temperature: temperature || this.TEMPERATURE,
@@ -143,7 +143,7 @@ class OllamaOpenAIMessageAPI extends MessageAPI {
     try {
       const response = await fetch(OLLAMA_OPENAI_API_URL, requestOptions, signal);
       if (!response.ok) {
-         await handleApiErrorResponse(response);
+        await handleApiErrorResponse(response);
       }
       await this.processResponseStream(response, resClient);
     } catch (err) {

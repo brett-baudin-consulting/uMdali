@@ -52,14 +52,10 @@ services:
       # REDIS_PASSWORD=optional
       - ADVANCED_LIMIT_POINTS=10
       - ADVANCED_LIMIT_DURATION=60  # Duration in seconds
-      # OLLAMA Note can't use localhost here, use the IP address of the host machine
-      - OLLAMA_API_URL=http://<host ip running Ollama>:11434/api/chat
-      - OLLAMA_MODEL=ollama/mistral
-      # OLLAMA OPENAI API
       # Note can't use localhost here, use the IP address of the host machine
       - OLLAMA_OPENAI_API_URL=http://<host ip running Ollama>:11434/v1/chat/completions
       - OLLAMA_OPENAI_API_KEY=NA
-      - OLLAMA_OPENAI_MODEL=ollama_openai/mistral
+      - OLLAMA_OPENAI_MODEL=ollama/mistral
       - OLLAMA_OPENAI_MAX_TOKENS=2000
       - OLLAMA_OPENAI_TEMPERATURE=0.7
       # Open AI
@@ -75,9 +71,10 @@ services:
       - MISTRALAI_MAX_TOKENS=1000
       - MISTRALAI_TEMPERATURE=0.7
       # Google
-      - GEMINI_API_URL=https://generativelanguage.googleapis.com/v1/
+      #- GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/models
+      - GEMINI_API_URL=https://generativelanguage.googleapis.com/v1/models
       - GEMINI_API_KEY=NA
-      - GEMINI_MODEL=models/gemini-pro
+      - GEMINI_MODEL=gemini-pro
       - GEMINI_MAX_TOKENS=1000
       - GEMINI_TEMPERATURE=0.7
       # ANTHROPIC

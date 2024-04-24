@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
@@ -9,6 +9,7 @@ import GeneralTab from "./GeneralTab";
 import ContextTab from "./ContextTab";
 import MacroTab from "./MacroTab";
 import SpeechTab from "./SpeechTab";
+import ModelTab from "./ModelTab";
 
 import "./SettingsDialog.scss";
 
@@ -17,24 +18,36 @@ function SettingsDialog({ onClose, models, user, setUser, speechToTextModels, te
   const [activeTab, setActiveTab] = useState("general");
   const modalContentRef = useRef(null);
 
-  useEffect(() => {
-    const listener = (event) => {
-      if (modalContentRef.current && !modalContentRef.current.contains(event.target)) {
-        onClose();
-      }
-    };
-    document.addEventListener('mousedown', listener);
-    document.addEventListener('touchstart', listener);
-    return () => {
-      document.removeEventListener('mousedown', listener);
-      document.removeEventListener('touchstart', listener);
-    };
+  const handleKeyDown = useCallback((event) => {
+    if (event.key === 'Escape') {
+      onClose();
+    }
   }, [onClose]);
 
-  const renderActiveTabContent = () => {
+  const handleClickOutside = useCallback((event) => {
+    if (modalContentRef.current && !modalContentRef.current.contains(event.target)) {
+      onClose();
+    }
+  }, [onClose, modalContentRef]);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [handleKeyDown, handleClickOutside]);
+
+  const renderActiveTabContent = useCallback(() => {
     switch (activeTab) {
       case 'general':
-        return <GeneralTab user={user} setUser={setUser} models={models} />;
+        return <GeneralTab user={user} setUser={setUser} />;
+      case 'model':
+        return <ModelTab user={user} setUser={setUser} models={models} />;
       case 'speech':
         return <SpeechTab user={user} setUser={setUser} speechToTextModels={speechToTextModels} textToSpeechModels={textToSpeechModels} />;
       case 'context':
@@ -44,29 +57,32 @@ function SettingsDialog({ onClose, models, user, setUser, speechToTextModels, te
       default:
         return null; // or a default component
     }
-  };
+  }, [activeTab, user, setUser, models, speechToTextModels, textToSpeechModels]);
 
-  const handleClose = async () => {
-    try {
-      if (user?.userId) {
-        const updatedUser = {
-          ...user,
-          settings: {
-            ...user.settings,
-            contexts: user.settings.contexts.filter(context => context.name),
-            macros: user.settings.macros.filter(macro => macro.shortcut),
-            textToSpeechModel: user.settings.textToSpeechModel,
-            speechToTextModel: user.settings.speechToTextModel,
-          }
-        };
-        await updateUser(updatedUser);
-        setUser(updatedUser);
-      }
-      onClose();
-    } catch (error) {
-      console.error("Failed to update user:", error);
-      // Handle error appropriately
-    }
+  const handleClose = () => {
+    const updateUserAsync = async () => {
+      try {
+        if (user?.userId) {
+          const updatedUser = {
+            ...user,
+            settings: {
+              ...user.settings,
+              contexts: user.settings.contexts.filter(context => context.name),
+              macros: user.settings.macros.filter(macro => macro.shortcut),
+              textToSpeechModel: user.settings.textToSpeechModel,
+              speechToTextModel: user.settings.speechToTextModel,
+            }
+          };
+          await updateUser(updatedUser);
+          setUser(updatedUser);
+        }
+      } catch (error) {
+        console.error("Failed to update user:", error);
+        // Handle error appropriately
+      } 
+    };
+    updateUserAsync();
+    onClose();
   };
 
   return (
@@ -82,6 +98,11 @@ function SettingsDialog({ onClose, models, user, setUser, speechToTextModels, te
               label={t("general_settings_title")}
               isActive={activeTab === "general"}
               onClick={() => setActiveTab("general")}
+            />
+            <Tab
+              label={t("model_settings_title")}
+              isActive={activeTab === "model"}
+              onClick={() => setActiveTab("model")}
             />
             <Tab
               label={t("speech_settings_title")}

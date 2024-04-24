@@ -9,9 +9,8 @@ import { logger } from '../logger.mjs';
 
 const router = express.Router();
 const FILE_SIZE_LIMIT = 10000000; // 10MB
-const SUPPORTED_FILE_TYPES = /jpeg|jpg|png|gif/;
 const ICON_SIZE = { width: 64, height: 64 };
-
+const STANDARD_ICON_PATH = path.join('public', 'images', 'standard_icon.png');
 class IconCreationError extends Error {
   constructor(message) {
     super(message);
@@ -19,16 +18,21 @@ class IconCreationError extends Error {
   }
 }
 
-const createIcon = async (filePath) => {
-  const iconPath = filePath.replace(path.extname(filePath), '_icon.png');
-  try {
-    await sharp(filePath)
-      .resize(ICON_SIZE.width, ICON_SIZE.height)
-      .toFile(iconPath);
-    return iconPath;
-  } catch (error) {
-    logger.error(`Error creating icon: ${error.message}`);
-    throw new IconCreationError(error.message);
+const createIcon = async (filePath, mimeType) => {
+  if (mimeType.startsWith('image/')) {
+    const iconPath = filePath.replace(path.extname(filePath), '_icon.png');
+    try {
+      await sharp(filePath)
+        .resize(ICON_SIZE.width, ICON_SIZE.height)
+        .toFile(iconPath);
+      return iconPath;
+    } catch (error) {
+      logger.error(`Error creating icon: ${error.message}`);
+      throw new IconCreationError(error.message);
+    }
+  } else {
+    // Return a standard icon path for non-image files
+    return STANDARD_ICON_PATH;
   }
 };
 
@@ -67,15 +71,6 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   limits: { fileSize: FILE_SIZE_LIMIT },
-  fileFilter: (req, file, cb) => {
-    const filetypes = SUPPORTED_FILE_TYPES;
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = filetypes.test(file.mimetype.toLowerCase());
-    if (mimetype && extname) {
-      return cb(null, true);
-    }
-    cb(null, false, new Error("File upload only supports the following filetypes - .jpeg, .jpg, .png, .gif"));
-  }
 });
 
 router.post('/:userId', checkUserId, userDirectory, upload.single('file'), async (req, res, next) => {
@@ -85,7 +80,7 @@ router.post('/:userId', checkUserId, userDirectory, upload.single('file'), async
   }
 
   try {
-    const iconPath = await createIcon(req.file.path);
+    const iconPath = await createIcon(req.file.path, req.file.mimetype);
     res.status(201).send({
       message: 'File and icon uploaded successfully.',
       file: {

@@ -16,7 +16,7 @@ const FileItem = ({ file, onDelete, currentConversation }) => {
         if (currentConversation?.userId) {
             const fetchFileIcon = async () => {
                 try {
-                    const icon = await fetchIcon(currentConversation.userId, file.name);
+                    const icon = await fetchIcon(currentConversation.userId, file);
                     setIconUrl(icon);
                 } catch (error) {
                     console.error('Failed to fetch file icon:', error);
@@ -25,7 +25,7 @@ const FileItem = ({ file, onDelete, currentConversation }) => {
 
             fetchFileIcon();
         }
-    }, [currentConversation?.userId, file.name]);
+    }, [currentConversation.userId, file, file.name]);
 
     return (
         <div className="file-item">

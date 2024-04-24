@@ -9,15 +9,35 @@ const ModelSchema = new Schema({
     type: String,
     required: true,
   },
-  maxTokens: {
-    type: Number,
-    required: true,
-
-  },
   isSupportsVision: {
     type: Boolean,
     required: true,
     default: false,
+  },
+  isSupportsAudio: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
+  isSupportsVideo: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
+  isSupportsContext: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
+  inputTokenLimit: {
+    type: Number,
+    required: true,
+    default: 2048,
+  },
+  outputTokenLimit: {
+    type: Number,
+    required: true,
+    default: 2048,
   },
   available: {
     type: Boolean,
@@ -32,5 +52,7 @@ const ModelSchema = new Schema({
     default: Date.now
   }
 });
+
+ModelSchema.index({ name: 1, vendor: 1 }, { unique: true });
 
 export default model('Model', ModelSchema);

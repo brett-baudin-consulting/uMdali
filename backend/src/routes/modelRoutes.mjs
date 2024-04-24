@@ -3,9 +3,16 @@ import { logger } from '../logger.mjs';
 import Model from '../models/Model.mjs';
 
 const router = express.Router();
+async function removeOldModels() {
+  try {
+    await Model.deleteMany({ isSupportsContext: null });
+  } catch (error) {
+    logger.error(error);
+  }};
 
 router.get('/', async (req, res) => {
   try {
+    await removeOldModels();
     const models = await Model.find({ available: true }).sort({ name: 1 }); 
     res.send(models);
   } catch (error) {

@@ -53,6 +53,15 @@ function App() {
     setUser(user);
     setIsLoggedIn(true);
   };
+  function getModel() {
+    let modelName = user.settings.model;
+    if (currentConversation.isAIConversation) {
+      modelName = currentConversation.messages.length % 2 === 0 ? currentConversation.model2 : currentConversation.model1;
+    }
+    const [vendor, name] = modelName.split('/');
+    const model = models.find((model) => model.vendor === vendor && model.name === name);
+    return model;
+  }
 
   useEffect(() => {
     if (user?.settings?.language) {
@@ -166,15 +175,6 @@ function App() {
     };
   }, [currentConversation, isLoggedIn, isStreaming]);
 
-  const doesModelSupportVision = (models, modelName) => {
-
-    const model = models.find(m => m.name === modelName);
-    if (!model) {
-      return false;
-    }
-    return model.isSupportsVision;
-  };
-
   useEffect(() => {
     // Only run this effect if the user is logged in
     if (isLoggedIn) {
@@ -186,15 +186,11 @@ function App() {
         setIsStreaming(false);
         setIsWaitingForResponse(true);
         try {
-          let model = user.settings.model;
-          if (currentConversation.isAIConversation) {
-            model = currentConversation.messages.length % 2 === 0 ? currentConversation.model2 : currentConversation.model1;
-          }
+          const model = getModel();
           const data = await sendMessage(
             currentConversation,
             user,
             abortControllerRef.current.signal,
-            doesModelSupportVision(models, user.settings.model),
             model
           );
 
@@ -248,10 +244,7 @@ function App() {
           ) {
             setIsStreaming(true);
             try {
-              let model = user.settings.model;
-              if (currentConversation.isAIConversation) {
-                model = currentConversation.messages.length % 2 === 0 ? currentConversation.model2 : currentConversation.model1;
-              }
+              const model = getModel();
               await sendMessageStreamResponse(
                 user,
                 currentConversation,
@@ -259,7 +252,6 @@ function App() {
                 newBotMessage,
                 setIsStreaming,
                 abortControllerRef.current.signal,
-                doesModelSupportVision(models, user.settings.model),
                 model,
               );
 
@@ -403,7 +395,7 @@ function App() {
                 />
                 {/* Optionally show error */}
                 {error && <div className="error">{error}</div>}
-                {!currentConversation?.isAIConversation && <ConversationFooter
+                {currentConversation && !currentConversation?.isAIConversation && <ConversationFooter
                   user={user}
                   currentConversation={currentConversation}
                   setCurrentConversation={setCurrentConversation}
@@ -416,7 +408,7 @@ function App() {
                   setError={setError}
                   models={models}
                 />}
-                {currentConversation?.isAIConversation && <AIConversationFooter
+                {currentConversation && currentConversation?.isAIConversation && <AIConversationFooter
                   user={user}
                   currentConversation={currentConversation}
                   setCurrentConversation={setCurrentConversation}
@@ -447,6 +439,7 @@ function App() {
       </ErrorBoundary>
     </ThemeProvider>
   );
+
 }
 
 export default App;

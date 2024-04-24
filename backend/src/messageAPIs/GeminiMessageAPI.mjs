@@ -9,43 +9,40 @@ import { encodeFiles } from './FileEncoder.mjs';
 const { GEMINI_MODEL, GEMINI_API_KEY, GEMINI_MAX_TOKENS, GEMINI_TEMPERATURE, GEMINI_API_URL } =
   process.env;
 
-const checkEnvVariables = () => {
-  if (!GEMINI_MODEL || !GEMINI_API_KEY || !GEMINI_MAX_TOKENS || !GEMINI_TEMPERATURE) {
-    throw new Error("Environment variables are not set correctly.");
-  }
-
-  const temperature = parseFloat(GEMINI_TEMPERATURE);
-  const maxTokens = parseInt(GEMINI_MAX_TOKENS, 10);
-  if (Number.isNaN(maxTokens) || Number.isNaN(temperature)) {
-    throw new Error("Invalid GEMINI_MAX_TOKENS or GEMINI_TEMPERATURE environment variable value.");
-  }
-
-  return { temperature, maxTokens };
-};
-
 async function handleApiErrorResponse(response) {
-  const text = await response.text();
-  let parsedText;
   try {
-    parsedText = JSON.parse(text);
+    const text = await response.text();
+    const parsedText = JSON.parse(text);
+    logger.error("Gemini API response error: ", parsedText);
+    const errorMessage = `Gemini API Error: ${parsedText[0]?.error?.message || parsedText?.error?.message || parsedText}`;
+    throw new Error(errorMessage);
   } catch (error) {
-    // If JSON parsing fails, use the original text
-    parsedText = text;
+    logger.error("Failed to parse response: ", error);
+    throw new Error("Failed to handle API error response.");
   }
-
-  // Log the error
-  logger.error("Gemini API response error: ", parsedText);
-
-  // Throw an error with a message, checking if parsedText is an object and has an error.message
-  const errorMessage = `Gemini API Error: ${parsedText[0]?.error?.message ||parsedText?.error?.message || parsedText}`;
-  throw new Error(errorMessage);
 }
 
-const envValues = checkEnvVariables();
 // JSONata expression
 const transformWithVision = `
 {
   "contents": $map(*[role != 'context'], function($v, $i, $a) {
+    {
+      "role": $v.role = 'bot' ? 'model' : $v.role,
+      "parts":[ 
+          $map($v.files, function($file) {
+              {
+                "inlineData": {
+                  "mimeType": $file.type,
+                  "data": $file.base64
+                }
+              }
+          }),{
+        "text": $v.content
+      }
+    ]
+    }
+  }),
+    "systemInstruction": $map(*[role = 'context'], function($v, $i, $a) {
     {
       "role": $v.role = 'bot' ? 'model' : $v.role,
       "parts":[ 
@@ -82,23 +79,37 @@ const transformWithoutVision = `
 async function messageToGeminiFormat(messages, isSupportsVision) {
   if (!isSupportsVision) {
     const transform = jsonata(transformWithoutVision);
-    const openai = await transform.evaluate(messages);
-    return openai;
+    const gemini = await transform.evaluate(messages);
+    return gemini;
   }
   const transform = jsonata(transformWithVision);
-  const openai = await transform.evaluate(messages);
-  return openai;
+  const gemini = await transform.evaluate(messages);
+  return gemini;
 }
 
 class GeminiMessageAPI extends MessageAPI {
   constructor(userModel) {
     super();
+    const envValues = this._checkEnvVariables();
     this.MODEL = userModel || GEMINI_MODEL;
     this.API_KEY = GEMINI_API_KEY;
     this.TEMPERATURE = envValues.temperature;
     this.MAX_TOKENS = envValues.maxTokens;
   }
 
+  _checkEnvVariables() {
+    if (!GEMINI_MODEL || !GEMINI_API_KEY || !GEMINI_MAX_TOKENS || !GEMINI_TEMPERATURE) {
+      throw new Error("Environment variables are not set correctly.");
+    }
+
+    const temperature = parseFloat(GEMINI_TEMPERATURE);
+    const maxTokens = parseInt(GEMINI_MAX_TOKENS, 10);
+    if (Number.isNaN(maxTokens) || Number.isNaN(temperature)) {
+      throw new Error("Invalid GEMINI_MAX_TOKENS or GEMINI_TEMPERATURE environment variable value.");
+    }
+
+    return { temperature, maxTokens };
+  }
   _prepareHeaders() {
     return {
       "Content-Type": "application/json",
@@ -123,6 +134,7 @@ class GeminiMessageAPI extends MessageAPI {
 
     const requestOptions = this._prepareOptions({
       contents: updatedMessages.contents,
+      systemInstruction: updatedMessages.systemInstruction,
       generation_config: {
         temperature: temperature || this.TEMPERATURE,
         maxOutputTokens: maxTokens || this.MAX_TOKENS,
@@ -164,6 +176,7 @@ class GeminiMessageAPI extends MessageAPI {
 
     return this._prepareOptions({
       contents: updatedMessages.contents,
+      systemInstruction: updatedMessages.systemInstruction,
       generation_config: {
         temperature: temperature || this.TEMPERATURE,
         maxOutputTokens: maxTokens || this.MAX_TOKENS,
