@@ -49,8 +49,8 @@ MISTRALAI_MAX_TOKENS=1000
 MISTRALAI_TEMPERATURE=0.7
 
 #Google
-#GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/models
-GEMINI_API_URL=https://generativelanguage.googleapis.com/v1/models
+#GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/models/
+GEMINI_API_URL=https://generativelanguage.googleapis.com/v1/models/
 GEMINI_API_KEY=NA
 GEMINI_MODEL=google/gemini-pro
 GEMINI_MAX_TOKENS=1000
