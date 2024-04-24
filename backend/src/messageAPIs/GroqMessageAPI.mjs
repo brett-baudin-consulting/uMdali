@@ -10,12 +10,12 @@ import { encodeFiles } from './FileEncoder.mjs';
 
 const transformWithoutVision = `
 $map($, function($message) {
-  {
-      "role": $message.role = 'bot' ? 'assistant' :
-              $message.role = 'context' ? 'system' :
-              $message.role,
-      "content": $message.content
-  }
+    {
+        "role": $message.role = 'bot' ? 'assistant' :
+                $message.role = 'context' ? 'system' :
+                $message.role,
+        "content": $message.content
+    }
 })[]
 `;
 async function messageToGroqFormat(messages, isSupportsVision) {
@@ -33,13 +33,15 @@ const { GROQ_MODEL, GROQ_API_KEY, GROQ_MAX_TOKENS, GROQ_TEMPERATURE, GROQ_API_UR
   process.env;
 
 const checkEnvVariables = () => {
-  if (!GROQ_MODEL || !GROQ_API_KEY || !GROQ_MAX_TOKENS || !GROQ_TEMPERATURE) {
-    throw new Error("Environment variables are not set correctly.");
-  }
+  ["GROQ_MODEL", "GROQ_API_KEY", "GROQ_MAX_TOKENS", "GROQ_TEMPERATURE"].forEach(varName => {
+    if (!process.env[varName]) {
+      throw new Error(`Environment variable ${varName} is not set.`);
+    }
+  });
 
-  const temperature = parseFloat(GROQ_TEMPERATURE);
-  const maxTokens = parseInt(GROQ_MAX_TOKENS, 10);
-  if (Number.isNaN(maxTokens) || Number.isNaN(temperature)) {
+  const temperature = parseFloat(process.env.GROQ_TEMPERATURE);
+  const maxTokens = parseInt(process.env.GROQ_MAX_TOKENS, 10);
+  if (Number.isNaN(temperature) || Number.isNaN(maxTokens)) {
     throw new Error("Invalid GROQ_MAX_TOKENS or GROQ_TEMPERATURE environment variable value.");
   }
 
@@ -54,14 +56,10 @@ async function handleApiErrorResponse(response) {
   try {
     parsedText = JSON.parse(text);
   } catch (error) {
-    // If JSON parsing fails, use the original text
-    parsedText = text;
+    logger.error("Error parsing JSON:", text);
+    throw new Error(`Groq API Error: ${text}`);
   }
-
-  // Log the error
-  logger.error("Groq API response error: ", parsedText);
-
-  // Throw an error with a message, checking if parsedText is an object and has an error.message
+  logger.error("Groq API response error:", parsedText);
   const errorMessage = `Groq API Error: ${parsedText?.error?.message || 'Unknown error occurred'}`;
   throw new Error(errorMessage);
 }
@@ -100,29 +98,29 @@ class GroqMessageAPI extends MessageAPI {
     }
     const updatedMessages = await messageToGroqFormat(messages, isSupportsVision);
     const requestOptions = this._prepareOptions({
-      model: userModel.substring(userModel.indexOf("groq/") + 5) || this.MODEL,
+      model: userModel,
       messages: updatedMessages,
       max_tokens: maxTokens || this.MAX_TOKENS,
       temperature: temperature || this.TEMPERATURE,
     }, signal);
 
     try {
-      const response = await fetch(GROQ_API_URL, requestOptions, signal);
+      const response = await fetch(GROQ_API_URL, requestOptions);
 
       if (!response.ok) {
         await handleApiErrorResponse(response);
-     }
+      }
 
       const data = await response.json();
       const content = data?.choices?.[0]?.message?.content;
       return content;
     } catch (err) {
       if (err.name === 'AbortError') {
-        logger.error("Fetch aborted:", err);
+        logger.info("Request was aborted by the user:", err);
       } else {
         logger.error("Error sending request:", err);
+        throw err;
       }
-      throw err;
     }
   }
 
@@ -134,16 +132,16 @@ class GroqMessageAPI extends MessageAPI {
     const updatedMessages = await messageToGroqFormat(messages, isSupportsVision);
 
     const requestOptions = this._prepareOptions({
-      model: userModel.substring(userModel.indexOf("groq/") + 5) || this.MODEL,
+      model: userModel,
       messages: updatedMessages,
       max_tokens: maxTokens || this.MAX_TOKENS,
       temperature: temperature || this.TEMPERATURE,
       stream: true,
     }, signal);
     try {
-      const response = await fetch(GROQ_API_URL, requestOptions, signal);
+      const response = await fetch(GROQ_API_URL, requestOptions);
       if (!response.ok) {
-         await handleApiErrorResponse(response);
+        await handleApiErrorResponse(response);
       }
       await this.processResponseStream(response, resClient);
     } catch (err) {
@@ -188,7 +186,7 @@ class GroqMessageAPI extends MessageAPI {
 
   handleStreamError(err) {
     if (err.name === 'AbortError') {
-      logger.error("Fetch aborted:", err);
+      logger.info("Request was aborted by the user:", err);
     } else {
       logger.error("Error sending stream response:", err);
     }

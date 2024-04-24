@@ -81,6 +81,7 @@ const ConversationBody = ({
                 user={user}
                 setError={setError}
                 currentConversation={currentConversation}
+                setCurrentConversation={setCurrentConversation}
               />
             </li>
           ))}

@@ -12,7 +12,8 @@ Pronounced "oom-DAH-lee"
 
 ![Screenshot of the uMdali chat application interface](ApplicationImage1.png)
 ![Screenshot of the uMdali settings for general](ApplicationSettingsGeneral.png)
-![Screenshot of the uMdali settings for general](ApplicationSettingsSpeech.png)
+![Screenshot of the uMdali settings for model](ApplicationSettingsModel.png)
+![Screenshot of the uMdali settings for speech](ApplicationSettingsSpeech.png)
 ![Screenshot of the uMdali settings for context](ApplicationSettingsContext.png)
 ![Screenshot of the uMdali settings for macros](ApplicationSettingsMacro.png)
 ![Screenshot of the uMdali AI to AI converstation configuration.](AItoAIDialog.png)

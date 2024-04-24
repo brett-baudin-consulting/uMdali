@@ -2,17 +2,15 @@ import { logger } from "../logger.mjs";
 import OpenAIMessageAPI from "../messageAPIs/OpenAIMessageAPI.mjs";
 import ClaudeMessageAPI from "../messageAPIs/ClaudeMessageAPI.mjs";
 import GeminiMessageAPI from "../messageAPIs/GeminiMessageAPI.mjs";
-import OllamaMessageAPI from "../messageAPIs/OllamaAIMessageAPI.mjs";
 import MistralMessageAPI from "../messageAPIs/MistralAIMessageAPI.mjs";
 import GroqMessageAPI from "../messageAPIs/GroqMessageAPI.mjs";
 import OllamaOpenAIMessageAPI from "../messageAPIs/OllamaOpenAIMessageAPI.mjs";
 
 export const messageAPIs = {
-  ollama_openai: new OllamaOpenAIMessageAPI(),
-  claude: new ClaudeMessageAPI(),
-  gpt: new OpenAIMessageAPI(),
-  gemini: new GeminiMessageAPI(),
-  ollama: new OllamaMessageAPI(),
+  ollama: new OllamaOpenAIMessageAPI(),
+  anthropic: new ClaudeMessageAPI(),
+  openai: new OpenAIMessageAPI(),
+  google: new GeminiMessageAPI(),
   mistral: new MistralMessageAPI(),
   groq: new GroqMessageAPI(),
 };
@@ -83,13 +81,13 @@ async function filterMessages(messages, res) {
 }
 
 function getAPI(model) {
-  let models = ["ollama_openai", "gemini", "ollama", "gpt", "mistral", "claude", "groq"];
-  let modelImplementation = models.find(m => model?.includes(m));
+  let models = ["ollama", "google", "ollama", "openai", "mistral", "anthropic", "groq"];
+  let modelImplementation = models.find(m => model?.vendor?.toLowerCase() === m);
   return messageAPIs[modelImplementation];
 }
 
 async function handleRequest(req, res) {
-  const { userDetails: { settings }, message, stream, isSupportsVision, model } = req.body;
+  const { userDetails: { settings }, message, stream, model } = req.body;
   const messageAPI = getAPI(model);
   if (!messageAPI) {
     res.status(400).send({ error: `Unsupported API: ${settings.model}` });
@@ -99,16 +97,19 @@ async function handleRequest(req, res) {
   let messages;
   try {
     messages = await filterMessages(message);
+    if (!model.isSupportsContext) {
+      messages = messages.filter(msg => msg.role !== 'context');
+    }
   } catch (error) {
     res.status(error.statusCode || 500).send({ error: error.message });
     return;
   }
 
   const options = {
-    userModel: model,
+    userModel: model.name,
     maxTokens: settings.maxTokens,
     temperature: settings.temperature,
-    isSupportsVision: isSupportsVision,
+    isSupportsVision: model.isSupportsVision,
   };
 
   const abortController = new AbortController();

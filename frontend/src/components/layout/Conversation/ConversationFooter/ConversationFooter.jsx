@@ -197,13 +197,17 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
   }, []);
 
   const BOT_ROLE = "bot";
-  const doesModelSupportVision = (models, modelName) => {
+  const doesModelSupportFiles = (models, modelName) => {
 
-    const model = models.find(m => m.name === modelName);
+    const [vendor, name] = modelName.split('/');
+    const model = models.find((model) => model.vendor === vendor && model.name === name);
+
     if (!model) {
       return false;
     }
-    return model.isSupportsVision;
+    return model.isSupportsVision | 
+    model.isSupportsAudio | 
+    model.isSupportsVideo;
   };
 
   const handleFileButtonClick = () => fileInputRef.current?.click();
@@ -230,7 +234,7 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
         <button
           title={t("attach_title")}
           onClick={handleFileButtonClick}
-          disabled={isStreaming || !doesModelSupportVision(models, user?.settings?.model)}
+          disabled={isStreaming || !doesModelSupportFiles(models, user?.settings?.model)}
         >
           {t("attach")}
         </button>

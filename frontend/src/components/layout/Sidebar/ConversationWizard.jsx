@@ -41,11 +41,10 @@ export const ConversationWizard = ({
         conversationStarter: false,
     });
     const sortedModels = useMemo(() => {
-        return [...models].sort((a, b) => a.name.localeCompare(b.name));
+        return [...models].sort((a, b) => (a.vendor + a.name).localeCompare(b.vendor + b.name));
     }, [models]);
 
-    // Use the first model's id as the initial model selection if available
-    const initialModelId = sortedModels.length > 0 ? sortedModels[0].name : ''; // Assuming each model has a unique 'id' property
+    const initialModelId = sortedModels.length > 0 ? `${sortedModels[0].vendor}/${sortedModels[0].name}` : '';
 
     const [selectedModel1, setSelectedModel1] = useState(initialModelId);
     const [selectedModel2, setSelectedModel2] = useState(initialModelId);
@@ -118,8 +117,8 @@ export const ConversationWizard = ({
                     <label htmlFor='modelSelection1'>{t('model_title')}</label>
                     <select value={selectedModel1} onChange={(e) => setSelectedModel1(e.target.value)}>
                         {sortedModels.map((model) => (
-                            <option key={model.name} value={model.name}>
-                                {model.name}
+                            <option key={model.name} value={`${model.vendor}/${model.name}`}>
+                                {model.vendor}/{model.name}
                             </option>
                         ))}
                     </select>
@@ -150,8 +149,8 @@ export const ConversationWizard = ({
                     <label htmlFor='modelSelection2'>{t('model_title')}</label>
                     <select value={selectedModel2} onChange={(e) => setSelectedModel2(e.target.value)}>
                         {sortedModels.map((model) => (
-                            <option key={model.name} value={model.name}>
-                                {model.name}
+                            <option key={model.name} value={`${model.vendor}/${model.name}`}>
+                                {model.vendor}/{model.name}
                             </option>
                         ))}
                     </select>
@@ -181,7 +180,7 @@ export const ConversationWizard = ({
             }
             <div className="buttonsContainer">
                 <button onClick={handleOkClick}>
-                    { t('ok_title') }
+                    {t('ok_title')}
                 </button>
                 <button onClick={() => { onClose(); }}>{t('cancel_title')}</button>
             </div>

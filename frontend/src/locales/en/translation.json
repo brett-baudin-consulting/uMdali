@@ -14,6 +14,7 @@
     "app_title": "uMdali",
     "attach_title": "Attach File",
     "attach": "📎",
+    "audio_support_title": "Audio Support",
     "bot_title": "Bot",
     "bot": "🤖",
     "bots_response_to": "Bot's response to:",
@@ -21,6 +22,7 @@
     "cancel": "✖️",
     "context_placeholder": "Your context here...",
     "context_settings_title": "Context",
+    "context_support_title": "Context Support",
     "context_title": "Context",
     "context": "📖",
     "continue_title": "Continue",
@@ -57,7 +59,8 @@
     "loginError": "Invalid username or password",
     "macro_placeholder": "uMdali Rocks!",
     "macro_settings_title": "Macro",
-    "max_tokens_title": "Max Tokens",
+    "max_tokens_title": "Max Output Tokens",
+    "model_settings_title": "Model",
     "model_title": "Model",
     "name_placeholder": "Context Name",
     "new_conversation_title": "New Conversation",
@@ -101,5 +104,7 @@
     "user_title": "User",
     "user": "👤",
     "username": "Username",
+    "video_support_title": "Video Support",
+    "vision_support_title": "Image Support",
     "voice_settings_title": "Voice"
 }

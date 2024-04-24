@@ -7,7 +7,6 @@ export const sendMessage = async (
   currentConversation,
   user,
   signal,
-  isSupportsVision,
   model
 ) => {
   const filteredMessages = currentConversation.messages.filter(message => message.content !== "");
@@ -21,7 +20,6 @@ export const sendMessage = async (
       userDetails: user,
       conversationId: currentConversation.conversationId,
       message: filteredMessages,
-      isSupportsVision: isSupportsVision,
       model: model,
     }),
     signal: signal,
@@ -47,7 +45,6 @@ export const sendMessageStreamResponse = async (
   newBotMessage,
   setIsStreaming,
   signal,
-  isSupportsVision,
   model
 ) => {
   const localMessages = filterMessages(currentConversation, newBotMessage);
@@ -67,7 +64,6 @@ export const sendMessageStreamResponse = async (
         conversationId: currentConversation.conversationId,
         message: localMessages,
         stream: true,
-        isSupportsVision: isSupportsVision,
         model: model,
       }),
       signal: signal,

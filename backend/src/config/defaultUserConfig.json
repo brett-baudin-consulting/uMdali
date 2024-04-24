@@ -1,6 +1,6 @@
 {
   "settings": {
-    "model": "gpt-4",
+    "model": "openai/gpt-4-turbo",
     "temperature": 0.7,
     "maxTokens": 1500,
     "isStreamResponse": true,

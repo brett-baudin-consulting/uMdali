@@ -6,26 +6,25 @@ import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 
 import ModalDialog from '../../../common/ModalDialog/ModalDialog';
-import { messageShape } from '../../../../model/conversationPropType';
-import { fetchImage } from '../../../../api/fileService';
+import { messageShape, conversationShape } from '../../../../model/conversationPropType';
 import { convertTextToSpeech } from '../../../../api/textToSpeechModelService';
 import CodeBlock from './CodeBlock';
 import { handleKeyDown as handleKeyDownUtility } from "../../../common/util/useTextareaKeyHandlers";
 import { userShape } from "../../../../model/userPropType";
-import { conversationShape } from '../../../../model/conversationPropType';
+import FileItem from '../ConversationFooter/FileItem';
+import { deleteFile } from "../../../../api/fileService";
 
 import './MessageItem.scss';
 
 const maxLineCount = 4;
 const pauseDuration = 600;
 
-function MessageItem({ message, onDelete, onEdit, userId, user, setError, currentConversation }) {
+function MessageItem({ message, onDelete, onEdit, userId, user, setError, currentConversation, setCurrentConversation }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedMessage, setEditedMessage] = useState(message.content);
-  const [imageUrls, setImageUrls] = useState([]);
   const [isExpanded, setIsExpanded] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const textareaRef = useRef(null);
@@ -33,18 +32,6 @@ function MessageItem({ message, onDelete, onEdit, userId, user, setError, curren
   const resetCopyState = useCallback(() => {
     setCopied(false);
   }, []);
-
-  useEffect(() => {
-    if (message.files && message.files.length > 0) {
-      const fetchUrls = async () => {
-        const urls = await Promise.all(
-          message.files.map((file) => fetchImage(userId, file.name))
-        );
-        setImageUrls(urls);
-      };
-      fetchUrls().catch(console.error);
-    }
-  }, [message.files, userId]);
 
   const handleSpeakClick = useCallback(async () => {
     if (isSpeaking) {
@@ -203,6 +190,30 @@ function MessageItem({ message, onDelete, onEdit, userId, user, setError, curren
 
   const lineCount = message.content.split('\n').length;
 
+  const handleDeleteFile = useCallback(async (fileToDelete) => {
+    const messageId = message.messageId;
+    if (!currentConversation?.userId) return;
+
+    try {
+      await deleteFile(currentConversation.userId, fileToDelete.name); // Assuming deleteFile is async
+      setCurrentConversation(prevConversation => ({
+        ...prevConversation,
+        messages: prevConversation.messages.map(message => {
+          if (message.messageId !== messageId) {
+            return message; // Return unchanged message if not the target
+          }
+          // Only update files for the message with the specified messageId
+          return {
+            ...message,
+            files: message.files.filter(file => file.name !== fileToDelete.name)
+          };
+        })
+      }));
+    } catch (error) {
+      console.error("Failed to delete file:", error);
+    }
+  }, [currentConversation.userId, message.messageId, setCurrentConversation]);
+
   return (
     <>
       {isModalOpen && (
@@ -220,11 +231,20 @@ function MessageItem({ message, onDelete, onEdit, userId, user, setError, curren
       <div className="message-item">
         <div className="message-header">
           <div className="message-header">
-            <div className="message-type" title={t(message.role + '_title')}>
-              {!currentConversation.isAIConversation && `${t(message.role)}`}
-              {currentConversation.isAIConversation && `${t("bot")} ${message.alias} (${message.modelName})`}
+            <div className="message-type" title={t(`${message.role}_title`)}>
+              {!currentConversation.isAIConversation && (
+                message.role === 'bot'
+                  ? `${t(message.role)} (${message.modelName})` // When role is 'bot'
+                  : t(message.role) // For other roles
+              )}
+              {currentConversation.isAIConversation && (
+                message.role === 'context'
+                ? `${t("context")} ${message.alias} (${message.modelName})`
+                : `${t("bot")} ${message.alias} (${message.modelName})`
+              )}
             </div>
-          </div>          <div className="message-actions">
+          </div>
+          <div className="message-actions">
             <div className="message-tool-bar">
               <button
                 className="action-button"
@@ -267,9 +287,10 @@ function MessageItem({ message, onDelete, onEdit, userId, user, setError, curren
             </div>
           </div>
         </div>
-        <div className="message-images">
-          {imageUrls.map((url) => (
-            <img key={url} src={url} alt="Message attachment" />
+
+        <div className="file-list">
+          {message?.files?.map((file) => (
+            <FileItem key={file.name} file={file} onDelete={handleDeleteFile} currentConversation={currentConversation} />
           ))}
         </div>
         <div className={`message-content ${!isExpanded ? 'message-content-shrink' : ''}`}>
@@ -302,6 +323,7 @@ MessageItem.propTypes = {
   user: userShape.isRequired,
   setError: PropTypes.func.isRequired,
   currentConversation: conversationShape.isRequired,
+  setCurrentConversation: PropTypes.func.isRequired,
 };
 
 export default MessageItem;

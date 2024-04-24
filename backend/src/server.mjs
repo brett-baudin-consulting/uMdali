@@ -1,9 +1,9 @@
 // Import necessary modules
+import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import passport from 'passport';
 import LdapStrategy from 'passport-ldapauth';
-import dotenv from 'dotenv';
 import fs from 'fs';
 import http from 'http';
 import https from 'https';
@@ -36,9 +36,9 @@ if (USE_BASIC_LIMITER) {
   // Apply basic rate limiting middleware
   app.use(basicLimiter);
 }
-
 app.use(express.json());
 app.use(cors());
+app.use('/public', express.static('public'));
 
 // Passport and authentication setup
 if (process.env.DISABLE_AUTH !== 'true') {

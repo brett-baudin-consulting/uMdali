@@ -1,182 +1,255 @@
 [
     {
-        "name": "claude-2.1",
+        "name": "claude-3-haiku-20240307",
         "available": true,
         "vendor": "anthropic",
-        "isSupportsVision": false
-    },
-    {
-        "name": "claude-2.0",
-        "available": true,
-        "vendor": "anthropic",
-        "isSupportsVision": false
-    },
-    {
-        "name": "claude-instant-1.2",
-        "available": true,
-        "vendor": "anthropic",
-        "isSupportsVision": false
-    },
-    {
-        "name": "claude-3-sonnet-20240229",
-        "available": true,
-        "vendor": "anthropic",
-        "isSupportsVision": true
+        "isSupportsVision": true,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 200000,
+        "outputTokenLimit": 4096
     },
     {
         "name": "claude-3-opus-20240229",
         "available": true,
         "vendor": "anthropic",
-        "isSupportsVision": true
+        "isSupportsVision": true,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 200000,
+        "outputTokenLimit": 4096
     },
     {
-        "name": "gpt-3.5-turbo",
+        "name": "claude-3-sonnet-20240229",
         "available": true,
-        "vendor": "openai",
-        "isSupportsVision": false
+        "vendor": "anthropic",
+        "isSupportsVision": true,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 200000,
+        "outputTokenLimit": 4096
     },
     {
-        "name": "gpt-3.5-turbo-16k",
+        "name": "gemini-1.5-pro-latest",
         "available": true,
-        "vendor": "openai",
-        "isSupportsVision": false
+        "vendor": "google",
+        "isSupportsVision": true,
+        "isSupportsAudio": true,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 1048576,
+        "outputTokenLimit": 8192
     },
     {
-        "name": "gpt-4",
+        "name": "gemini-pro",
         "available": true,
-        "vendor": "openai",
-        "isSupportsVision": false
+        "vendor": "google",
+        "isSupportsVision": false,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": false,
+        "inputTokenLimit": 30720,
+        "outputTokenLimit": 4096
     },
     {
-        "name": "gpt-4-turbo",
+        "name": "gemini-pro-vision",
         "available": true,
-        "vendor": "openai",
-        "isSupportsVision": true
+        "vendor": "google",
+        "isSupportsVision": true,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": false,
+        "inputTokenLimit": 12288,
+        "outputTokenLimit": 2048
     },
     {
-        "name": "gpt-4-turbo-2024-04-09",
+        "name": "gemma-7b-It",
         "available": true,
-        "vendor": "openai",
-        "isSupportsVision": true
+        "vendor": "groq",
+        "isSupportsVision": false,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 8192,
+        "outputTokenLimit": 4096
     },
     {
-        "name": "gpt-4-turbo-preview",
+        "name": "llama2-70b-2048",
         "available": true,
-        "vendor": "openai",
-        "isSupportsVision": false
+        "vendor": "groq",
+        "isSupportsVision": false,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 32768,
+        "outputTokenLimit": 4096
     },
     {
-        "name": "gpt-4-0125-preview",
+        "name": "llama2-70b-4096",
         "available": true,
-        "vendor": "openai",
-        "isSupportsVision": false
+        "vendor": "groq",
+        "isSupportsVision": false,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 4096,
+        "outputTokenLimit": 4096
     },
     {
-        "name": "gpt-4-1106-preview",
+        "name": "mixtral-8x7b-32768",
         "available": true,
-        "vendor": "openai",
-        "isSupportsVision": false
+        "vendor": "groq",
+        "isSupportsVision": false,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 32768,
+        "outputTokenLimit": 4096
     },
     {
-        "name": "gpt-4-vision-preview",
+        "name": "llama3-70b-8192",
         "available": true,
-        "vendor": "openai",
-        "isSupportsVision": true
+        "vendor": "groq",
+        "isSupportsVision": false,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 8192,
+        "outputTokenLimit": 4096
+    },
+    {
+        "name": "llama3-8b-8192",
+        "available": true,
+        "vendor": "groq",
+        "isSupportsVision": false,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 32768,
+        "outputTokenLimit": 4096
     },
     {
         "name": "mistral-large-2402",
         "available": true,
         "vendor": "mistral",
-        "isSupportsVision": false
+        "isSupportsVision": false,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 4096,
+        "outputTokenLimit": 4096
     },
     {
         "name": "mistral-medium",
         "available": true,
         "vendor": "mistral",
-        "isSupportsVision": false
+        "isSupportsVision": false,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 4096,
+        "outputTokenLimit": 4096
     },
     {
         "name": "mistral-small",
         "available": true,
         "vendor": "mistral",
-        "isSupportsVision": false
+        "isSupportsVision": false,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 4096,
+        "outputTokenLimit": 4096
     },
     {
         "name": "mistral-tiny",
         "available": true,
         "vendor": "mistral",
-        "isSupportsVision": false
+        "isSupportsVision": false,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 4096,
+        "outputTokenLimit": 4096
     },
     {
-        "name": "models/gemini-pro",
-        "available": true,
-        "vendor": "google",
-        "isSupportsVision": false
-    },
-    {
-        "name": "models/gemini-pro-vision",
-        "available": true,
-        "vendor": "google",
-        "isSupportsVision": true
-    },
-    {
-        "name": "ollama/dolphin-mixtral",
+        "name": "dolphin-mixtral",
         "available": true,
         "vendor": "ollama",
-        "isSupportsVision": false
+        "isSupportsVision": false,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 4096,
+        "outputTokenLimit": 4096
     },
     {
-        "name": "ollama/mistral",
+        "name": "gemma:7b",
         "available": true,
         "vendor": "ollama",
-        "isSupportsVision": false
+        "isSupportsVision": false,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 4096,
+        "outputTokenLimit": 4096
     },
     {
-        "name": "ollama/gemma:7b",
+        "name": "mistral",
         "available": true,
         "vendor": "ollama",
-        "isSupportsVision": false
+        "isSupportsVision": false,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 4096,
+        "outputTokenLimit": 4096
     },
     {
-        "name": "ollama_openai/dolphin-mixtral",
+        "name": "phi3",
         "available": true,
         "vendor": "ollama",
-        "isSupportsVision": false
+        "isSupportsVision": false,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 4096,
+        "outputTokenLimit": 4096
     },
     {
-        "name": "ollama_openai/mistral",
+        "name": "gpt-3.5-turbo",
         "available": true,
-        "vendor": "ollama",
-        "isSupportsVision": false
+        "vendor": "openai",
+        "isSupportsVision": false,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 16385,
+        "outputTokenLimit": 4096
     },
     {
-        "name": "ollama_openai/gemma:7b",
+        "name": "gpt-4-turbo",
         "available": true,
-        "vendor": "ollama",
-        "isSupportsVision": false
+        "vendor": "openai",
+        "isSupportsVision": true,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 128000,
+        "outputTokenLimit": 4096
     },
     {
-        "name": "ollama_openai/gemma:2b",
+        "name": "gpt-4-turbo-2024-04-09",
         "available": true,
-        "vendor": "ollama",
-        "isSupportsVision": false
-    },
-    {
-        "name": "groq/llama2-70b-4096",
-        "available": true,
-        "vendor": "groq",
-        "isSupportsVision": false
-    },
-    {
-        "name": "groq/mixtral-8x7b-32768",
-        "available": true,
-        "vendor": "groq",
-        "isSupportsVision": false
-    },
-    {
-        "name": "groq/gemma-7b-it",
-        "available": true,
-        "vendor": "groq",
-        "isSupportsVision": false
+        "vendor": "openai",
+        "isSupportsVision": true,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "inputTokenLimit": 128000,
+        "outputTokenLimit": 4096
     }
 ]
