@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import jsonata from "jsonata";
-import util, { TextDecoder } from "util";
+import { TextDecoder } from "util";
 
 import MessageAPI from "./MessageAPI.mjs";
 import { logger } from "../logger.mjs";
@@ -19,7 +19,9 @@ $map($, function($message) {
             "text": $message.content
           },
           $map($message.files, function($file) {
-              {"image_url": 
+              {
+                "type": "image_url",
+                "image_url": 
                 {
                   "url": "data:image/jpeg;base64,"&$file.base64
                 }
@@ -153,7 +155,6 @@ class OpenAIMessageAPI extends MessageAPI {
       await encodeFiles(messages);
     }
     const updatedMessages = await messageToOpenAIFormat(messages, isSupportsVision);
-
     const requestOptions = this._prepareOptions({
       model: userModel || this.MODEL,
       messages: updatedMessages,
