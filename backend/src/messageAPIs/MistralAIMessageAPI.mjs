@@ -76,21 +76,14 @@ async function messageToMistralAIFormat(messages, isSupportsVision) {
   return openai;
 }
 
-const { MISTRALAI_MODEL, MISTRALAI_API_KEY, MISTRALAI_MAX_TOKENS, MISTRALAI_TEMPERATURE, MISTRALAI_API_URL } =
+const { MISTRALAI_API_KEY, MISTRALAI_API_URL } =
   process.env;
 
 const checkEnvVariables = () => {
-  if (!MISTRALAI_MODEL || !MISTRALAI_API_KEY || !MISTRALAI_MAX_TOKENS || !MISTRALAI_TEMPERATURE) {
-    throw new Error("Environment variables are not set correctly.");
+  if (!MISTRALAI_API_KEY || !MISTRALAI_API_URL) {
+    throw new Error("Mistral environment variables are not set correctly.");
   }
 
-  const temperature = parseFloat(MISTRALAI_TEMPERATURE);
-  const maxTokens = parseInt(MISTRALAI_MAX_TOKENS, 10);
-  if (Number.isNaN(maxTokens) || Number.isNaN(temperature)) {
-    throw new Error("Invalid MISTRALAI_MAX_TOKENS or MISTRALAI_TEMPERATURE environment variable value.");
-  }
-
-  return { temperature, maxTokens };
 };
 
 async function handleApiErrorResponse(response) {
@@ -111,15 +104,12 @@ async function handleApiErrorResponse(response) {
   throw new Error(errorMessage);
 }
 
-const envValues = checkEnvVariables();
+checkEnvVariables();
 
 class MistralAIMessageAPI extends MessageAPI {
-  constructor(userModel) {
+  constructor() {
     super();
-    this.MODEL = userModel || MISTRALAI_MODEL;
     this.API_KEY = MISTRALAI_API_KEY;
-    this.TEMPERATURE = envValues.temperature;
-    this.MAX_TOKENS = envValues.maxTokens;
   }
 
   _prepareHeaders() {
@@ -147,8 +137,8 @@ class MistralAIMessageAPI extends MessageAPI {
     const requestOptions = this._prepareOptions({
       model: userModel || this.MODEL,
       messages: updatedMessages,
-      max_tokens: maxTokens || this.MAX_TOKENS,
-      temperature: temperature || this.TEMPERATURE,
+      max_tokens: maxTokens,
+      temperature: temperature,
     }, signal);
 
     try {
@@ -179,10 +169,10 @@ class MistralAIMessageAPI extends MessageAPI {
     const updatedMessages = await messageToMistralAIFormat(messages, isSupportsVision);
 
     const requestOptions = this._prepareOptions({
-      model: userModel || this.MODEL,
+      model: userModel,
       messages: updatedMessages,
-      max_tokens: maxTokens || this.MAX_TOKENS,
-      temperature: temperature || this.TEMPERATURE,
+      max_tokens: maxTokens,
+      temperature: temperature,
       stream: true,
     }, signal);
 

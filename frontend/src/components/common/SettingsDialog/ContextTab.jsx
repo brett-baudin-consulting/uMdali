@@ -17,13 +17,6 @@ function ContextTab({ user, setUser }) {
   }, [user.settings.contexts]);
 
   useEffect(() => {
-    setUser((prevUser) => ({
-      ...prevUser,
-      settings: { ...prevUser.settings, contexts },
-    }));
-  }, [contexts, setUser]);
-
-  useEffect(() => {
     const sorted = [...contexts].sort((a, b) => a.name.localeCompare(b.name));
     setSortedContexts(sorted);
     // Select the first item if no item is currently selected and the list is not empty
@@ -40,6 +33,14 @@ function ContextTab({ user, setUser }) {
       return context;
     });
     setContexts(updatedContexts);
+    updateUserSettings(updatedContexts);
+  };
+
+  const updateUserSettings = (newContexts) => {
+    setUser(prevUser => ({
+      ...prevUser,
+      settings: { ...prevUser.settings, contexts: newContexts },
+    }));
   };
 
   const handleAdd = () => {
@@ -50,20 +51,25 @@ function ContextTab({ user, setUser }) {
     };
     const newContexts = [...contexts, newItem];
     setContexts(newContexts);
+    setUser(prevUser => ({
+      ...prevUser,
+      settings: { ...prevUser.settings, contexts: newContexts },
+    }));
     setSelectedItemId(newItem.contextId);
   };
 
   const handleDelete = () => {
     const updatedContexts = contexts.filter(
-      (context) => context.contextId !== selectedItemId
+      context => context.contextId !== selectedItemId
     );
     setContexts(updatedContexts);
-    // Adjust selectedItem based on deletion context
+    setUser(prevUser => ({
+      ...prevUser,
+      settings: { ...prevUser.settings, contexts: updatedContexts },
+    }));
     if (updatedContexts.length === 0) {
-      // No items left, deselect
       setSelectedItemId(null);
-    } else if (!updatedContexts.find(context => context.contextId === selectedItemId)) {
-      // If the selected item was deleted, adjust the selection
+    } else {
       setSelectedItemId(updatedContexts[0].contextId);
     }
   };

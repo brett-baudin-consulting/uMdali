@@ -7,6 +7,7 @@ export const modelShape = PropTypes.shape({
   isSupportsAudio: PropTypes.bool.isRequired,
   isSupportsVideo: PropTypes.bool.isRequired,
   isSupportsContext: PropTypes.bool.isRequired,
+  isSupportsStreaming: PropTypes.bool.isRequired,
   inputTokenLimit: PropTypes.number.isRequired,
   outputTokenLimit: PropTypes.number.isRequired,
   available: PropTypes.bool.isRequired,

@@ -16,6 +16,7 @@ const ConversationItem = ({
   deleteConversation,
   updateConversation,
   user,
+  models,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,6 +32,19 @@ const ConversationItem = ({
   };
 
   const handleModalClose = () => setIsModalOpen(false);
+  function getModel() {
+
+    let modelName = user.settings.model;
+    if (conversation.isAIConversation) {
+      modelName = conversation.messages.length % 2 === 0 ? conversation.model2 : conversation.model1;
+    }
+    const [vendor, name] = modelName.split('/');
+    const model = models.find((model) => model.vendor === vendor && model.name === name);
+    if (!model) {
+      console.error(`Model not found: ${modelName}`);
+    }
+    return model;
+  }
 
   const handleCreateTitle = async () => {
     setIsCreatingTitle(true);
@@ -42,12 +56,12 @@ const ConversationItem = ({
         content: t("create_conversation_title_instruction"),
         role: "user",
         messageId: uuidv4(),
-        files: null,
+        files: [],
       };
       let filteredMessages = conversation.messages.filter(message => message.role !== "context");
-      let model = user.settings.model;
+      let model = getModel();
+      
       if(conversation.isAIConversation) {
-        model = conversation.model1;
         filteredMessages = filteredMessages.slice(1);
       }
       const updatedConversation = {
@@ -55,7 +69,7 @@ const ConversationItem = ({
         messages: [...filteredMessages, newUserMessage],
       };
 
-      const data = await sendMessage(updatedConversation, user, signal, false,  model);
+      const data = await sendMessage(updatedConversation, user, signal, model);
       if (data?.content) {
         const titleWithoutQuotes = data.content.replace(/"/g, '');
         updateConversation({ ...conversation, title: titleWithoutQuotes });
@@ -201,6 +215,7 @@ ConversationItem.propTypes = {
   deleteConversation: PropTypes.func.isRequired,
   updateConversation: PropTypes.func.isRequired,
   user: userShape.isRequired,
+  models: PropTypes.array.isRequired,
 };
 
 export default memo(ConversationItem);

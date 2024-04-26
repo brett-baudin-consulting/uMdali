@@ -56,24 +56,16 @@ async function messageToClaudeFormat(messages, isSupportsVision) {
     return claude;
 }
 
-const { CLAUDE_MODEL, CLAUDE_API_KEY, CLAUDE_MAX_TOKENS, CLAUDE_TEMPERATURE, CLAUDE_API_URL } =
+const { CLAUDE_API_KEY, CLAUDE_API_URL } =
     process.env;
 
 const checkEnvVariables = () => {
-    if (!CLAUDE_MODEL || !CLAUDE_API_KEY || !CLAUDE_MAX_TOKENS || !CLAUDE_TEMPERATURE) {
-        throw new Error("Environment variables are not set correctly.");
+    if (!CLAUDE_API_KEY || !CLAUDE_API_URL) {
+        throw new Error("Claude environment variables are not set correctly.");
     }
-
-    const temperature = parseFloat(CLAUDE_TEMPERATURE);
-    const maxTokens = parseInt(CLAUDE_MAX_TOKENS, 10);
-    if (Number.isNaN(maxTokens) || Number.isNaN(temperature)) {
-        throw new Error("Invalid CLAUDE_MAX_TOKENS or CLAUDE_TEMPERATURE environment variable value.");
-    }
-
-    return { temperature, maxTokens };
 };
 
-const envValues = checkEnvVariables();
+checkEnvVariables();
 
 async function handleApiErrorResponse(response) {
     const text = await response.text();
@@ -94,12 +86,9 @@ async function handleApiErrorResponse(response) {
 }
 
 class ClaudeMessageAPI extends MessageAPI {
-    constructor(userModel) {
+    constructor() {
         super();
-        this.MODEL = userModel || CLAUDE_MODEL;
         this.API_KEY = CLAUDE_API_KEY;
-        this.TEMPERATURE = envValues.temperature;
-        this.MAX_TOKENS = envValues.maxTokens;
     }
 
     _prepareHeaders() {
@@ -128,10 +117,10 @@ class ClaudeMessageAPI extends MessageAPI {
         let systemMessage = messages.find(m => m.role === 'context');
         const requestOptions = this._prepareOptions({
             system: systemMessage?.content,
-            model: userModel || this.MODEL,
+            model: userModel,
             messages: updatedMessages,
-            max_tokens: maxTokens || this.MAX_TOKENS,
-            temperature: temperature || this.TEMPERATURE,
+            max_tokens: maxTokens,
+            temperature: temperature,
         }, signal);
 
         try {
@@ -163,10 +152,10 @@ class ClaudeMessageAPI extends MessageAPI {
         let systemMessage = messages.find(m => m.role === 'context');
         const requestOptions = this._prepareOptions({
             system: systemMessage?.content,
-            model: userModel || this.MODEL,
+            model: userModel,
             messages: updatedMessages,
-            max_tokens: maxTokens || this.MAX_TOKENS,
-            temperature: temperature || this.TEMPERATURE,
+            max_tokens: maxTokens,
+            temperature: temperature,
             stream: true,
         }, signal);
         try {

@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import jsonata from "jsonata";
-import util, { TextDecoder } from "util";
+import { TextDecoder } from "util";
 
 import MessageAPI from "./MessageAPI.mjs";
 import { logger } from "../logger.mjs";
@@ -19,7 +19,9 @@ $map($, function($message) {
             "text": $message.content
           },
           $map($message.files, function($file) {
-              {"image_url": 
+              {
+                "type": "image_url",
+                "image_url": 
                 {
                   "url": "data:image/jpeg;base64,"&$file.base64
                 }
@@ -50,24 +52,17 @@ async function messageToOpenAIFormat(messages, isSupportsVision) {
   return openai;
 }
 
-const { OPENAI_MODEL, OPENAI_API_KEY, OPENAI_MAX_TOKENS, OPENAI_TEMPERATURE, OPENAI_API_URL } =
+const { OPENAI_API_KEY, OPENAI_API_URL } =
   process.env;
 
 const checkEnvVariables = () => {
-  if (!OPENAI_MODEL || !OPENAI_API_KEY || !OPENAI_MAX_TOKENS || !OPENAI_TEMPERATURE) {
-    throw new Error("Environment variables are not set correctly.");
+  if (!OPENAI_API_KEY || !OPENAI_API_URL) {
+    throw new Error("Open AI Environment variables are not set correctly.");
   }
 
-  const temperature = parseFloat(OPENAI_TEMPERATURE);
-  const maxTokens = parseInt(OPENAI_MAX_TOKENS, 10);
-  if (Number.isNaN(maxTokens) || Number.isNaN(temperature)) {
-    throw new Error("Invalid OPENAI_MAX_TOKENS or OPENAI_TEMPERATURE environment variable value.");
-  }
-
-  return { temperature, maxTokens };
 };
 
-const envValues = checkEnvVariables();
+checkEnvVariables();
 
 async function handleApiErrorResponse(response) {
   const text = await response.text();
@@ -88,12 +83,9 @@ async function handleApiErrorResponse(response) {
 }
 
 class OpenAIMessageAPI extends MessageAPI {
-  constructor(userModel) {
+  constructor() {
     super();
-    this.MODEL = userModel || OPENAI_MODEL;
     this.API_KEY = OPENAI_API_KEY;
-    this.TEMPERATURE = envValues.temperature;
-    this.MAX_TOKENS = envValues.maxTokens;
   }
 
   _prepareHeaders() {
@@ -121,10 +113,10 @@ class OpenAIMessageAPI extends MessageAPI {
     }
     const updatedMessages = await messageToOpenAIFormat(messages, isSupportsVision);
     const requestOptions = this._prepareOptions({
-      model: userModel || this.MODEL,
+      model: userModel,
       messages: updatedMessages,
-      max_tokens: maxTokens || this.MAX_TOKENS,
-      temperature: temperature || this.TEMPERATURE,
+      max_tokens: maxTokens,
+      temperature: temperature,
     }, signal);
 
     try {
@@ -153,12 +145,11 @@ class OpenAIMessageAPI extends MessageAPI {
       await encodeFiles(messages);
     }
     const updatedMessages = await messageToOpenAIFormat(messages, isSupportsVision);
-
     const requestOptions = this._prepareOptions({
-      model: userModel || this.MODEL,
+      model: userModel,
       messages: updatedMessages,
-      max_tokens: maxTokens || this.MAX_TOKENS,
-      temperature: temperature || this.TEMPERATURE,
+      max_tokens: maxTokens,
+      temperature: temperature,
       stream: true,
     }, signal);
     try {

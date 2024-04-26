@@ -7,36 +7,36 @@ import { logger } from "../logger.mjs";
 import { encodeFiles } from './FileEncoder.mjs';
 
 // JSONata expression
+const transformWithVision = `
 
+`;
 const transformWithoutVision = `
 $map($, function($message) {
   {
-      "role": $message.role = 'bot' ? 'assistant' :
-              $message.role = 'context' ? 'system' :
-              $message.role,
-      "content": $message.content
+      "type": $message.role = 'bot' ? 'model' :
+              'human',
+      "text": $message.content
   }
 })[]
 `;
-async function messageToOllamaOpenAIFormat(messages, isSupportsVision) {
+async function messageToRekaAIFormat(messages, isSupportsVision) {
   if (!isSupportsVision) {
     const transform = jsonata(transformWithoutVision);
-    const ollama_openai = await transform.evaluate(messages);
-    return ollama_openai;
+    const reka = await transform.evaluate(messages);
+    return reka;
   }
   const transform = jsonata(transformWithVision);
-  const ollama_openai = await transform.evaluate(messages);
-  return ollama_openai;
+  const reka = await transform.evaluate(messages);
+  return reka;
 }
 
-const { OLLAMA_OPENAI_API_KEY, OLLAMA_OPENAI_API_URL } =
+const { REKAAI_API_KEY, REKAAI_API_URL } =
   process.env;
 
 const checkEnvVariables = () => {
-  if (!OLLAMA_OPENAI_API_KEY || !OLLAMA_OPENAI_API_URL) {
-    throw new Error("Ollama environment variables are not set correctly.");
+  if (!REKAAI_API_KEY || !REKAAI_API_URL) {
+    throw new Error("REKAAI Environment variables are not set correctly.");
   }
-
 };
 
 checkEnvVariables();
@@ -52,22 +52,22 @@ async function handleApiErrorResponse(response) {
   }
 
   // Log the error
-  logger.error("Ollama_OpenAI API response error: ", { statusCode: response.status, body: parsedText });
+  logger.error("RekaAI API response error: ", parsedText);
 
   // Throw an error with a message, checking if parsedText is an object and has an error.message
-  const errorMessage = `Ollama_OpenAI API Error: ${parsedText?.error?.message || 'Unknown error occurred'}`;
+  const errorMessage = `RekaAI API Error: ${parsedText?.error?.message || 'Unknown error occurred'}`;
   throw new Error(errorMessage);
 }
 
-class OllamaOpenAIMessageAPI extends MessageAPI {
+class RekaAIMessageAPI extends MessageAPI {
   constructor() {
     super();
-    this.API_KEY = OLLAMA_OPENAI_API_KEY;
+    this.API_KEY = REKAAI_API_KEY;
   }
 
   _prepareHeaders() {
     return {
-      Authorization: `Bearer ${this.API_KEY}`,
+      "X-Api-Key": `${this.API_KEY}`,
       "Content-Type": "application/json",
     };
   }
@@ -81,28 +81,29 @@ class OllamaOpenAIMessageAPI extends MessageAPI {
     };
   }
 
+
+
   async sendRequest(messages, signal, options = {}) {
     const { userModel, maxTokens, temperature, isSupportsVision } = options;
     if (isSupportsVision) {
       await encodeFiles(messages);
     }
-    const updatedMessages = await messageToOllamaOpenAIFormat(messages, isSupportsVision);
+    const updatedMessages = await messageToRekaAIFormat(messages, isSupportsVision);
     const requestOptions = this._prepareOptions({
-      model: userModel,
-      messages: updatedMessages,
-      max_tokens: maxTokens,
+      model_name: userModel,
+      conversation_history: updatedMessages,
+      request_output_len: maxTokens,
       temperature: temperature,
     }, signal);
-
     try {
-      const response = await fetch(OLLAMA_OPENAI_API_URL, requestOptions, signal);
+      const response = await fetch(REKAAI_API_URL, requestOptions, signal);
 
       if (!response.ok) {
         await handleApiErrorResponse(response);
       }
 
       const data = await response.json();
-      const content = data?.choices?.[0]?.message?.content || 'No content returned';
+      const content = data?.text;
       return content;
     } catch (err) {
       if (err.name === 'AbortError') {
@@ -119,8 +120,7 @@ class OllamaOpenAIMessageAPI extends MessageAPI {
     if (isSupportsVision) {
       await encodeFiles(messages);
     }
-    const updatedMessages = await messageToOllamaOpenAIFormat(messages, isSupportsVision);
-
+    const updatedMessages = await messageToRekaAIFormat(messages, isSupportsVision);
     const requestOptions = this._prepareOptions({
       model: userModel,
       messages: updatedMessages,
@@ -129,7 +129,7 @@ class OllamaOpenAIMessageAPI extends MessageAPI {
       stream: true,
     }, signal);
     try {
-      const response = await fetch(OLLAMA_OPENAI_API_URL, requestOptions, signal);
+      const response = await fetch(REKAAI_API_URL, requestOptions, signal);
       if (!response.ok) {
         await handleApiErrorResponse(response);
       }
@@ -167,7 +167,6 @@ class OllamaOpenAIMessageAPI extends MessageAPI {
             resClient.write(parsedLine.choices[0].delta.content);
           }
         } catch (error) {
-          logger.error(`JSON parse error: ${error}`);
           lastChunk = line; // Keep the partial line for the next iteration
         }
       }
@@ -188,4 +187,4 @@ class OllamaOpenAIMessageAPI extends MessageAPI {
   }
 }
 
-export default OllamaOpenAIMessageAPI;
+export default RekaAIMessageAPI;

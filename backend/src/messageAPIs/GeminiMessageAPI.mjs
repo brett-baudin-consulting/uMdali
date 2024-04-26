@@ -6,7 +6,7 @@ import { logger } from "../logger.mjs";
 import MessageAPI from "./MessageAPI.mjs";
 import { encodeFiles } from './FileEncoder.mjs';
 
-const { GEMINI_MODEL, GEMINI_API_KEY, GEMINI_MAX_TOKENS, GEMINI_TEMPERATURE, GEMINI_API_URL } =
+const { GEMINI_API_KEY, GEMINI_API_URL } =
   process.env;
 
 async function handleApiErrorResponse(response) {
@@ -87,29 +87,19 @@ async function messageToGeminiFormat(messages, isSupportsVision) {
   return gemini;
 }
 
+const checkEnvVariables = () => {
+  if (!GEMINI_API_URL || !GEMINI_API_KEY) {
+    throw new Error("Gemini environment variables are not set correctly.");
+  }
+}
+
 class GeminiMessageAPI extends MessageAPI {
-  constructor(userModel) {
+  constructor() {
     super();
-    const envValues = this._checkEnvVariables();
-    this.MODEL = userModel || GEMINI_MODEL;
+    checkEnvVariables();
     this.API_KEY = GEMINI_API_KEY;
-    this.TEMPERATURE = envValues.temperature;
-    this.MAX_TOKENS = envValues.maxTokens;
   }
 
-  _checkEnvVariables() {
-    if (!GEMINI_MODEL || !GEMINI_API_KEY || !GEMINI_MAX_TOKENS || !GEMINI_TEMPERATURE) {
-      throw new Error("Environment variables are not set correctly.");
-    }
-
-    const temperature = parseFloat(GEMINI_TEMPERATURE);
-    const maxTokens = parseInt(GEMINI_MAX_TOKENS, 10);
-    if (Number.isNaN(maxTokens) || Number.isNaN(temperature)) {
-      throw new Error("Invalid GEMINI_MAX_TOKENS or GEMINI_TEMPERATURE environment variable value.");
-    }
-
-    return { temperature, maxTokens };
-  }
   _prepareHeaders() {
     return {
       "Content-Type": "application/json",
@@ -136,8 +126,8 @@ class GeminiMessageAPI extends MessageAPI {
       contents: updatedMessages.contents,
       systemInstruction: updatedMessages.systemInstruction,
       generation_config: {
-        temperature: temperature || this.TEMPERATURE,
-        maxOutputTokens: maxTokens || this.MAX_TOKENS,
+        temperature: temperature,
+        maxOutputTokens: maxTokens,
       }
     }, signal);
 
@@ -178,8 +168,8 @@ class GeminiMessageAPI extends MessageAPI {
       contents: updatedMessages.contents,
       systemInstruction: updatedMessages.systemInstruction,
       generation_config: {
-        temperature: temperature || this.TEMPERATURE,
-        maxOutputTokens: maxTokens || this.MAX_TOKENS,
+        temperature: temperature,
+        maxOutputTokens: maxTokens,
       }
     }, signal);
   }
