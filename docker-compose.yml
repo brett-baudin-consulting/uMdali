@@ -71,6 +71,10 @@ services:
       # Groq
       - GROQ_API_URL=https://api.groq.com/openai/v1/chat/completions
       - GROQ_API_KEY=NA
+      # Reka AI
+      - REKAAI_API_URL=https://api.reka.ai/chat
+      - REKAAI_API_KEY=NA
+      
       #Log locations
       - ERROR_LOG_LOCATION=./error.log
       - COMBINED_LOG_LOCATION=./combined.log
