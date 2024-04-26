@@ -7,6 +7,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 200000,
         "outputTokenLimit": 4096
     },
@@ -18,6 +19,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 200000,
         "outputTokenLimit": 4096
     },
@@ -29,6 +31,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 200000,
         "outputTokenLimit": 4096
     },
@@ -40,6 +43,7 @@
         "isSupportsAudio": true,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 1048576,
         "outputTokenLimit": 8192
     },
@@ -51,6 +55,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": false,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 30720,
         "outputTokenLimit": 4096
     },
@@ -62,6 +67,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": false,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 12288,
         "outputTokenLimit": 2048
     },
@@ -73,6 +79,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 8192,
         "outputTokenLimit": 4096
     },
@@ -84,6 +91,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 32768,
         "outputTokenLimit": 4096
     },
@@ -95,6 +103,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 4096,
         "outputTokenLimit": 4096
     },
@@ -106,6 +115,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 32768,
         "outputTokenLimit": 4096
     },
@@ -117,6 +127,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 8192,
         "outputTokenLimit": 4096
     },
@@ -128,6 +139,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 32768,
         "outputTokenLimit": 4096
     },
@@ -139,6 +151,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 4096,
         "outputTokenLimit": 4096
     },
@@ -150,6 +163,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 4096,
         "outputTokenLimit": 4096
     },
@@ -161,6 +175,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 4096,
         "outputTokenLimit": 4096
     },
@@ -172,6 +187,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 4096,
         "outputTokenLimit": 4096
     },
@@ -183,6 +199,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 4096,
         "outputTokenLimit": 4096
     },
@@ -194,6 +211,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 4096,
         "outputTokenLimit": 4096
     },
@@ -205,6 +223,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 4096,
         "outputTokenLimit": 4096
     },
@@ -216,6 +235,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 4096,
         "outputTokenLimit": 4096
     },
@@ -227,6 +247,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 16385,
         "outputTokenLimit": 4096
     },
@@ -238,6 +259,7 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 128000,
         "outputTokenLimit": 4096
     },
@@ -249,7 +271,44 @@
         "isSupportsAudio": false,
         "isSupportsVideo": false,
         "isSupportsContext": true,
+        "isSupportsStreaming": true,
         "inputTokenLimit": 128000,
         "outputTokenLimit": 4096
+    },
+    {
+        "name": "reka-flash",
+        "available": true,
+        "vendor": "reka",
+        "isSupportsVision": false,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": false,
+        "isSupportsStreaming": false,
+        "inputTokenLimit": 16385,
+        "outputTokenLimit": 2048
+    },
+    {
+        "name": "reka-edge",
+        "available": true,
+        "vendor": "reka",
+        "isSupportsVision": false,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": false,
+        "isSupportsStreaming": false,
+        "inputTokenLimit": 16385,
+        "outputTokenLimit": 2048
+    },
+    {
+        "name": "reka-core",
+        "available": true,
+        "vendor": "reka",
+        "isSupportsVision": false,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": false,
+        "isSupportsStreaming": false,
+        "inputTokenLimit": 16385,
+        "outputTokenLimit": 2048
     }
 ]

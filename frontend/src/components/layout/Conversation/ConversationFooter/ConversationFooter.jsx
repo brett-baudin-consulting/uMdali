@@ -234,7 +234,7 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
         <button
           title={t("attach_title")}
           onClick={handleFileButtonClick}
-          disabled={isStreaming || !doesModelSupportFiles(models, user?.settings?.model)}
+          disabled={isStreaming || isWaitingForResponse || !doesModelSupportFiles(models, user?.settings?.model)}
         >
           {t("attach")}
         </button>
@@ -245,14 +245,14 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
           onKeyDown={handleKeyDown}
           placeholder={t("type_a_message")}
           rows={1}
-          disabled={isStreaming}
+          disabled={isStreaming || isWaitingForResponse}
         />
         <button
           title={t("send_title")}
           onClick={handleSend}
-          disabled={!input.trim() || isStreaming}
+          disabled={!input.trim() || isStreaming || isWaitingForResponse}
         >
-          {isStreaming ? <BeatLoader color="white" size="6px" /> : "➢"}
+          {isStreaming | isWaitingForResponse ? <BeatLoader color="white" size="6px" /> : "➢"}
         </button>
         <div className="spacer" />
         <button

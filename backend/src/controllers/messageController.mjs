@@ -5,6 +5,7 @@ import GeminiMessageAPI from "../messageAPIs/GeminiMessageAPI.mjs";
 import MistralMessageAPI from "../messageAPIs/MistralAIMessageAPI.mjs";
 import GroqMessageAPI from "../messageAPIs/GroqMessageAPI.mjs";
 import OllamaOpenAIMessageAPI from "../messageAPIs/OllamaOpenAIMessageAPI.mjs";
+import RekaMessageAPI from "../messageAPIs/RekaMessageAPI.mjs";
 
 export const messageAPIs = {
   ollama: new OllamaOpenAIMessageAPI(),
@@ -13,6 +14,7 @@ export const messageAPIs = {
   google: new GeminiMessageAPI(),
   mistral: new MistralMessageAPI(),
   groq: new GroqMessageAPI(),
+  reka: new RekaMessageAPI(),
 };
 
 // Dynamic import of filters
@@ -81,7 +83,7 @@ async function filterMessages(messages, res) {
 }
 
 function getAPI(model) {
-  let models = ["ollama", "google", "ollama", "openai", "mistral", "anthropic", "groq"];
+  let models = ["ollama", "google", "ollama", "openai", "mistral", "anthropic", "groq", "reka"];
   let modelImplementation = models.find(m => model?.vendor?.toLowerCase() === m);
   return messageAPIs[modelImplementation];
 }

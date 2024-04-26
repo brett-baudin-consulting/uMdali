@@ -20,6 +20,7 @@ export const sendMessage = async (
       userDetails: user,
       conversationId: currentConversation.conversationId,
       message: filteredMessages,
+      stream: false,
       model: model,
     }),
     signal: signal,

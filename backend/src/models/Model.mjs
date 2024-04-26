@@ -29,6 +29,11 @@ const ModelSchema = new Schema({
     required: true,
     default: false,
   },
+  isSupportsStreaming: {
+    type: Boolean,
+    required: true,
+    default: true,
+  },
   inputTokenLimit: {
     type: Number,
     required: true,

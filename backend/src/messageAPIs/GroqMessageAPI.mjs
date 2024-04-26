@@ -29,26 +29,19 @@ async function messageToGroqFormat(messages, isSupportsVision) {
   return groq;
 }
 
-const { GROQ_MODEL, GROQ_API_KEY, GROQ_MAX_TOKENS, GROQ_TEMPERATURE, GROQ_API_URL } =
+const { GROQ_API_KEY, GROQ_API_URL } =
   process.env;
 
 const checkEnvVariables = () => {
-  ["GROQ_MODEL", "GROQ_API_KEY", "GROQ_MAX_TOKENS", "GROQ_TEMPERATURE"].forEach(varName => {
+  ["GROQ_API_URL", "GROQ_API_KEY"].forEach(varName => {
     if (!process.env[varName]) {
-      throw new Error(`Environment variable ${varName} is not set.`);
+      throw new Error(`Groq environment variable ${varName} is not set.`);
     }
   });
 
-  const temperature = parseFloat(process.env.GROQ_TEMPERATURE);
-  const maxTokens = parseInt(process.env.GROQ_MAX_TOKENS, 10);
-  if (Number.isNaN(temperature) || Number.isNaN(maxTokens)) {
-    throw new Error("Invalid GROQ_MAX_TOKENS or GROQ_TEMPERATURE environment variable value.");
-  }
-
-  return { temperature, maxTokens };
 };
 
-const envValues = checkEnvVariables();
+checkEnvVariables();
 
 async function handleApiErrorResponse(response) {
   const text = await response.text();
@@ -65,12 +58,9 @@ async function handleApiErrorResponse(response) {
 }
 
 class GroqMessageAPI extends MessageAPI {
-  constructor(userModel) {
+  constructor() {
     super();
-    this.MODEL = userModel || GROQ_MODEL;
     this.API_KEY = GROQ_API_KEY;
-    this.TEMPERATURE = envValues.temperature;
-    this.MAX_TOKENS = envValues.maxTokens;
   }
 
   _prepareHeaders() {
@@ -100,8 +90,8 @@ class GroqMessageAPI extends MessageAPI {
     const requestOptions = this._prepareOptions({
       model: userModel,
       messages: updatedMessages,
-      max_tokens: maxTokens || this.MAX_TOKENS,
-      temperature: temperature || this.TEMPERATURE,
+      max_tokens: maxTokens,
+      temperature: temperature,
     }, signal);
 
     try {
@@ -134,8 +124,8 @@ class GroqMessageAPI extends MessageAPI {
     const requestOptions = this._prepareOptions({
       model: userModel,
       messages: updatedMessages,
-      max_tokens: maxTokens || this.MAX_TOKENS,
-      temperature: temperature || this.TEMPERATURE,
+      max_tokens: maxTokens,
+      temperature: temperature,
       stream: true,
     }, signal);
     try {

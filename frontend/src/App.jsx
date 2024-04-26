@@ -375,6 +375,7 @@ function App() {
                 createNewConversation={createNewConversationRef.current}
                 user={user}
                 setIsWizardVisible={setIsWizardVisible}
+                models={models}
               />
               <div className="conversation-section">
                 <ConversationHeader

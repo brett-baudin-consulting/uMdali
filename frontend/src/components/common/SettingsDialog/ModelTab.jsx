@@ -29,6 +29,7 @@ const ModelTab = ({ user, setUser, models }) => {
                 ...prevUser.settings,
                 model: `${newModel.vendor}/${newModel.name}`,
                 maxTokens: newModel.outputTokenLimit,
+                isStreamResponse: newModel.isSupportsStreaming,
             },
         }));
         setCurrentModel(newModel);
@@ -69,7 +70,7 @@ const ModelTab = ({ user, setUser, models }) => {
 
     const options = sortedModels.map((model) => (
         <option key={`${model.vendor}/${model.name}`} value={`${model.vendor}/${model.name}`}>
-            {`${model.vendor}/${model.name}`} ({model.isSupportsVision ? 'I' : ''} {model.isSupportsAudio ? 'A' : ''} {model.isSupportsVideo ? 'V' : ''} {model.isSupportsContext ? 'C' : ''})
+            {`${model.vendor}/${model.name}`} ({model.isSupportsVision ? 'I' : ''} {model.isSupportsAudio ? 'A' : ''} {model.isSupportsVideo ? 'V' : ''} {model.isSupportsContext ? 'C' : ''} {model.isSupportsStreaming ? 'S' : ''})
         </option>
     ));
 
@@ -86,6 +87,7 @@ const ModelTab = ({ user, setUser, models }) => {
                 <ReadonlyCheckbox isChecked={currentModel?.isSupportsAudio} label={t('audio_support_title')} />
                 <ReadonlyCheckbox isChecked={currentModel?.isSupportsVideo} label={t('video_support_title')} />
                 <ReadonlyCheckbox isChecked={currentModel?.isSupportsContext} label={t('context_support_title')} />
+                <ReadonlyCheckbox isChecked={currentModel?.isSupportsStreaming} label={t('streaming_support_title')} />
             </div>
             <div className="div">
                 {t('temperature_title')}: {user.settings.temperature}
@@ -118,6 +120,7 @@ const ModelTab = ({ user, setUser, models }) => {
                         type="checkbox"
                         checked={user.settings.isStreamResponse || false}
                         onChange={handleStreamResponseChange}
+                        disabled={!currentModel?.isSupportsStreaming}
                     />
                 </label>
             </div>
