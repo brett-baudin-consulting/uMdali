@@ -23,52 +23,30 @@ REDIS_PORT=6379
 ADVANCED_LIMIT_POINTS=10
 ADVANCED_LIMIT_DURATION=60  # Duration in seconds
 
-# OLLAMA
-OLLAMA_API_URL=http://localhost:11434/api/chat
-OLLAMA_MODEL=ollama/mistral
-
 # OLLAMA OPENAI API
 OLLAMA_OPENAI_API_URL=http://localhost:11434/v1/chat/completions
 OLLAMA_OPENAI_API_KEY=NA
-OLLAMA_OPENAI_MODEL=ollama/mistral
-OLLAMA_OPENAI_MAX_TOKENS=2000
-OLLAMA_OPENAI_TEMPERATURE=0.7
 
 # OPENAI
 OPENAI_API_URL=https://api.openai.com/v1/chat/completions
 OPENAI_API_KEY=NA
-OPENAI_MODEL=gpt-4
-OPENAI_MAX_TOKENS=1000
-OPENAI_TEMPERATURE=0.7
 
 # Mistral AI
 MISTRALAI_API_URL=https://api.mistral.ai/v1/chat/completions
 MISTRALAI_API_KEY=NA
-MISTRALAI_MODEL=mistral/mistral-tiny
-MISTRALAI_MAX_TOKENS=1000
-MISTRALAI_TEMPERATURE=0.7
 
 #Google
 #GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/models/
 GEMINI_API_URL=https://generativelanguage.googleapis.com/v1/models/
 GEMINI_API_KEY=NA
-GEMINI_MODEL=google/gemini-pro
-GEMINI_MAX_TOKENS=1000
-GEMINI_TEMPERATURE=0.7
 
 # Groq
 GROQ_API_URL=https://api.groq.com/openai/v1/chat/completions
 GROQ_API_KEY=NA
-GROQ_MODEL=groq/mixtral-8x7b-32768
-GROQ_MAX_TOKENS=2000
-GROQ_TEMPERATURE=0.7
 
 # ANTHROPIC
 CLAUDE_API_URL=https://api.anthropic.com/v1/messages
 CLAUDE_API_KEY=NA
-CLAUDE_MODEL=anthropic/claude-3-haiku
-CLAUDE_MAX_TOKENS=10000
-CLAUDE_TEMPERATURE=0.7
 
 # LOGGING
 ERROR_LOG_LOCATION=./error.log
@@ -84,15 +62,12 @@ SEARCH_FILTER=(uid={{username}})
 # Audio transcription Speech to Text
 OPENAI_TRANSCRIPTION_API_KEY=NA
 OPENAI_TRANSCRIPTION_ENDPOINT=https://api.openai.com/v1/audio/transcriptions
-OPENAI_TRANSCRIPTION_MODEL=whisper-1
 OPENAI_TRANSCRIPTION_TIMEOUT_MS=30000
 
 # TTS Text to Speech
 ELEVENLABS_API_KEY=NA
 ELEVENLABS_API_URL=https://api.elevenlabs.io/v1/text-to-speech
-ELEVENLABS_MODEL_ID=elevenlabs/eleven_multilingual_v2
 
 OPENAI_TTS_API_KEY=NA
 OPENAI_TTS_API_URL=https://api.openai.com/v1/audio/speech
-OPENAI_TTS_API_MODEL=tts-1
 OPENAI_TTS_API_TIMEOUT_MS=30000

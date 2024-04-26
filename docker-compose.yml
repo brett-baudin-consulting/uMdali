@@ -55,40 +55,22 @@ services:
       # Note can't use localhost here, use the IP address of the host machine
       - OLLAMA_OPENAI_API_URL=http://<host ip running Ollama>:11434/v1/chat/completions
       - OLLAMA_OPENAI_API_KEY=NA
-      - OLLAMA_OPENAI_MODEL=ollama/mistral
-      - OLLAMA_OPENAI_MAX_TOKENS=2000
-      - OLLAMA_OPENAI_TEMPERATURE=0.7
       # Open AI
       - OPENAI_API_URL=https://api.openai.com/v1/chat/completions      
       - OPENAI_API_KEY=NA
-      - OPENAI_MODEL=gpt-4
-      - OPENAI_MAX_TOKENS=1000
-      - OPENAI_TEMPERATURE=0.7
       # Mistral AI
       - MISTRALAI_API_URL=https://api.mistral.ai/v1/chat/completions
       - MISTRALAI_API_KEY=NA
-      - MISTRALAI_MODEL=mistral-tiny
-      - MISTRALAI_MAX_TOKENS=1000
-      - MISTRALAI_TEMPERATURE=0.7
       # Google
       #- GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/models/
       - GEMINI_API_URL=https://generativelanguage.googleapis.com/v1/models/
       - GEMINI_API_KEY=NA
-      - GEMINI_MODEL=gemini-pro
-      - GEMINI_MAX_TOKENS=1000
-      - GEMINI_TEMPERATURE=0.7
       # ANTHROPIC
       - CLAUDE_API_URL=https://api.anthropic.com/v1/messages
       - CLAUDE_API_KEY=NA
-      - CLAUDE_MODEL=claude-2
-      - CLAUDE_MAX_TOKENS=10000
-      - CLAUDE_TEMPERATURE=0.7
       # Groq
       - GROQ_API_URL=https://api.groq.com/openai/v1/chat/completions
       - GROQ_API_KEY=NA
-      - GROQ_MODEL=mixtral-8x7b-32768
-      - GROQ_MAX_TOKENS=2000
-      - GROQ_TEMPERATURE=0.7
       #Log locations
       - ERROR_LOG_LOCATION=./error.log
       - COMBINED_LOG_LOCATION=./combined.log
@@ -102,16 +84,13 @@ services:
       # Audio transcription Speach to Text
       - OPENAI_TRANSCRIPTION_API_KEY=NA
       - OPENAI_TRANSCRIPTION_ENDPOINT=https://api.openai.com/v1/audio/transcriptions
-      - OPENAI_TRANSCRIPTION_MODEL=whisper-1
       - OPENAI_TRANSCRIPTION_TIMEOUT_MS=30000
       # TTS Text to Speech
       - ELEVENLABS_API_KEY=NA
       - ELEVENLABS_API_URL=https://api.elevenlabs.io/v1/text-to-speech
-      - ELEVENLABS_MODEL_ID=elevenlabs/eleven_multilingual_v2
 
       - OPENAI_TTS_API_KEY=NA
       - OPENAI_TTS_API_URL=https://api.openai.com/v1/audio/speech
-      - OPENAI_TTS_API_MODEL=tts-1
       - OPENAI_TTS_API_TIMEOUT_MS=30000      
     networks:
       - umdali-network
