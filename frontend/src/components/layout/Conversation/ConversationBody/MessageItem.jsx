@@ -213,7 +213,9 @@ function MessageItem({ message, onDelete, onEdit, userId, user, setError, curren
       console.error("Failed to delete file:", error);
     }
   }, [currentConversation.userId, message.messageId, setCurrentConversation]);
-
+  const processedContent = useMemo(() => {
+    return message.content.replace(/(?<!\n)\n(?!\n)/g, '  \n');
+  }, [message.content]);
   return (
     <>
       {isModalOpen && (
@@ -306,7 +308,7 @@ function MessageItem({ message, onDelete, onEdit, userId, user, setError, curren
             />
           ) : (
             <ReactMarkdown components={renderers} remarkPlugins={[gfm]}>
-              {message.content}
+              {processedContent}
             </ReactMarkdown>
           )}
         </div>

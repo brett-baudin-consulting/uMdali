@@ -163,6 +163,8 @@ Ensure your enterprise environment meets the following requirements:
 
 ## For Local Use: Running with Docker
 
+**If you have any issues getting either the prerequistes installed or the application itself installed please post in the Discussions or create a new Issue and we will do our best to help you out.**
+
 This guide walks you through deploying the uMdali application using Docker, a popular containerization platform. Docker simplifies the setup process by packaging the application and its environment into containers. Follow these steps to get started:
 
 ### Prerequisites
@@ -210,6 +212,8 @@ Ensure you have Docker installed on your local machine. If not, download and ins
 This rewritten section provides a streamlined guide for deploying the uMdali application using Docker, ensuring clarity and consistency with the revised style.
 
 ## For Local Use: Running with npm
+
+**If you have any issues getting either the prerequistes installed or the application itself installed please post in the Discussions or create a new Issue and we will do our best to help you out.**
 
 This section guides you through the process of setting up and running the uMdali application using npm, which is a package manager for JavaScript. Follow these steps to get started:
 
