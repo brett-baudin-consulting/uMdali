@@ -29,5 +29,9 @@ export const conversationShape = PropTypes.shape({
   contextId2: PropTypes.string,
   alias1: PropTypes.string,
   alias2: PropTypes.string,
+  voice1: PropTypes.string,
+  voice2: PropTypes.string,
+  textToSpeechModelId: PropTypes.string,
+  textToSpeechVendor: PropTypes.string,
   isAIConversation: PropTypes.bool,
 });

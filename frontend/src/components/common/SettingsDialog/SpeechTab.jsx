@@ -3,6 +3,8 @@ import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
 import { userShape } from "../../../model/userPropType";
+import { textToSpeechModelShape } from "../../../model/textToSpeechModelPropType";
+import { speechToTextModelShape } from "../../../model/speechToTextModelPropType";
 import "./SpeechTab.scss";
 
 const SpeechTab = ({ user, setUser, speechToTextModels, textToSpeechModels }) => {
@@ -126,25 +128,8 @@ const SpeechTab = ({ user, setUser, speechToTextModels, textToSpeechModels }) =>
 SpeechTab.propTypes = {
   user: userShape.isRequired,
   setUser: PropTypes.func.isRequired,
-  speechToTextModels: PropTypes.arrayOf(
-    PropTypes.shape({
-      name: PropTypes.string.isRequired,
-      vendor: PropTypes.string.isRequired,
-    })
-  ).isRequired,
-  textToSpeechModels: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      vendor: PropTypes.string.isRequired,
-      voices: PropTypes.arrayOf(
-        PropTypes.shape({
-          id: PropTypes.string.isRequired,
-          name: PropTypes.string.isRequired,
-        })
-      ),
-    })
-  ).isRequired,
+  speechToTextModels: PropTypes.arrayOf(speechToTextModelShape).isRequired,
+  textToSpeechModels: PropTypes.arrayOf(textToSpeechModelShape).isRequired,
 };
 
 export default SpeechTab;

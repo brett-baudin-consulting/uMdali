@@ -77,7 +77,6 @@ const ConversationBody = ({
                 message={msg}
                 onDelete={() => deleteMessage(msg.messageId)}
                 onEdit={(newContent) => editMessage(msg.messageId, newContent)}
-                userId={currentConversation.userId}
                 user={user}
                 setError={setError}
                 currentConversation={currentConversation}
