@@ -33,6 +33,10 @@ const conversationSchema = Joi.object({
   contextId2: Joi.string().optional(),
   alias1: Joi.string().optional(),
   alias2: Joi.string().optional(),
+  voice1: Joi.string().optional(),
+  voice2: Joi.string().optional(),
+  textToSpeechModelId: Joi.string().optional(),
+  textToSpeechVendor: Joi.string().optional(),
   isAIConversation: Joi.boolean().default(false),
   createdTimestamp: Joi.date(),
   updatedTimestamp: Joi.date()

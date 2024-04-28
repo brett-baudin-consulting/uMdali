@@ -31,6 +31,10 @@ const conversationSchema = new Schema(
     contextId2: { type: String, required: false },
     alias1: { type: String, required: false },
     alias2: { type: String, required: false },
+    voice1: { type: String, required: false },
+    voice2: { type: String, required: false },
+    textToSpeechModelId: { type: String, required: false },
+    textToSpeechVendor: { type: String, required: false },
     isAIConversation: { type: Boolean, required: false, default: false },
     },
   {

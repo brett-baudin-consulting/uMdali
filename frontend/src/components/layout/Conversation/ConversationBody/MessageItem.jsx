@@ -19,7 +19,7 @@ import './MessageItem.scss';
 const maxLineCount = 4;
 const pauseDuration = 600;
 
-function MessageItem({ message, onDelete, onEdit, userId, user, setError, currentConversation, setCurrentConversation }) {
+function MessageItem({ message, onDelete, onEdit, user, setError, currentConversation, setCurrentConversation }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,7 +33,20 @@ function MessageItem({ message, onDelete, onEdit, userId, user, setError, curren
     setCopied(false);
   }, []);
 
-  const handleSpeakClick = useCallback(async () => {
+  function getVoice(currentConversation, message, userSettings) {
+    if (currentConversation.isAIConversation && currentConversation.voice1 && currentConversation.voice2) {
+      const index = currentConversation.messages.findIndex(mess => mess.messageId === message.messageId);
+      if (index === -1) {
+        return userSettings.textToSpeechModel.voice_id;
+      }
+      return index % 2 === 0 ? currentConversation.voice1 : currentConversation.voice2;
+    }
+    return userSettings.textToSpeechModel.voice_id;
+  }
+
+  const voice = getVoice(currentConversation, message, user.settings);
+  const textToSpeechVendor = (currentConversation.isAIConversation ? currentConversation.textToSpeechVendor : user.settings.textToSpeechModel.vendor) || user.settings.textToSpeechModel.vendor;  
+  const textToSpeechModelId = (currentConversation.isAIConversation ? currentConversation.textToSpeechModelId : user.settings.textToSpeechModel.model_id) || user.settings.textToSpeechModel.model_id;    const handleSpeakClick = useCallback(async () => {
     if (isSpeaking) {
       if (audioRef.current) {
         audioRef.current.pause();
@@ -50,10 +63,10 @@ function MessageItem({ message, onDelete, onEdit, userId, user, setError, curren
     // Function to convert text to speech and return a promise that resolves to the audio blob
     const convertChunkToSpeech = (chunk) => {
       const speech = convertTextToSpeech(
-        user.settings.textToSpeechModel.model_id,
+        textToSpeechModelId,
         chunk,
-        user.settings.textToSpeechModel.voice_id,
-        user.settings.textToSpeechModel.vendor
+        voice,
+        textToSpeechVendor
       );
       return speech;
     };
@@ -109,7 +122,7 @@ function MessageItem({ message, onDelete, onEdit, userId, user, setError, curren
       console.error('Error processing text to speech:', error);
       setIsSpeaking(false);
     });
-  }, [isSpeaking, message.content, setError, user.settings.textToSpeechModel.model_id, user.settings.textToSpeechModel.vendor, user.settings.textToSpeechModel.voice_id]);
+  }, [isSpeaking, message.content, setError, textToSpeechModelId, textToSpeechVendor, voice]);
 
   const handleModalClose = useCallback(() => setIsModalOpen(false), []);
 
@@ -241,8 +254,8 @@ function MessageItem({ message, onDelete, onEdit, userId, user, setError, curren
               )}
               {currentConversation.isAIConversation && (
                 message.role === 'context'
-                ? `${t("context")} ${message.alias} (${message.modelName})`
-                : `${t("bot")} ${message.alias} (${message.modelName})`
+                  ? `${t("context")} ${message.alias} (${message.modelName})`
+                  : `${t("bot")} ${message.alias} (${message.modelName})`
               )}
             </div>
           </div>
@@ -321,7 +334,6 @@ MessageItem.propTypes = {
   message: messageShape.isRequired,
   onDelete: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,
-  userId: PropTypes.string.isRequired,
   user: userShape.isRequired,
   setError: PropTypes.func.isRequired,
   currentConversation: conversationShape.isRequired,

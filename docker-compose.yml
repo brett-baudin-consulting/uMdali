@@ -85,7 +85,7 @@ services:
       - BIND_CREDENTIALS=
       - SEARCH_BASE=
       - SEARCH_FILTER=
-      # Audio transcription Speach to Text
+      # Audio transcription Speech to Text
       - OPENAI_TRANSCRIPTION_API_KEY=NA
       - OPENAI_TRANSCRIPTION_ENDPOINT=https://api.openai.com/v1/audio/transcriptions
       - OPENAI_TRANSCRIPTION_TIMEOUT_MS=30000

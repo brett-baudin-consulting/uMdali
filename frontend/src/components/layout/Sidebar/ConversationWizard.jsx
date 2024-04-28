@@ -7,6 +7,7 @@ import moment from 'moment';
 
 import { userShape } from '../../../model/userPropType';
 import { modelShape } from '../../../model/modelPropType';
+import { textToSpeechModelShape } from '../../../model/textToSpeechModelPropType';
 import { postConversation } from '../../../api/conversationService';
 
 import './ConversationWizard.scss';
@@ -21,7 +22,8 @@ export const ConversationWizard = ({
     setCurrentConversation,
     setConversations,
     onSendMessage,
-    models
+    models,
+    textToSpeechModels,
 }) => {
     const { t } = useTranslation();
     const sortedContexts = useMemo(() => {
@@ -34,6 +36,8 @@ export const ConversationWizard = ({
     const [selectedContext2, setSelectedContext2] = useState(initialContextId);
     const [alias1, setAlias1] = useState('');
     const [alias2, setAlias2] = useState('');
+    const [voice1, setVoice1] = useState('');
+    const [voice2, setVoice2] = useState('');
     const [conversationStarter, setConversationStarter] = useState('');
     const [errors, setErrors] = useState({
         alias1: false,
@@ -43,6 +47,12 @@ export const ConversationWizard = ({
     const sortedModels = useMemo(() => {
         return [...models].sort((a, b) => (a.vendor + a.name).localeCompare(b.vendor + b.name));
     }, [models]);
+
+    const voicesMap = useMemo(() => {  
+        const textToSpeechModel = textToSpeechModels.find(model => model.id === user.settings.textToSpeechModel.model_id);  
+        if (!textToSpeechModel || !textToSpeechModel.voices) return [];  
+        return [...textToSpeechModel.voices].sort((a, b) => a.name.localeCompare(b.name));   
+    }, [textToSpeechModels, user.settings.textToSpeechModel.model_id]);  
 
     const initialModelId = sortedModels.length > 0 ? `${sortedModels[0].vendor}/${sortedModels[0].name}` : '';
 
@@ -81,6 +91,10 @@ export const ConversationWizard = ({
             contextId2: selectedContext2,
             alias1: alias1,
             alias2: alias2,
+            voice1: voice1,
+            voice2: voice2,
+            textToSpeechModelId: user.settings.textToSpeechModel.model_id,
+            textToSpeechVendor: user.settings.textToSpeechModel.vendor,
             isAIConversation: true,
             messages: [context1Message],
         }
@@ -122,6 +136,14 @@ export const ConversationWizard = ({
                             </option>
                         ))}
                     </select>
+                    <label htmlFor='voiceSelection1'>{t('voice_title')}</label>
+                    <select value={voice1} onChange={(e) => setVoice1(e.target.value)}>
+                        {voicesMap.map((voice) => (  
+                            <option key={voice.id} value={voice.id}>
+                                {voice.name}
+                            </option>
+                        ))}
+                    </select>
                     <label htmlFor='contextSelection1'>{t('context_title')}</label>
                     <select value={selectedContext1} onChange={(e) => setSelectedContext1(e.target.value)}>
                         {sortedContexts.map((context) => (
@@ -154,6 +176,14 @@ export const ConversationWizard = ({
                             </option>
                         ))}
                     </select>
+                    <label htmlFor='voiceSelection2'>{t('voice_title')}</label>
+                    <select value={voice2} onChange={(e) => setVoice2(e.target.value)}>
+                        {voicesMap.map((voice) => (  
+                            <option key={voice.id} value={voice.id}>
+                                {voice.name}
+                            </option>
+                        ))}
+                    </select>
                     <label htmlFor='contextSelection2'>{t('context_title')}</label>
                     <select value={selectedContext2} onChange={(e) => setSelectedContext2(e.target.value)}>
                         {sortedContexts.map((context) => (
@@ -162,6 +192,7 @@ export const ConversationWizard = ({
                             </option>
                         ))}
                     </select>
+
                     <textarea
                         className="contextText"
                         readOnly
@@ -199,4 +230,5 @@ ConversationWizard.propTypes = {
     setConversations: PropTypes.func.isRequired,
     onSendMessage: PropTypes.func.isRequired,
     models: PropTypes.arrayOf(modelShape).isRequired,
+    textToSpeechModels: PropTypes.arrayOf(textToSpeechModelShape).isRequired,
 };

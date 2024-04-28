@@ -430,6 +430,7 @@ function App() {
                     setConversations={setConversations}
                     onSendMessage={handleNewUserMessage}
                     models={models}
+                    textToSpeechModels={textToSpeechModels}
                   />
                 </div>
               )}
