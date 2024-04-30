@@ -45,8 +45,8 @@ function MessageItem({ message, onDelete, onEdit, user, setError, currentConvers
   }
 
   const voice = getVoice(currentConversation, message, user.settings);
-  const textToSpeechVendor = (currentConversation.isAIConversation ? currentConversation.textToSpeechVendor : user.settings.textToSpeechModel.vendor) || user.settings.textToSpeechModel.vendor;  
-  const textToSpeechModelId = (currentConversation.isAIConversation ? currentConversation.textToSpeechModelId : user.settings.textToSpeechModel.model_id) || user.settings.textToSpeechModel.model_id;    const handleSpeakClick = useCallback(async () => {
+  const textToSpeechVendor = (currentConversation.isAIConversation ? currentConversation.textToSpeechVendor : user.settings.textToSpeechModel.vendor) ?? user.settings.textToSpeechModel.vendor;  
+  const textToSpeechModelId = (currentConversation.isAIConversation ? currentConversation.textToSpeechModelId : user.settings.textToSpeechModel.model_id) ?? user.settings.textToSpeechModel.model_id;    const handleSpeakClick = useCallback(async () => {
     if (isSpeaking) {
       if (audioRef.current) {
         audioRef.current.pause();

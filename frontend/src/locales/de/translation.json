@@ -107,5 +107,6 @@
     "username": "Benutzername",
     "video_support_title": "Video Unterstützung",
     "vision_support_title": "Bild Unterstützung",
-    "voice_settings_title": "Stimme"
+    "voice_settings_title": "Stimme",
+    "voice_title": "Stimme"
 }
