@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import "./ReadonlyCheckbox.scss";
 
-const ReadonlyCheckbox = ({ isChecked, label }) => (
+const ReadonlyCheckbox = ({ isChecked = false, label }) => (
     <div className="readonly-checkbox-container">
         <label className="readonly-label">
             <span>{label}:</span>
@@ -19,10 +19,6 @@ const ReadonlyCheckbox = ({ isChecked, label }) => (
 ReadonlyCheckbox.propTypes = {
     isChecked: PropTypes.bool,
     label: PropTypes.string.isRequired,
-};
-
-ReadonlyCheckbox.defaultProps = {
-    isChecked: false
 };
 
 export default ReadonlyCheckbox;

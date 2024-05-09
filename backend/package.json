@@ -23,19 +23,19 @@
     "form-data": "^4.0.0",
     "http-status-codes": "^2.3.0",
     "ioredis": "^5.4.1",
-    "joi": "^17.13.0",
+    "joi": "^17.13.1",
     "jsonata": "^2.0.4",
-    "mongoose": "^8.3.2",
+    "mongoose": "^8.3.3",
     "multer": "^1.4.5-lts.1",
     "node-fetch": "^3.3.2",
     "passport": "^0.7.0",
     "passport-ldapauth": "^3.0.1",
-    "rate-limiter-flexible": "^5.0.2",
+    "rate-limiter-flexible": "^5.0.3",
     "redact-pii": "^3.4.0",
     "sharp": "^0.33.3",
     "uuid": "^9.0.1",
     "winston": "^3.13.0",
-    "ws": "^8.16.0"
+    "ws": "^8.17.0"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

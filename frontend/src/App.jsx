@@ -10,12 +10,13 @@ import {
   postConversation,
 } from "./api/conversationService";
 import Sidebar from "./components/layout/Sidebar/Sidebar";
+import { createTitle } from "./components/layout/Sidebar/createTitle";
 import ConversationHeader from "./components/layout/Conversation/ConversationHeader/ConversationHeader";
 import ConversationBody from "./components/layout/Conversation/ConversationBody/ConversationBody";
 import ConversationFooter from "./components/layout/Conversation/ConversationFooter/ConversationFooter";
 import AIConversationFooter from "./components/layout/Conversation/ConversationFooter/AIConversationFooter";
 import LoginDialog from "./components/common/LoginDialog/LoginDialog";
-import { sendMessage, sendMessageStreamResponse } from "./api/messageService";
+import { sendMessage } from "./api/messageService";
 import { fetchModels } from "./api/modelService";
 import { fetchSpeechToTextModels } from "./api/speechToTextModelService";
 import { fetchTextToSpeechModels } from "./api/textToSpeechModelService";
@@ -38,12 +39,45 @@ function App() {
   const [textToSpeechModels, setTextToSpeechModels] = useState([]);
   const { t } = useTranslation();
   const fetchedConversations = useConversations(user ? user.userId : null);
-  const [sendNewMessage, setSendNewMessage] = useState(false);
   const abortControllerRef = useRef(null);
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const [theme, setTheme] = useState('dark');
   const [error, setError] = useState(null);
   const [isWizardVisible, setIsWizardVisible] = useState(false);
+
+  const [hasRun, setHasRun] = useState(false);
+
+  const previousConversationId = useRef(currentConversation?.conversationId);
+
+  useEffect(() => {
+    if (!currentConversation || isStreaming || isWaitingForResponse || !user || !models || !models.length) {
+      return;
+    }
+
+    if (previousConversationId.current !== currentConversation?.conversationId) {
+      setHasRun(false);
+      previousConversationId.current = currentConversation.conversationId;
+    }
+
+    const isTitleDateFormatted = moment(currentConversation?.title, t('title_date_format'), true).isValid();
+
+    const processConversation = async () => {
+      if (currentConversation.messages?.length === 3 && !hasRun && isTitleDateFormatted) {
+        const newTitle = await createTitle(currentConversation, setCurrentConversation, user, models, t, setIsStreaming, setIsWaitingForResponse);
+        if (newTitle) {
+          setCurrentConversation(prevConversation => ({
+            ...prevConversation,
+            title: newTitle,
+          }));
+        }
+        setHasRun(true);
+      }
+    };
+
+    processConversation();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentConversation?.conversationId, currentConversation?.messages?.length, currentConversation?.title, hasRun, models, t, user, isStreaming, isWaitingForResponse]);
 
   const handleClose = () => {
     setIsWizardVisible(false);
@@ -58,8 +92,25 @@ function App() {
     if (currentConversation.isAIConversation) {
       modelName = currentConversation.messages.length % 2 === 0 ? currentConversation.model2 : currentConversation.model1;
     }
-    const [vendor, name] = modelName.split('/');
-    const model = models.find((model) => model.vendor === vendor && model.name === name);
+    let model;
+    if (modelName.indexOf('/') === -1) {
+      modelName = user.settings.model;
+      model = models.find((model) => model.name === modelName)
+      setUser((prevUser) => ({
+        ...prevUser,
+        settings: {
+          ...prevUser.settings,
+          model: model.vendor + '/' + model.name,
+        },
+      }));
+    }
+    else {
+      const [vendor, name] = modelName.split('/');
+      model = models.find((model) => model.vendor === vendor && model.name === name);
+    }
+    if (!model) {
+      model = models.find((model) => model.name === 'gpt-4-turbo');
+    }
     return model;
   }
 
@@ -146,7 +197,7 @@ function App() {
 
     // Define the async function inside useEffect
     const fetchData = async () => {
-      if (isLoggedIn && currentConversation && !isStreaming && currentConversation.messages.length > 0) {
+      if (isLoggedIn && currentConversation && !isStreaming && currentConversation.messages.length > 0 && currentConversation.conversationId) {
         try {
           await updateConversation(currentConversation);
           // Check if the component is still mounted before setting state
@@ -176,47 +227,6 @@ function App() {
   }, [currentConversation, isLoggedIn, isStreaming]);
 
   useEffect(() => {
-    // Only run this effect if the user is logged in
-    if (isLoggedIn) {
-      abortControllerRef.current = new AbortController();
-      const sendMsgAndUpdateConversation = async () => {
-        if (!currentConversation || !newBotMessage || !sendNewMessage) {
-          return;
-        }
-        setIsStreaming(false);
-        setIsWaitingForResponse(true);
-        try {
-          const model = getModel();
-          const data = await sendMessage(
-            currentConversation,
-            user,
-            abortControllerRef.current.signal,
-            model
-          );
-
-          setCurrentConversation((prevConversation) => ({
-            ...prevConversation,
-            messages: prevConversation.messages.map((message) =>
-              message.messageId === newBotMessage.messageId
-                ? { ...message, content: data?.content }
-                : message
-            ),
-          }));
-          setSendNewMessage(false);
-        } catch (err) {
-          setError(err.message);
-        } finally {
-          setSendNewMessage(false);
-          setIsWaitingForResponse(false);
-        }
-      };
-
-      sendMsgAndUpdateConversation();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sendNewMessage, isLoggedIn]);
-
-  useEffect(() => {
     if (error) {
       setIsWaitingForResponse(false);
       setIsStreaming(false);
@@ -225,50 +235,30 @@ function App() {
 
   useEffect(() => {
     // Only run this effect if the user is logged in
-    if (isLoggedIn) {
-      abortControllerRef.current = new AbortController();
+    if (!isLoggedIn || !currentConversation || !newBotMessage || !currentConversation.messages) {
+      return;
+    }
+    abortControllerRef.current = new AbortController();
 
-      if (!currentConversation || !newBotMessage || !currentConversation.messages) {
-        return;
-      }
-      if (user.settings.isStreamResponse) {
-        let isCancelled = false;
-
-        const sendStreamResponse = async () => {
-          if (
-            !isCancelled &&
-            user &&
-            currentConversation &&
-            newBotMessage &&
-            !isStreaming
-          ) {
-            setIsStreaming(true);
-            try {
-              const model = getModel();
-              await sendMessageStreamResponse(
-                user,
-                currentConversation,
-                setCurrentConversation,
-                newBotMessage,
-                setIsStreaming,
-                abortControllerRef.current.signal,
-                model,
-              );
-
-            } catch (err) {
-              setError(err.message);
-            }
-          }
-        };
-
-        sendStreamResponse();
-        return () => {
-          isCancelled = true;
-        };
-      }
-      else {
-        setSendNewMessage(true);
-      }
+    try {
+      const model = getModel();
+      setIsWaitingForResponse(true);
+      const sendAndWaitForResponse = async () => {
+        await sendMessage(
+          currentConversation,
+          user,
+          setCurrentConversation,
+          newBotMessage.messageId,
+          setIsStreaming,
+          model,
+          abortControllerRef.current.signal,
+          setIsWaitingForResponse,
+          user?.settings?.isStreamResponse
+        );
+      };
+      sendAndWaitForResponse();
+    } catch (err) {
+      setError(err.message);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newBotMessage, isLoggedIn]);
@@ -355,6 +345,9 @@ function App() {
       try {
         abortControllerRef.current.abort();
       }
+      catch (error) {
+        console.error("Failed to abort fetch:", error);
+      }
       finally {
         abortControllerRef.current = null;
       }
@@ -365,7 +358,7 @@ function App() {
     <ThemeProvider>
       <ErrorBoundary>
         <div className={`App`} data-theme={theme}>
-          {isLoggedIn && (
+          {isLoggedIn && models.length && (
             <>
               <Sidebar
                 conversations={conversations}
@@ -376,6 +369,8 @@ function App() {
                 user={user}
                 setIsWizardVisible={setIsWizardVisible}
                 models={models}
+                setIsStreaming={setIsStreaming}
+                setIsWaitingForResponse={setIsWaitingForResponse}
               />
               <div className="conversation-section">
                 <ConversationHeader
@@ -396,7 +391,7 @@ function App() {
                 />
                 {/* Optionally show error */}
                 {error && <div className="error">{error}</div>}
-                {currentConversation && !currentConversation?.isAIConversation && <ConversationFooter
+                {currentConversation && !currentConversation?.isAIConversation && isStreaming !== undefined && <ConversationFooter
                   user={user}
                   currentConversation={currentConversation}
                   setCurrentConversation={setCurrentConversation}
@@ -413,7 +408,6 @@ function App() {
                   user={user}
                   currentConversation={currentConversation}
                   setCurrentConversation={setCurrentConversation}
-                  onSendMessage={handleNewUserMessage}
                   onResendMessage={handleResendMessage}
                   isStreaming={isStreaming}
                   setIsStreaming={setIsStreaming}

@@ -36,8 +36,8 @@ export const ConversationWizard = ({
     const [selectedContext2, setSelectedContext2] = useState(initialContextId);
     const [alias1, setAlias1] = useState('');
     const [alias2, setAlias2] = useState('');
-    const [voice1, setVoice1] = useState('');
-    const [voice2, setVoice2] = useState('');
+    const [voice1, setVoice1] = useState(user.settings.textToSpeechModel.voices_id);
+    const [voice2, setVoice2] = useState(user.settings.textToSpeechModel.voices_id);
     const [conversationStarter, setConversationStarter] = useState('');
     const [errors, setErrors] = useState({
         alias1: false,

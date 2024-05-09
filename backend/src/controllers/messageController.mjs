@@ -92,7 +92,7 @@ async function handleRequest(req, res) {
   const { userDetails: { settings }, message, stream, model } = req.body;
   const messageAPI = getAPI(model);
   if (!messageAPI) {
-    res.status(400).send({ error: `Unsupported API: ${settings.model}` });
+    res.status(400).send({ error: `Unsupported API: ${model?.vendor}/${model?.name}` });
     return;
   }
 
