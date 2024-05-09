@@ -1,173 +1,84 @@
-import { v4 as uuidv4 } from "uuid";
-
 import { SERVER_BASE_URL } from "../config/config";
 import { COMMON_HEADERS } from "../constants";
 
-export const sendMessage = async (
-  currentConversation,
-  user,
-  signal,
-  model
-) => {
-  const filteredMessages = currentConversation.messages.filter(message => message.content !== "");
+// sendMessage simplifies error handling and streamlines response processing  
+export const sendMessage = async (currentConversation,
+  user, setCurrentConversation, newBotMessageMessageId, setIsStreaming, model, signal, setIsWaitingForResponse, stream) => {
+  const filteredMessages = filterMessages(currentConversation, newBotMessageMessageId);
+  const requestBody = {
+    title: currentConversation.title,
+    messageId: newBotMessageMessageId,
+    userDetails: user,
+    conversationId: currentConversation.conversationId,
+    message: filteredMessages,
+    stream: stream,
+    model: model,
+  };
+  setIsStreaming(stream);
+  // Utilize AbortController for better fetch control  
   const options = {
     method: "POST",
     headers: COMMON_HEADERS,
-    body: JSON.stringify({
-      title: currentConversation.title,
-      messageId: uuidv4(),
-      userId: user.userId,
-      userDetails: user,
-      conversationId: currentConversation.conversationId,
-      message: filteredMessages,
-      stream: false,
-      model: model,
-    }),
+    body: JSON.stringify(requestBody),
     signal: signal,
   };
+
   try {
     const response = await fetch(`${SERVER_BASE_URL}/message`, options);
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Error sending message: ${errorText}`);
     }
-    const data = await response.json();
-    return data;
+
+    // Handle streaming and synchronous response differently  
+    return stream
+      ? await streamResponse(response, setCurrentConversation, newBotMessageMessageId, setIsStreaming, signal)
+      : await syncResponse(response, setCurrentConversation, newBotMessageMessageId, setIsWaitingForResponse);
   } catch (error) {
-    console.error("Failed to send message:", error);
-    throw error;
-  }
-};
-
-export const sendMessageStreamResponse = async (
-  user,
-  currentConversation,
-  setCurrentConversation,
-  newBotMessage,
-  setIsStreaming,
-  signal,
-  model
-) => {
-  const localMessages = filterMessages(currentConversation, newBotMessage);
-  if (!localMessages.length) {
-    setIsStreaming(false);
-    return;
-  }
-  try {
-    const options = {
-      method: "POST",
-      headers: COMMON_HEADERS,
-      body: JSON.stringify({
-        title: currentConversation.title,
-        messageId: uuidv4(),
-        userId: user.userId,
-        userDetails: user,
-        conversationId: currentConversation.conversationId,
-        message: localMessages,
-        stream: true,
-        model: model,
-      }),
-      signal: signal,
-    };
-
-    const response = await fetch(`${SERVER_BASE_URL}/message`, options);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Error sending message: ${errorText}`);
-    }
-
-    let data = "";
-    const reader = response.body
-      .pipeThrough(new TextDecoderStream())
-      .getReader();
-
-    async function processText() {
-      try {
-        let { done, value } = await reader.read();
-        if (done) {
-          setIsStreaming(false);
-          return;
-        }
-        if (signal.aborted) {
-          await reader.cancel();
-          setIsStreaming(false);
-          return;
-        }
-        data += value;
-        // Update the conversation state immutably
-        setCurrentConversation((prevConversation) => {
-          if (!prevConversation) {
-            return {
-              messages: [],
-            };
-          }
-          return {
-            ...prevConversation,
-            messages: prevConversation.messages.map((message) =>
-              message.messageId === newBotMessage.messageId
-                ? { ...message, content: data }
-                : message
-            ),
-          };
-        });
-        await processText(); // Recursively call processText until done or aborted
-      } catch (error) {
-        if (error.name === 'AbortError' || signal.aborted) {
-          setIsStreaming(false);
-        } else {
-          console.error("Failed to process stream:", error);
-          throw error;
-        }
-      }
-    }
-
-    await processText(); // Start processing the text
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      // Do nothing, as the error is expected due to aborting the request.
-    } else {
-      console.error("Failed to send message:", error);
+    if (error.name !== 'AbortError') {
+      console.error("Failed to process stream:", error);
       throw error;
     }
+  } finally {
+    setIsStreaming(false);
+    setIsWaitingForResponse(false);
   }
 };
 
-export const updateMessage = async (messageId, newContent) => {
-  const abortController = new AbortController();
-  const response = await fetch(`${SERVER_BASE_URL}/message/${messageId}`, {
-    method: "PUT",
-    headers: COMMON_HEADERS,
-    body: JSON.stringify({ content: newContent }),
-    signal: abortController.signal,
-  });
+const syncResponse = async (response, setCurrentConversation, newBotMessageMessageId, setIsWaitingForResponse) => {
   const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error || "Failed to update message.");
-  }
+  setIsWaitingForResponse(false);
+  updateConversationState(data?.content, newBotMessageMessageId, setCurrentConversation);
+  return data;
 };
+// Refactor streamResponse to improve readability and error handling  
+const streamResponse = async (response, setCurrentConversation, newBotMessage, setIsStreaming, signal) => {
+  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+  let data = "";
 
-export const deleteMessage = async (messageId, messages) => {
-  const abortController = new AbortController();
-  if (window.confirm("Are you sure you want to delete this message?")) {
-    const response = await fetch(
-      `${SERVER_BASE_URL}/message/${messageId}/delete`,
-      {
-        method: "PUT",
-        headers: COMMON_HEADERS,
-        signal: abortController.signal,
-      }
-    );
-
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error || "Failed to delete the message");
+    while (true) {
+      const { done, value } = await reader.read();
+      if (signal.aborted) throw new Error("AbortError");
+      if (done) break;
+      data += value;
+      updateConversationState(data, newBotMessage, setCurrentConversation);
     }
-  }
+    return { "content": data};
 };
 
-function filterMessages(currentConversation, newBotMessage) {
-  return currentConversation.messages.filter(
-    (message) => message.content !== "" && message.messageId !== newBotMessage.messageId
-  );
+// Utility function to update conversation state  
+function updateConversationState(data, newBotMessageMessageId, setCurrentConversation) {
+  setCurrentConversation(prev => ({
+    ...prev,
+    messages: prev.messages.map(msg =>
+      msg.messageId === newBotMessageMessageId ? { ...msg, content: data } : msg
+    ),
+  }));
 }
+
+// Utility function to filter messages  
+function filterMessages(currentConversation, newBotMessageMessageId) {
+  return currentConversation.messages.filter(
+    message => message.content !== "" && message.messageId !== newBotMessageMessageId
+  );
+}  

@@ -22,6 +22,8 @@ const Sidebar = ({
   user,
   setIsWizardVisible,
   models,
+  setIsStreaming, 
+  setIsWaitingForResponse
 
 }) => {
   const [searchText, setSearchText] = useState('');
@@ -113,6 +115,9 @@ const Sidebar = ({
           }
           user={user}
           models={models}
+          setCurrentConversation={setCurrentConversation}
+          setIsStreaming={setIsStreaming}
+          setIsWaitingForResponse={setIsWaitingForResponse}
         />
       </li>
     ))

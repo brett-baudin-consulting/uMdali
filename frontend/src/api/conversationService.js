@@ -72,6 +72,9 @@ export const postConversation = async (conversationData) => {
 
 // Function to update a conversation
 export const updateConversation = async (conversationData) => {
+  if (!conversationData.conversationId) {
+  return Promise.reject(new Error('conversationId is required for updating a conversation.'));    
+  }
   const options = {
     method: "PUT",
     headers: COMMON_HEADERS,
