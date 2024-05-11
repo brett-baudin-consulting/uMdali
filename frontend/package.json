@@ -19,7 +19,9 @@
     "react-spinners": "^0.13.8",
     "react-syntax-highlighter": "^15.5.0",
     "react-textarea-autosize": "^8.5.3",
+    "rehype-katex": "^7.0.0",
     "remark-gfm": "^4.0.0",
+    "remark-math": "^6.0.0",
     "uuid": "^9.0.1",
     "web-vitals": "^3.5.2"
   },

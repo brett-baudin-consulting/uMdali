@@ -2,18 +2,15 @@ import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import TextareaAutosize from 'react-textarea-autosize';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
-import ReactMarkdown from 'react-markdown';
-import gfm from 'remark-gfm';
 
 import ModalDialog from '../../../common/ModalDialog/ModalDialog';
 import { messageShape, conversationShape } from '../../../../model/conversationPropType';
 import { convertTextToSpeech } from '../../../../api/textToSpeechModelService';
-import CodeBlock from './CodeBlock';
 import { handleKeyDown as handleKeyDownUtility } from "../../../common/util/useTextareaKeyHandlers";
 import { userShape } from "../../../../model/userPropType";
 import FileItem from '../ConversationFooter/FileItem';
 import { deleteFile } from "../../../../api/fileService";
-
+import MarkdownLatexParser from './MarkdownLatexParser';
 import './MessageItem.scss';
 
 const maxLineCount = 4;
@@ -184,23 +181,6 @@ function MessageItem({ message, onDelete, onEdit, user, setError, currentConvers
     }
   }, [editedMessage, user.settings.macros, handleEditConfirm, message.content]);
 
-  const renderers = useMemo(() => ({
-    code: ({ node, inline, className, children, ...props }) => {
-      const match = /language-(\w+)/.exec(className || '');
-      return !inline && match ? (
-        <CodeBlock
-          value={String(children).replace(/\n$/, '')}
-          language={match[1]}
-          {...props}
-        />
-      ) : (
-        <code className={className} {...props}>
-          {children}
-        </code>
-      );
-    },
-  }), []);
-
   const lineCount = message.content.split('\n').length;
 
   const handleDeleteFile = useCallback(async (fileToDelete) => {
@@ -227,8 +207,18 @@ function MessageItem({ message, onDelete, onEdit, user, setError, currentConvers
     }
   }, [currentConversation.userId, message.messageId, setCurrentConversation]);
   const processedContent = useMemo(() => {
-    return message.content.replace(/(?<!\n)\n(?!\n)/g, '  \n');
+    return convertDelimiters(message.content.replace(/(?<!\n)\n(?!\n)/g, '  \n'));
   }, [message.content]);
+
+  function convertDelimiters(text) {  
+    // Convert block delimiters \[...\] to $$...$$  
+    const blockRegex = /\\\[(.*?)\\\]/gs;  
+    const convertedBlockText = text.replace(blockRegex, (match, innerContent) => `$$${innerContent}$$`);
+  
+    // Convert inline delimiters \(...\) to $...$  
+    const inlineRegex = /\\\((.*?)\\\)/gs;  
+    return convertedBlockText.replace(inlineRegex, (match, innerContent) => `$${innerContent}$`);  
+  }
   return (
     <>
       {isModalOpen && (
@@ -320,9 +310,7 @@ function MessageItem({ message, onDelete, onEdit, user, setError, currentConvers
               ref={textareaRef}
             />
           ) : (
-            <ReactMarkdown components={renderers} remarkPlugins={[gfm]}>
-              {processedContent}
-            </ReactMarkdown>
+            <MarkdownLatexParser content={processedContent} />
           )}
         </div>
       </div>
