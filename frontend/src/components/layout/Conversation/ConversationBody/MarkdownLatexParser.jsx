@@ -40,7 +40,7 @@ const MarkdownLatexParser = ({ content }) => {
     }), []);
 
     if (!content) {
-        return <div>No content provided.</div>;
+        return <div></div>;
     }
 
     return (
