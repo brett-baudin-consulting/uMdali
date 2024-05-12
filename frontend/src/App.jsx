@@ -50,7 +50,14 @@ function App() {
   const previousConversationId = useRef(currentConversation?.conversationId);
 
   useEffect(() => {
-    if (!currentConversation || isStreaming || isWaitingForResponse || !user || !models || !models.length) {
+    if (!currentConversation || 
+      currentConversation.messages?.length !== 3||  
+      currentConversation.messages[2]?.content?.length < 10||  
+      isStreaming || 
+      isWaitingForResponse || 
+      !user || 
+      !models || 
+      !models.length) {
       return;
     }
 
@@ -285,10 +292,10 @@ function App() {
 
   const handleNewUserMessage = async (input, files, model, alias1, alias2) => {
     let userModel = model;
-    if (currentConversation.isAIConversation) {
+    if (currentConversation?.isAIConversation) {
       userModel = 'human'
     }
-    model = model || user.settings.model;
+    model = model || user?.settings?.model;
     const newUserMessage = {
       content: input,
       role: "user",
