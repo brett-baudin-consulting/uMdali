@@ -252,6 +252,18 @@
         "outputTokenLimit": 4096
     },
     {
+        "name": "gpt-4o",
+        "available": true,
+        "vendor": "openai",
+        "isSupportsVision": true,
+        "isSupportsAudio": false,
+        "isSupportsVideo": false,
+        "isSupportsContext": true,
+        "isSupportsStreaming": true,
+        "inputTokenLimit": 128000,
+        "outputTokenLimit": 4096
+    },
+    {
         "name": "gpt-4-turbo",
         "available": true,
         "vendor": "openai",
