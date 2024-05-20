@@ -186,11 +186,11 @@ Ensure you have Docker installed on your local machine. If not, download and ins
 
 ### Running the Application
 
-1. **Customize the Docker-compose File**: Before running the application, you may need to edit the `docker-compose.yml` file to suit your specific needs. This file contains configuration settings for the Docker containers, including the MongoDB container.
+1. **Customize the docker compose File**: Before running the application, you may need to edit the `docker compose.yml` file to suit your specific needs. This file contains configuration settings for the Docker containers, including the MongoDB container.
 
 2. **Build and Start the Containers**: Execute the following command in your terminal to build and start the application containers:
     ```bash
-    docker-compose up
+    docker compose up
     ```
     This command pulls the necessary Docker images, builds the application containers, and starts them. The process may take a few minutes, especially on the first run.
 
@@ -203,7 +203,7 @@ Ensure you have Docker installed on your local machine. If not, download and ins
 
 - To stop and remove the application containers, return to the terminal and press `Ctrl+C` to stop the running process. Then, execute the following command:
     ```bash
-    docker-compose down
+    docker compose down
     ```
     This command stops the containers and removes them along with their networks.
 
@@ -528,11 +528,11 @@ Ensure you have Docker installed on your local machine. If not, download and ins
 
 ### Running the Application
 
-1. **Customize the Docker-compose File**: Before running the application, you may need to edit the `docker-compose.yml` file to suit your specific needs. This file contains configuration settings for the Docker containers, including the MongoDB container.
+1. **Customize the docker compose File**: Before running the application, you may need to edit the `docker compose.yml` file to suit your specific needs. This file contains configuration settings for the Docker containers, including the MongoDB container.
 
 2. **Build and Start the Containers**: Execute the following command in your terminal to build and start the application containers:
     ```bash
-    docker-compose up
+    docker compose up
     ```
     This command pulls the necessary Docker images, builds the application containers, and starts them. The process may take a few minutes, especially on the first run.
 
@@ -545,7 +545,7 @@ Ensure you have Docker installed on your local machine. If not, download and ins
 
 - To stop and remove the application containers, return to the terminal and press `Ctrl+C` to stop the running process. Then, execute the following command:
     ```bash
-    docker-compose down
+    docker compose down
     ```
     This command stops the containers and removes them along with their networks.
 
