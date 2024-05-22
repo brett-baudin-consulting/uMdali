@@ -567,6 +567,7 @@ Before beginning the setup, ensure you have the following installed on your syst
 
 - **Git** : Git can be downloaded from [Git](https://git-scm.com/)
 
+
 ### Getting the Application
 
 1. **Clone the Repository**: Open your terminal and run the following command to clone the uMdali repository to your local system:
