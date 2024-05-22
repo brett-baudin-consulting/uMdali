@@ -186,7 +186,7 @@ Ensure you have Docker installed on your local machine. If not, download and ins
 
 ### Running the Application
 
-1. **Customize the docker compose File**: Before running the application, you may need to edit the `docker compose.yml` file to suit your specific needs. This file contains configuration settings for the Docker containers, including the MongoDB container.
+1. **Customize the docker compose File**: Before running the application, you may need to edit the `docker-compose.yml` file to suit your specific needs. This file contains configuration settings for the Docker containers, including the MongoDB container.
 
 2. **Build and Start the Containers**: Execute the following command in your terminal to build and start the application containers:
     ```bash
@@ -528,7 +528,7 @@ Ensure you have Docker installed on your local machine. If not, download and ins
 
 ### Running the Application
 
-1. **Customize the docker compose File**: Before running the application, you may need to edit the `docker compose.yml` file to suit your specific needs. This file contains configuration settings for the Docker containers, including the MongoDB container.
+1. **Customize the docker compose File**: Before running the application, you may need to edit the `docker-compose.yml` file to suit your specific needs. This file contains configuration settings for the Docker containers, including the MongoDB container.
 
 2. **Build and Start the Containers**: Execute the following command in your terminal to build and start the application containers:
     ```bash
