@@ -104,6 +104,7 @@ uMdali offers a broad range of features designed to enhance the user experience 
 
 # Tutorials
 1. [AI to AI converstation tutorial.](https://twitter.com/BaudinBrett/status/1778781792348291360)
+2. [Installing using Docker for individuals](https://x.com/BaudinBrett/status/1793350028284809700)
 
 # Getting Started with uMdali
 
