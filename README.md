@@ -104,6 +104,7 @@ uMdali offers a broad range of features designed to enhance the user experience 
 
 # Tutorials
 1. [AI to AI converstation tutorial.](https://twitter.com/BaudinBrett/status/1778781792348291360)
+2. [Installing using Docker for individuals](https://x.com/BaudinBrett/status/1793350028284809700)
 
 # Getting Started with uMdali
 
@@ -186,11 +187,11 @@ Ensure you have Docker installed on your local machine. If not, download and ins
 
 ### Running the Application
 
-1. **Customize the Docker-compose File**: Before running the application, you may need to edit the `docker-compose.yml` file to suit your specific needs. This file contains configuration settings for the Docker containers, including the MongoDB container.
+1. **Customize the docker compose File**: Before running the application, you may need to edit the `docker-compose.yml` file to suit your specific needs. This file contains configuration settings for the Docker containers, including the MongoDB container.
 
 2. **Build and Start the Containers**: Execute the following command in your terminal to build and start the application containers:
     ```bash
-    docker-compose up
+    docker compose up
     ```
     This command pulls the necessary Docker images, builds the application containers, and starts them. The process may take a few minutes, especially on the first run.
 
@@ -203,7 +204,7 @@ Ensure you have Docker installed on your local machine. If not, download and ins
 
 - To stop and remove the application containers, return to the terminal and press `Ctrl+C` to stop the running process. Then, execute the following command:
     ```bash
-    docker-compose down
+    docker compose down
     ```
     This command stops the containers and removes them along with their networks.
 
@@ -513,6 +514,8 @@ This guide walks you through deploying the uMdali application using Docker, a po
 
 Ensure you have Docker installed on your local machine. If not, download and install Docker Desktop from [the official Docker website](https://www.docker.com/products/docker-desktop). This application is compatible with Windows, macOS, and Linux operating systems.
 
+You also need to have git installed. Git can be downloaded from [Git](https://git-scm.com/)
+
 ### Getting the Application
 
 1. **Clone the Repository**: Open a terminal and clone the uMdali repository to your local system with the following command:
@@ -528,11 +531,11 @@ Ensure you have Docker installed on your local machine. If not, download and ins
 
 ### Running the Application
 
-1. **Customize the Docker-compose File**: Before running the application, you may need to edit the `docker-compose.yml` file to suit your specific needs. This file contains configuration settings for the Docker containers, including the MongoDB container.
+1. **Customize the docker compose File**: Before running the application, you may need to edit the `docker-compose.yml` file to suit your specific needs. This file contains configuration settings for the Docker containers, including the MongoDB container.
 
 2. **Build and Start the Containers**: Execute the following command in your terminal to build and start the application containers:
     ```bash
-    docker-compose up
+    docker compose up
     ```
     This command pulls the necessary Docker images, builds the application containers, and starts them. The process may take a few minutes, especially on the first run.
 
@@ -545,7 +548,7 @@ Ensure you have Docker installed on your local machine. If not, download and ins
 
 - To stop and remove the application containers, return to the terminal and press `Ctrl+C` to stop the running process. Then, execute the following command:
     ```bash
-    docker-compose down
+    docker compose down
     ```
     This command stops the containers and removes them along with their networks.
 
@@ -562,6 +565,9 @@ This section guides you through the process of setting up and running the uMdali
 Before beginning the setup, ensure you have the following installed on your system:
 - **Node.js and npm**: Required to run the application. Download and install them from [the official Node.js website](https://nodejs.org/). Choose the version that is compatible with your operating system and follow the provided installation instructions.
 - **MongoDB**: Used for data storage by the application. You can sign up for a free MongoDB account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) or install MongoDB locally from [the MongoDB website](https://www.mongodb.com/try/download/community).
+
+- **Git** : Git can be downloaded from [Git](https://git-scm.com/)
+
 
 ### Getting the Application
 
@@ -602,7 +608,7 @@ Before beginning the setup, ensure you have the following installed on your syst
     ```
     This command runs the backend server, which listens for incoming requests from the frontend.
 
-2. **Start the Frontend Client**: Open a new terminal window or tab, navigate to the frontend directory, and start the client:
+2. **Start the Frontend Client**: Open a new terminal window or tab, navigate to the **backend** directory, and start the client:
     ```bash
     npm run client
     ```
