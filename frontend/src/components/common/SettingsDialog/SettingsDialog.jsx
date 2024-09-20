@@ -10,10 +10,20 @@ import ContextTab from "./ContextTab";
 import MacroTab from "./MacroTab";
 import SpeechTab from "./SpeechTab";
 import ModelTab from "./ModelTab";
+import DataTab from "./DataTab";
 
 import "./SettingsDialog.scss";
 
-function SettingsDialog({ onClose, models, user, setUser, speechToTextModels, textToSpeechModels }) {
+function SettingsDialog({ onClose, 
+  models, 
+  user, 
+  setUser, 
+  speechToTextModels, 
+  textToSpeechModels, 
+  dataImportModels,
+  fetchedConversations,
+  setFetchedConversations
+ }) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("general");
   const modalContentRef = useRef(null);
@@ -54,10 +64,17 @@ function SettingsDialog({ onClose, models, user, setUser, speechToTextModels, te
         return <ContextTab user={user} setUser={setUser} />;
       case 'macro':
         return <MacroTab user={user} setUser={setUser} />;
+      case 'data':
+        return <DataTab 
+        user={user} 
+        setUser={setUser} 
+        dataImportModels={dataImportModels}
+        fetchedConversations={fetchedConversations}
+        setFetchedConversations={setFetchedConversations} />;
       default:
         return null; // or a default component
     }
-  }, [activeTab, user, setUser, models, speechToTextModels, textToSpeechModels]);
+  }, [activeTab, user, setUser, models, speechToTextModels, textToSpeechModels, dataImportModels]);
 
   const handleClose = () => {
     const updateUserAsync = async () => {
@@ -71,6 +88,7 @@ function SettingsDialog({ onClose, models, user, setUser, speechToTextModels, te
               macros: user.settings.macros.filter(macro => macro.shortcut),
               textToSpeechModel: user.settings.textToSpeechModel,
               speechToTextModel: user.settings.speechToTextModel,
+              dataImportModel: user.settings.dataImportModel,
             }
           };
           await updateUser(updatedUser);
@@ -79,7 +97,7 @@ function SettingsDialog({ onClose, models, user, setUser, speechToTextModels, te
       } catch (error) {
         console.error("Failed to update user:", error);
         // Handle error appropriately
-      } 
+      }
     };
     updateUserAsync();
     onClose();
@@ -119,6 +137,11 @@ function SettingsDialog({ onClose, models, user, setUser, speechToTextModels, te
               isActive={activeTab === "macro"}
               onClick={() => setActiveTab("macro")}
             />
+            <Tab
+              label={t("data_settings_title")}
+              isActive={activeTab === "data"}
+              onClick={() => setActiveTab("data")}
+            />
           </div>
           <div className="tab-content">{renderActiveTabContent()}</div>
         </div>
@@ -146,6 +169,22 @@ SettingsDialog.propTypes = {
       name: PropTypes.string.isRequired,
     })
   ).isRequired,
+  dataImportModels: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  fetchedConversations: PropTypes.arrayOf(
+    PropTypes.shape({
+      conversationId: PropTypes.string,
+      title: PropTypes.string,
+      messages: PropTypes.array,
+      createdTimestamp: PropTypes.string,
+      updatedTimestamp: PropTypes.string,
+      isAIConversation: PropTypes.bool,
+    })
+  ).isRequired,
+  setFetchedConversations: PropTypes.func.isRequired,
 };
 
 export default SettingsDialog;

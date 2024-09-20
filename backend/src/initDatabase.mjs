@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import loadModels from './config/loadModels.mjs';
 import loadSpeechToTextModels from './config/loadSpeechToTextModels.mjs';
 import loadTextToSpeechModels from './config/loadTextToSpeechModels.mjs';
+import loadDataImportModels from './config/loadDataImportModels.mjs';
 
 dotenv.config();
 
@@ -28,6 +29,8 @@ const initDatabase = async () => {
       logger.info('Speech to text models loaded');
       await loadTextToSpeechModels();
       logger.info('Text to speech models loaded');
+      await loadDataImportModels();
+      logger.info('Data import models loaded');
       break;
     } catch (err) {
       logger.error(err);

@@ -34,4 +34,6 @@ export const conversationShape = PropTypes.shape({
   textToSpeechModelId: PropTypes.string,
   textToSpeechVendor: PropTypes.string,
   isAIConversation: PropTypes.bool,
+  createdTimestamp: PropTypes.string.isRequired,
+  updatedTimestamp: PropTypes.string.isRequired,
 });

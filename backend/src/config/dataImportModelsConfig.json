@@ -1,0 +1,12 @@
+[
+    {
+        "name": "ChatGPT",
+        "id": "chatgpt.openai",
+        "available": true
+    },
+    {
+        "name": "Grok",
+        "id": "grok.xai",
+        "available": true
+    }
+]

@@ -1,5 +1,7 @@
 import { Schema, model } from "mongoose";
-
+const DataImportSchema = new Schema({
+  dataImportId: { type: String, required: true },
+});
 const MacroSchema = new Schema({
   shortcut: { type: String, required: true },
   text: { type: String, required: true },
@@ -35,6 +37,7 @@ const SettingsSchema = new Schema({
   theme: { type: String, default: "dark" },
   contexts: [ContextSchema],
   macros: [MacroSchema],
+  dataImport: {type: DataImportSchema, default: { dataImportId: "chatgpt.openai" },}
 });
 
 const UserSchema = new Schema(

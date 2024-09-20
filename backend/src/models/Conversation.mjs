@@ -12,7 +12,7 @@ const fileSchema = new Schema({
 
 const messageSchema = new Schema({
   content: { type: String, required: false },
-  role: { type: String, required: true, enum: ["user", "bot", "context"] },
+  role: { type: String, required: true, enum: ["user", "bot", "context", "tool"] },
   messageId: { type: String, required: true, unique: true },
   modelName: { type: String, required: false },
   files: { type: [fileSchema], default: [] },

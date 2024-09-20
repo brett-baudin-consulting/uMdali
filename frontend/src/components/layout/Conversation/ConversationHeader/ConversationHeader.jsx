@@ -13,7 +13,10 @@ const ConversationHeader = ({ models,
   isLoggedIn,
   setIsLoggedIn,
   speechToTextModels,
-  textToSpeechModels
+  textToSpeechModels,
+  dataImportModels,
+  fetchedConversations,
+  setFetchedConversations
 }) => {
   const { t } = useTranslation();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -47,6 +50,9 @@ const ConversationHeader = ({ models,
           models={models}
           speechToTextModels={speechToTextModels}
           textToSpeechModels={textToSpeechModels}
+          dataImportModels={dataImportModels}
+          fetchedConversations={fetchedConversations}
+          setFetchedConversations={setFetchedConversations}
         />
       )}
     </div>
@@ -81,6 +87,31 @@ ConversationHeader.propTypes = {
       name: PropTypes.string,
     })
   ).isRequired,
+  dataImportModels: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string,
+    })
+  ).isRequired,
+  fetchedConversations: PropTypes.arrayOf(
+    PropTypes.shape({
+      conversationId: PropTypes.string,
+      title: PropTypes.string,
+      userId: PropTypes.string,
+      messages: PropTypes.arrayOf(
+        PropTypes.shape({
+          messageId: PropTypes.string,
+          modelName: PropTypes.string,
+          content: PropTypes.string,
+          role: PropTypes.string,
+          files: PropTypes.arrayOf(PropTypes.string),
+        })
+      ),
+      createdTimestamp: PropTypes.string,
+      updatedTimestamp: PropTypes.string,
+      isAIConversation: PropTypes.bool,
+    })
+  ).isRequired,
+  setFetchedConversations: PropTypes.func.isRequired,
 };
 
 export default ConversationHeader;

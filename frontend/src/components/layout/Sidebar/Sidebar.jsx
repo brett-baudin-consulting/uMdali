@@ -29,7 +29,7 @@ const Sidebar = ({
   const [searchText, setSearchText] = useState('');
   const [searchResults, setSearchResults] = useState(null);
   const reversedConversations = useMemo(() => {
-    return [...conversations].reverse();
+    return [...conversations].sort((a, b) => new Date(b.createdTimestamp) - new Date(a.createdTimestamp)); 
   }, [conversations]);
 
   useEffect(() => {

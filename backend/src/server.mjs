@@ -22,6 +22,8 @@ import uploadRoutes from './routes/fileRoutes.mjs';
 import modelRoutes from './routes/modelRoutes.mjs';
 import speechToTextModelRoutes from './routes/speechToTextModelRoutes.mjs';
 import textToSpeechModelRoutes from './routes/textToSpeechModelRoutes.mjs';
+import dataImportModelRoutes from './routes/dataImportModelRoutes.mjs';
+import dataImportRoutes from './routes/dataImportRoutes.mjs';
 import { basicLimiter } from './rateLimit/rateLimitConfig.mjs';
 import setupWebSocket from './websocket/WebsocketHandler.mjs';
 
@@ -36,6 +38,11 @@ if (USE_BASIC_LIMITER) {
   // Apply basic rate limiting middleware
   app.use(basicLimiter);
 }
+// Increase the limit for JSON payloads  
+app.use(express.json({ limit: '50mb' }));
+
+// Increase the limit for URL-encoded payloads  
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.json());
 app.use(cors());
 app.use('/public', express.static('public'));
@@ -55,6 +62,8 @@ app.use('/conversations', conversationRoutes);
 app.use('/model', modelRoutes);
 app.use('/speechToText', speechToTextModelRoutes);
 app.use('/textToSpeech', textToSpeechModelRoutes);
+app.use('/dataImportModel', dataImportModelRoutes);
+app.use('/dataImport', dataImportRoutes);
 
 // Error handling and 404
 app.use('*', (req, res, next) => {

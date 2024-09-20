@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
 import path from 'path';
 
-import User from "../models/User.mjs"; // Ensure this is the correct path to the User model
+import User from "../models/User.mjs";
 
 const router = express.Router();
 
