@@ -80,7 +80,7 @@ const DataTab = ({ user, setUser, dataImportModels }) => {
         <label>
           {t('data_import_title')}:
           <select
-            value={user.settings.dataImport.dataImportId}
+            value={user?.settings?.dataImport?.dataImportId}
             onChange={handleDataChange}
             disabled={sortedDataImportModels.length === 0}
           >
