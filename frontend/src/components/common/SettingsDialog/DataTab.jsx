@@ -72,7 +72,7 @@ const DataTab = ({ user, setUser, dataImportModels }) => {
     }
   };
 
-  const isImportEnabled = user.settings.dataImport.dataImportId !== "";
+  const isImportEnabled = user?.settings?.dataImport?.dataImportId !== "";
 
   return (
     <div className="data-tab">
