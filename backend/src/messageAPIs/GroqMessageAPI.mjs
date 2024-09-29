@@ -7,6 +7,18 @@ import { logger } from "../logger.mjs";
 import { encodeFiles } from './FileEncoder.mjs';
 
 // JSONata expression
+// Define transformWithVision
+const transformWithVision = `
+$map($, function($message) {
+    {
+        "role": $message.role = 'bot' ? 'assistant' :
+                $message.role = 'context' ? 'system' :
+                $message.role,
+        "content": $message.content,
+        "attachments": $message.attachments
+    }
+})[]
+`;
 
 const transformWithoutVision = `
 $map($, function($message) {
@@ -61,6 +73,7 @@ class GroqMessageAPI extends MessageAPI {
   constructor() {
     super();
     this.API_KEY = GROQ_API_KEY;
+    this.MODEL = 'models/default-model-id';
   }
 
   _prepareHeaders() {

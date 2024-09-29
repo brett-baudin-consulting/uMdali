@@ -1,6 +1,4 @@
 import jsonata from "jsonata";
-import fetch from "node-fetch";
-import { TextDecoder } from "util";
 
 import { logger } from "../logger.mjs";
 import MessageAPI from "./MessageAPI.mjs";
@@ -8,6 +6,14 @@ import { encodeFiles } from './FileEncoder.mjs';
 
 const { GEMINI_API_KEY, GEMINI_API_URL } =
   process.env;
+
+const SAFETY_SETTINGS = [
+  { "category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE" },
+  { "category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE" },
+  { "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE" },
+  { "category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE" },
+  { "category": "HARM_CATEGORY_CIVIC_INTEGRITY", "threshold": "BLOCK_NONE" },
+];
 
 async function handleApiErrorResponse(response) {
   try {
@@ -98,6 +104,7 @@ class GeminiMessageAPI extends MessageAPI {
     super();
     checkEnvVariables();
     this.API_KEY = GEMINI_API_KEY;
+    this.MODEL = 'models/gemini-1'; // Set a default model
   }
 
   _prepareHeaders() {
@@ -125,6 +132,7 @@ class GeminiMessageAPI extends MessageAPI {
     const requestOptions = this._prepareOptions({
       contents: updatedMessages.contents,
       systemInstruction: updatedMessages.systemInstruction,
+      "safetySettings": SAFETY_SETTINGS,
       generation_config: {
         temperature: temperature,
         maxOutputTokens: maxTokens,
@@ -132,8 +140,8 @@ class GeminiMessageAPI extends MessageAPI {
     }, signal);
 
     try {
-      const FULL_URL = `${GEMINI_API_URL}${userModel}:generateContent?key=${this.API_KEY}`;
-      const response = await fetch(FULL_URL, requestOptions, signal);
+      const FULL_URL = `${GEMINI_API_URL}${userModel || this.MODEL}:generateContent?key=${this.API_KEY}`;
+      const response = await fetch(FULL_URL, requestOptions);
       if (!response.ok) {
         await handleApiErrorResponse(response);
       }
@@ -142,7 +150,8 @@ class GeminiMessageAPI extends MessageAPI {
       const content = data?.candidates[0]?.content?.parts[0]?.text;
       return content;
     } catch (err) {
-      this._handleStreamResponseError(err);
+      logger.error("Error in sendRequest:", err);
+      throw err; // Re-throw the error to be handled by the caller
     }
   }
 
@@ -167,6 +176,7 @@ class GeminiMessageAPI extends MessageAPI {
     return this._prepareOptions({
       contents: updatedMessages.contents,
       systemInstruction: updatedMessages.systemInstruction,
+      "safetySettings": SAFETY_SETTINGS,
       generation_config: {
         temperature: temperature,
         maxOutputTokens: maxTokens,
@@ -176,7 +186,8 @@ class GeminiMessageAPI extends MessageAPI {
 
   async _fetchStreamResponse(requestOptions, userModel, signal) {
     const FULL_URL = `${GEMINI_API_URL}${userModel || this.MODEL}:streamGenerateContent?key=${this.API_KEY}`;
-    const response = await fetch(FULL_URL, requestOptions, signal);
+    console.log("requestOptions:", requestOptions);
+    const response = await fetch(FULL_URL, requestOptions);
     if (!response.ok) {
       await handleApiErrorResponse(response);
     }
@@ -188,33 +199,55 @@ class GeminiMessageAPI extends MessageAPI {
     const textDecoder = new TextDecoder();
     let lastChunk = "";
 
-    for await (const chunk of response.body) {
-      let decodedChunk = textDecoder.decode(chunk, { stream: true });
-      decodedChunk = lastChunk + decodedChunk;
-      const lines = decodedChunk.split("\n");
-      if (lines.length === 0 || !decodedChunk.endsWith("\n")) {
-        lastChunk = decodedChunk;
-      } else {
+    try {
+      for await (const chunk of response.body) {
+        let decodedChunk = textDecoder.decode(chunk, { stream: true });
+        decodedChunk = lastChunk + decodedChunk;
+
+        // Split decodedChunk into lines
+        const lines = decodedChunk.split("\n");
+
+        // Handle incomplete lines
+        if (!decodedChunk.endsWith("\n")) {
+          lastChunk = lines.pop();
+        } else {
+          lastChunk = "";
+        }
+
         for (const line of lines) {
           const text = this._extractTextFromLine(line);
           if (text) {
             resClient.write(text);
           }
         }
-        lastChunk = "";
       }
 
+      // Process any remaining data in lastChunk
+      if (lastChunk) {
+        const text = this._extractTextFromLine(lastChunk);
+        if (text) {
+          resClient.write(text);
+        }
+      }
+    } catch (err) {
+      this._handleStreamResponseError(err);
+    } finally {
+      resClient.end();
     }
-    resClient.end();
   }
 
   _extractTextFromLine(line) {
-    if (line.includes('"text": ')) {
-      const start = line.indexOf('"text": ') + 9; // 8 is length of '"text": ' including the space
-      const end = line.lastIndexOf('"');
-      let text = line.substring(start, end);
-      text = text.replace(/\\n/g, '\n');
-      return text;
+    try {
+      // Use a regular expression to extract the text content
+      const regex = /"text"\s*:\s*"([^"]*)"/;
+      const match = regex.exec(line);
+      if (match && match[1]) {
+        let text = match[1];
+        text = text.replace(/\\n/g, '\n');
+        return text;
+      }
+    } catch (err) {
+      logger.error("Failed to extract text from line:", err);
     }
     return null;
   }
@@ -232,6 +265,4 @@ class GeminiMessageAPI extends MessageAPI {
   }
 }
 
-
 export default GeminiMessageAPI;
-
