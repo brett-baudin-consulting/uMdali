@@ -16,16 +16,21 @@ const SAFETY_SETTINGS = [
 ];
 
 async function handleApiErrorResponse(response) {
+  const text = await response.text();
+  let parsedText;
   try {
-    const text = await response.text();
-    const parsedText = JSON.parse(text);
-    logger.error("Gemini API response error: ", parsedText);
-    const errorMessage = `Gemini API Error: ${parsedText[0]?.error?.message || parsedText?.error?.message || parsedText}`;
-    throw new Error(errorMessage);
+    parsedText = JSON.parse(text);
   } catch (error) {
-    logger.error("Failed to parse response: ", error);
-    throw new Error("Failed to handle API error response.");
+    // If JSON parsing fails, use the original text
+    parsedText = text;
   }
+
+  // Log the error
+  logger.error("Gemini API response error: ", parsedText);
+
+  // Throw an error with a message, checking if parsedText is an object and has an error.message
+  const errorMessage = `Gemini API Error: ${parsedText[0]?.error?.message || 'Unknown error occurred'}`;
+  throw new Error(errorMessage);
 }
 
 // JSONata expression
