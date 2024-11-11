@@ -36,12 +36,8 @@ const conversationSchema = new Schema(
     textToSpeechModelId: { type: String, required: false },
     textToSpeechVendor: { type: String, required: false },
     isAIConversation: { type: Boolean, required: false, default: false },
-    },
-  {
-    timestamps: {
-      createdAt: "createdTimestamp",
-      updatedAt: "updatedTimestamp",
-    },
+    createdTimestamp: { type: Date, default: Date.now },
+    updatedTimestamp: { type: Date, default: Date.now }
   }
 );
 

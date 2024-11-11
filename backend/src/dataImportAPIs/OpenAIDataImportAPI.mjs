@@ -17,7 +17,8 @@ $map($, function($conv) {
                 "modelName": $m.message.metadata.model_slug ? "openai/" & $m.message.metadata.model_slug : 'openai/gpt-4',
                 "content": $m.message.author.role = "system" ? $m.message.metadata.user_context_message_data.about_model_message:  
                            ($m.message.author.role = "user" or $m.message.author.role = "assistant") and $m.message.content.content_type = "text" ? $m.message.content.parts[0]:  
-                           $m.message.author.role = "user" and $m.message.content.content_type = "multimodal_text" ? $m.message.content.parts[1]:
+                           $m.message.author.role = "user" and $m.message.content.content_type = "multimodal_text" ? $m.message.content.parts[1].text:
+                           $m.message.author.role = "tool" and $m.message.content.content_type = "text" ? $m.message.content.parts[0]:  
                            $m.message.author.role = "tool" and $m.message.content.content_type = "text" ? $m.message.content.parts[0]:  
                            $m.message.author.role = "tool" ? $m.message.content.parts[0].metadata.*.prompt[0]:  
                            "default",       

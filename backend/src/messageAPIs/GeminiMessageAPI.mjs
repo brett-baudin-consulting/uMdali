@@ -21,70 +21,70 @@ async function handleApiErrorResponse(response) {
   try {
     parsedText = JSON.parse(text);
   } catch (error) {
-    // If JSON parsing fails, use the original text
+    // If JSON parsing fails, use the original text  
     parsedText = text;
   }
 
-  // Log the error
+  // Log the error  
   logger.error("Gemini API response error: ", parsedText);
 
-  // Throw an error with a message, checking if parsedText is an object and has an error.message
+  // Throw an error with a message, checking if parsedText is an object and has an error.message  
   const errorMessage = `Gemini API Error: ${parsedText[0]?.error?.message || 'Unknown error occurred'}`;
   throw new Error(errorMessage);
 }
 
-// JSONata expression
-const transformWithVision = `
-{
-  "contents": $map(*[role != 'context'], function($v, $i, $a) {
-    {
-      "role": $v.role = 'bot' ? 'model' : $v.role,
-      "parts":[ 
-          $map($v.files, function($file) {
-              {
-                "inlineData": {
-                  "mimeType": $file.type,
-                  "data": $file.base64
-                }
-              }
-          }),{
-        "text": $v.content
-      }
-    ]
-    }
-  }),
-    "systemInstruction": $map(*[role = 'context'], function($v, $i, $a) {
-    {
-      "role": $v.role = 'bot' ? 'model' : $v.role,
-      "parts":[ 
-          $map($v.files, function($file) {
-              {
-                "inlineData": {
-                  "mimeType": $file.type,
-                  "data": $file.base64
-                }
-              }
-          }),{
-        "text": $v.content
-      }
-    ]
-    }
-  }),
-  "generation_config": {}
-}
+// JSONata expression  
+const transformWithVision = `  
+{  
+  "contents": $map(*[role != 'context'], function($v, $i, $a) {  
+    {  
+      "role": $v.role = 'bot' ? 'model' : $v.role,  
+      "parts":[   
+          $map($v.files, function($file) {  
+              {  
+                "inlineData": {  
+                  "mimeType": $file.type,  
+                  "data": $file.base64  
+                }  
+              }  
+          }),{  
+        "text": $v.content  
+      }  
+    ]  
+    }  
+  }),  
+    "systemInstruction": $map(*[role = 'context'], function($v, $i, $a) {  
+    {  
+      "role": $v.role = 'bot' ? 'model' : $v.role,  
+      "parts":[   
+          $map($v.files, function($file) {  
+              {  
+                "inlineData": {  
+                  "mimeType": $file.type,  
+                  "data": $file.base64  
+                }  
+              }  
+          }),{  
+        "text": $v.content  
+      }  
+    ]  
+    }  
+  }),  
+  "generation_config": {}  
+}  
 `;
-const transformWithoutVision = `
-{
-  "contents": $map(*[role != 'context'], function($v, $i, $a) {
-    {
-      "role": $v.role = 'bot' ? 'model' : $v.role,
-      "parts": {
-        "text": $v.content
-      }
-    }
-  }),
-  "generation_config": {}
-}
+const transformWithoutVision = `  
+{  
+  "contents": $map(*[role != 'context'], function($v, $i, $a) {  
+    {  
+      "role": $v.role = 'bot' ? 'model' : $v.role,  
+      "parts": {  
+        "text": $v.content  
+      }  
+    }  
+  }),  
+  "generation_config": {}  
+}  
 `;
 
 async function messageToGeminiFormat(messages, isSupportsVision) {
@@ -109,7 +109,7 @@ class GeminiMessageAPI extends MessageAPI {
     super();
     checkEnvVariables();
     this.API_KEY = GEMINI_API_KEY;
-    this.MODEL = 'models/gemini-1'; // Set a default model
+    this.MODEL = 'models/gemini-1'; // Set a default model  
   }
 
   _prepareHeaders() {
@@ -156,7 +156,7 @@ class GeminiMessageAPI extends MessageAPI {
       return content;
     } catch (err) {
       logger.error("Error in sendRequest:", err);
-      throw err; // Re-throw the error to be handled by the caller
+      throw err; // Re-throw the error to be handled by the caller  
     }
   }
 
@@ -209,10 +209,10 @@ class GeminiMessageAPI extends MessageAPI {
         let decodedChunk = textDecoder.decode(chunk, { stream: true });
         decodedChunk = lastChunk + decodedChunk;
 
-        // Split decodedChunk into lines
+        // Split decodedChunk into lines  
         const lines = decodedChunk.split("\n");
 
-        // Handle incomplete lines
+        // Handle incomplete lines  
         if (!decodedChunk.endsWith("\n")) {
           lastChunk = lines.pop();
         } else {
@@ -227,7 +227,7 @@ class GeminiMessageAPI extends MessageAPI {
         }
       }
 
-      // Process any remaining data in lastChunk
+      // Process any remaining data in lastChunk  
       if (lastChunk) {
         const text = this._extractTextFromLine(lastChunk);
         if (text) {
@@ -243,16 +243,29 @@ class GeminiMessageAPI extends MessageAPI {
 
   _extractTextFromLine(line) {
     try {
-      // Use a regular expression to extract the text content
-      const regex = /"text"\s*:\s*"([^"]*)"/;
-      const match = regex.exec(line);
-      if (match && match[1]) {
-        let text = match[1];
-        text = text.replace(/\\n/g, '\n');
-        return text;
+      if (!line.trim()) return null;
+
+      // Parse the JSON line if it's valid JSON    
+      const data = JSON.parse(line);
+
+      // Extract text from Gemini's response structure    
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (text) {
+        // Handle escaped characters properly    
+        return JSON.parse(`"${text}"`); // This properly unescapes the string    
       }
     } catch (err) {
-      logger.error("Failed to extract text from line:", err);
+      // Fallback to regex method if JSON parsing fails    
+      try {
+        const regex = /"text"\s*:\s*"((?:\\.|[^"\\])*?)"/;
+        const match = regex.exec(line);
+        if (match && match[1]) {
+          return JSON.parse(`"${match[1]}"`); // Properly unescapes the string    
+        }
+      } catch (regexErr) {
+        logger.error("Failed to extract text from line:", regexErr);
+      }
     }
     return null;
   }
@@ -263,7 +276,7 @@ class GeminiMessageAPI extends MessageAPI {
     } else {
       logger.error("Error sending stream response:", err);
     }
-    // Do not rethrow the error if it's an AbortError since it's expected behavior
+    // Do not rethrow the error if it's an AbortError since it's expected behavior  
     if (err.name !== 'AbortError') {
       throw err;
     }

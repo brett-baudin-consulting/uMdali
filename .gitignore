@@ -131,3 +131,4 @@ dist
 backend/uploads/*
 backend/src/source.txt
 backend/src/source.txt
+./docker-compose.yml

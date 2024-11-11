@@ -1,29 +1,24 @@
-import React, { useState, useEffect, useRef } from "react";
-import { v4 as uuidv4 } from "uuid";
-import moment from "moment";
-import { useTranslation } from "react-i18next";
-
-import { ThemeProvider } from './ThemeContext';
-import {
-  useConversations,
-  updateConversation,
-  postConversation,
-} from "./api/conversationService";
-import Sidebar from "./components/layout/Sidebar/Sidebar";
+import {  useConversations,  updateConversation,  postConversation,} from "./api/conversationService";
+import { ConversationWizard } from "./components/layout/Sidebar/ConversationWizard";
 import { createTitle } from "./components/layout/Sidebar/createTitle";
-import ConversationHeader from "./components/layout/Conversation/ConversationHeader/ConversationHeader";
-import ConversationBody from "./components/layout/Conversation/ConversationBody/ConversationBody";
-import ConversationFooter from "./components/layout/Conversation/ConversationFooter/ConversationFooter";
-import AIConversationFooter from "./components/layout/Conversation/ConversationFooter/AIConversationFooter";
-import LoginDialog from "./components/common/LoginDialog/LoginDialog";
-import { sendMessage } from "./api/messageService";
+import { fetchDataImportModels } from "./api/dataImportModelService";
 import { fetchModels } from "./api/modelService";
 import { fetchSpeechToTextModels } from "./api/speechToTextModelService";
 import { fetchTextToSpeechModels } from "./api/textToSpeechModelService";
-import { fetchDataImportModels } from "./api/dataImportModelService";
+import { sendMessage } from "./api/messageService";
+import { ThemeProvider } from './ThemeContext';
+import { useTranslation } from "react-i18next";
+import { v4 as uuidv4 } from "uuid";
+import AIConversationFooter from "./components/layout/Conversation/ConversationFooter/AIConversationFooter";
+import ConversationBody from "./components/layout/Conversation/ConversationBody/ConversationBody";
+import ConversationFooter from "./components/layout/Conversation/ConversationFooter/ConversationFooter";
+import ConversationHeader from "./components/layout/Conversation/ConversationHeader/ConversationHeader";
 import ErrorBoundary from './ErrorBoundary';
 import i18n from "./i18n";
-import { ConversationWizard } from "./components/layout/Sidebar/ConversationWizard";
+import LoginDialog from "./components/common/LoginDialog/LoginDialog";
+import moment from "moment";
+import React, { useState, useEffect, useRef } from "react";
+import Sidebar from "./components/layout/Sidebar/Sidebar";
 
 import "./App.scss";
 import "./styles/main.scss";
@@ -67,11 +62,14 @@ function App() {
       previousConversationId.current = currentConversation.conversationId;
     }
 
-    const isTitleDateFormatted = moment(currentConversation?.title, t('title_date_format'), true).isValid();
 
     const processConversation = async () => {
+      const isTitleDateFormatted = moment(currentConversation?.title, t('title_date_format'), true).isValid();
+      console.log('Processing conversation ', currentConversation.messages.length,', ', hasRun,', ', isTitleDateFormatted);
       if (currentConversation.messages?.length === 3 && !hasRun && isTitleDateFormatted) {
+        console.log('Creating new title');
         const newTitle = await createTitle(currentConversation, setCurrentConversation, user, models, t, setIsStreaming, setIsWaitingForResponse);
+        console.log('New title:', newTitle);
         if (newTitle) {
           setCurrentConversation(prevConversation => ({
             ...prevConversation,
@@ -147,7 +145,7 @@ function App() {
       }
 
       const newConversation = {
-        title: title + ' ' + contextName,
+        title: title,
         conversationId,
         userId: user.userId,
         messages: defaultContextMessage ? [defaultContextMessage] : [],
