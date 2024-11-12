@@ -90,7 +90,10 @@ function MessageItem({ message, onDelete, onEdit, user, setError, currentConvers
     }
   }, [editedMessage, user.settings.macros, handleEditConfirm, message.content]);
 
-  const lineCount = message.content.split('\n').length;
+  let lineCount = 0;
+  if (message.content) {
+    lineCount = message.content.split('\n').length;
+  }
 
   const handleDeleteFile = useCallback(async (fileToDelete) => {
     const messageId = message.messageId;

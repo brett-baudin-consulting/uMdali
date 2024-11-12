@@ -1,6 +1,4 @@
 import jsonata from "jsonata";
-import fetch from "node-fetch";
-import { TextDecoder } from "util";
 
 import { logger } from "../logger.mjs";
 import MessageAPI from "./MessageAPI.mjs";
@@ -9,71 +7,84 @@ import { encodeFiles } from './FileEncoder.mjs';
 const { GEMINI_API_KEY, GEMINI_API_URL } =
   process.env;
 
+const SAFETY_SETTINGS = [
+  { "category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE" },
+  { "category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE" },
+  { "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE" },
+  { "category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE" },
+  { "category": "HARM_CATEGORY_CIVIC_INTEGRITY", "threshold": "BLOCK_NONE" },
+];
+
 async function handleApiErrorResponse(response) {
+  const text = await response.text();
+  let parsedText;
   try {
-    const text = await response.text();
-    const parsedText = JSON.parse(text);
-    logger.error("Gemini API response error: ", parsedText);
-    const errorMessage = `Gemini API Error: ${parsedText[0]?.error?.message || parsedText?.error?.message || parsedText}`;
-    throw new Error(errorMessage);
+    parsedText = JSON.parse(text);
   } catch (error) {
-    logger.error("Failed to parse response: ", error);
-    throw new Error("Failed to handle API error response.");
+    // If JSON parsing fails, use the original text  
+    parsedText = text;
   }
+
+  // Log the error  
+  logger.error("Gemini API response error: ", parsedText);
+
+  // Throw an error with a message, checking if parsedText is an object and has an error.message  
+  const errorMessage = `Gemini API Error: ${parsedText[0]?.error?.message || 'Unknown error occurred'}`;
+  throw new Error(errorMessage);
 }
 
-// JSONata expression
-const transformWithVision = `
-{
-  "contents": $map(*[role != 'context'], function($v, $i, $a) {
-    {
-      "role": $v.role = 'bot' ? 'model' : $v.role,
-      "parts":[ 
-          $map($v.files, function($file) {
-              {
-                "inlineData": {
-                  "mimeType": $file.type,
-                  "data": $file.base64
-                }
-              }
-          }),{
-        "text": $v.content
-      }
-    ]
-    }
-  }),
-    "systemInstruction": $map(*[role = 'context'], function($v, $i, $a) {
-    {
-      "role": $v.role = 'bot' ? 'model' : $v.role,
-      "parts":[ 
-          $map($v.files, function($file) {
-              {
-                "inlineData": {
-                  "mimeType": $file.type,
-                  "data": $file.base64
-                }
-              }
-          }),{
-        "text": $v.content
-      }
-    ]
-    }
-  }),
-  "generation_config": {}
-}
+// JSONata expression  
+const transformWithVision = `  
+{  
+  "contents": $map(*[role != 'context'], function($v, $i, $a) {  
+    {  
+      "role": $v.role = 'bot' ? 'model' : $v.role,  
+      "parts":[   
+          $map($v.files, function($file) {  
+              {  
+                "inlineData": {  
+                  "mimeType": $file.type,  
+                  "data": $file.base64  
+                }  
+              }  
+          }),{  
+        "text": $v.content  
+      }  
+    ]  
+    }  
+  }),  
+    "systemInstruction": $map(*[role = 'context'], function($v, $i, $a) {  
+    {  
+      "role": $v.role = 'bot' ? 'model' : $v.role,  
+      "parts":[   
+          $map($v.files, function($file) {  
+              {  
+                "inlineData": {  
+                  "mimeType": $file.type,  
+                  "data": $file.base64  
+                }  
+              }  
+          }),{  
+        "text": $v.content  
+      }  
+    ]  
+    }  
+  }),  
+  "generation_config": {}  
+}  
 `;
-const transformWithoutVision = `
-{
-  "contents": $map(*[role != 'context'], function($v, $i, $a) {
-    {
-      "role": $v.role = 'bot' ? 'model' : $v.role,
-      "parts": {
-        "text": $v.content
-      }
-    }
-  }),
-  "generation_config": {}
-}
+const transformWithoutVision = `  
+{  
+  "contents": $map(*[role != 'context'], function($v, $i, $a) {  
+    {  
+      "role": $v.role = 'bot' ? 'model' : $v.role,  
+      "parts": {  
+        "text": $v.content  
+      }  
+    }  
+  }),  
+  "generation_config": {}  
+}  
 `;
 
 async function messageToGeminiFormat(messages, isSupportsVision) {
@@ -98,6 +109,7 @@ class GeminiMessageAPI extends MessageAPI {
     super();
     checkEnvVariables();
     this.API_KEY = GEMINI_API_KEY;
+    this.MODEL = 'models/gemini-1'; // Set a default model  
   }
 
   _prepareHeaders() {
@@ -125,6 +137,7 @@ class GeminiMessageAPI extends MessageAPI {
     const requestOptions = this._prepareOptions({
       contents: updatedMessages.contents,
       systemInstruction: updatedMessages.systemInstruction,
+      "safetySettings": SAFETY_SETTINGS,
       generation_config: {
         temperature: temperature,
         maxOutputTokens: maxTokens,
@@ -132,8 +145,8 @@ class GeminiMessageAPI extends MessageAPI {
     }, signal);
 
     try {
-      const FULL_URL = `${GEMINI_API_URL}${userModel}:generateContent?key=${this.API_KEY}`;
-      const response = await fetch(FULL_URL, requestOptions, signal);
+      const FULL_URL = `${GEMINI_API_URL}${userModel || this.MODEL}:generateContent?key=${this.API_KEY}`;
+      const response = await fetch(FULL_URL, requestOptions);
       if (!response.ok) {
         await handleApiErrorResponse(response);
       }
@@ -142,7 +155,8 @@ class GeminiMessageAPI extends MessageAPI {
       const content = data?.candidates[0]?.content?.parts[0]?.text;
       return content;
     } catch (err) {
-      this._handleStreamResponseError(err);
+      logger.error("Error in sendRequest:", err);
+      throw err; // Re-throw the error to be handled by the caller  
     }
   }
 
@@ -167,6 +181,7 @@ class GeminiMessageAPI extends MessageAPI {
     return this._prepareOptions({
       contents: updatedMessages.contents,
       systemInstruction: updatedMessages.systemInstruction,
+      "safetySettings": SAFETY_SETTINGS,
       generation_config: {
         temperature: temperature,
         maxOutputTokens: maxTokens,
@@ -176,7 +191,8 @@ class GeminiMessageAPI extends MessageAPI {
 
   async _fetchStreamResponse(requestOptions, userModel, signal) {
     const FULL_URL = `${GEMINI_API_URL}${userModel || this.MODEL}:streamGenerateContent?key=${this.API_KEY}`;
-    const response = await fetch(FULL_URL, requestOptions, signal);
+    console.log("requestOptions:", requestOptions);
+    const response = await fetch(FULL_URL, requestOptions);
     if (!response.ok) {
       await handleApiErrorResponse(response);
     }
@@ -188,33 +204,68 @@ class GeminiMessageAPI extends MessageAPI {
     const textDecoder = new TextDecoder();
     let lastChunk = "";
 
-    for await (const chunk of response.body) {
-      let decodedChunk = textDecoder.decode(chunk, { stream: true });
-      decodedChunk = lastChunk + decodedChunk;
-      const lines = decodedChunk.split("\n");
-      if (lines.length === 0 || !decodedChunk.endsWith("\n")) {
-        lastChunk = decodedChunk;
-      } else {
+    try {
+      for await (const chunk of response.body) {
+        let decodedChunk = textDecoder.decode(chunk, { stream: true });
+        decodedChunk = lastChunk + decodedChunk;
+
+        // Split decodedChunk into lines  
+        const lines = decodedChunk.split("\n");
+
+        // Handle incomplete lines  
+        if (!decodedChunk.endsWith("\n")) {
+          lastChunk = lines.pop();
+        } else {
+          lastChunk = "";
+        }
+
         for (const line of lines) {
           const text = this._extractTextFromLine(line);
           if (text) {
             resClient.write(text);
           }
         }
-        lastChunk = "";
       }
 
+      // Process any remaining data in lastChunk  
+      if (lastChunk) {
+        const text = this._extractTextFromLine(lastChunk);
+        if (text) {
+          resClient.write(text);
+        }
+      }
+    } catch (err) {
+      this._handleStreamResponseError(err);
+    } finally {
+      resClient.end();
     }
-    resClient.end();
   }
 
   _extractTextFromLine(line) {
-    if (line.includes('"text": ')) {
-      const start = line.indexOf('"text": ') + 9; // 8 is length of '"text": ' including the space
-      const end = line.lastIndexOf('"');
-      let text = line.substring(start, end);
-      text = text.replace(/\\n/g, '\n');
-      return text;
+    try {
+      if (!line.trim()) return null;
+
+      // Parse the JSON line if it's valid JSON    
+      const data = JSON.parse(line);
+
+      // Extract text from Gemini's response structure    
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (text) {
+        // Handle escaped characters properly    
+        return JSON.parse(`"${text}"`); // This properly unescapes the string    
+      }
+    } catch (err) {
+      // Fallback to regex method if JSON parsing fails    
+      try {
+        const regex = /"text"\s*:\s*"((?:\\.|[^"\\])*?)"/;
+        const match = regex.exec(line);
+        if (match && match[1]) {
+          return JSON.parse(`"${match[1]}"`); // Properly unescapes the string    
+        }
+      } catch (regexErr) {
+        logger.error("Failed to extract text from line:", regexErr);
+      }
     }
     return null;
   }
@@ -225,13 +276,11 @@ class GeminiMessageAPI extends MessageAPI {
     } else {
       logger.error("Error sending stream response:", err);
     }
-    // Do not rethrow the error if it's an AbortError since it's expected behavior
+    // Do not rethrow the error if it's an AbortError since it's expected behavior  
     if (err.name !== 'AbortError') {
       throw err;
     }
   }
 }
 
-
 export default GeminiMessageAPI;
-

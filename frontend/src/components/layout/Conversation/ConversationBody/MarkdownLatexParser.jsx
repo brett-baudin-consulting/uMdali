@@ -1,57 +1,76 @@
-import React, { useMemo } from 'react';
-import ReactMarkdown from 'react-markdown';
-import rehypeKatex from 'rehype-katex';
-import remarkMath from 'remark-math';
-import gfm from 'remark-gfm';
-import 'katex/dist/katex.min.css';
+// MarkdownLatexParser.js  
+import React, { useMemo } from 'react';  
+import ReactMarkdown from 'react-markdown';  
+import rehypeKatex from 'rehype-katex';  
+import remarkMath from 'remark-math';  
+import gfm from 'remark-gfm';  
+import 'katex/dist/katex.min.css';  
+import PropTypes from 'prop-types';
 
-import CodeBlock from './CodeBlock';
+import CodeBlock from './CodeBlock';  
+import './MarkdownLatexParser.scss';
 
-const MarkdownLatexParser = ({ content }) => {
-    const processedContent = convertDelimiters(content.replace(/(?<!\n)\n(?!\n)/g, '  \n'));
+const convertDelimiters = (text) => {  
+  // Convert block delimiters \[...\] to $$...$$    
+  const blockRegex = /\\\[(.*?)\\\]/gs;  
+  const convertedBlockText = text.replace(blockRegex, (_, innerContent) =>   
+    `$$${innerContent}$$`  
+  );
 
-    function convertDelimiters(text) {
-        // Convert block delimiters \[...\] to $$...$$  
-        const blockRegex = /\\\[(.*?)\\\]/gs;
-        const convertedBlockText = text.replace(blockRegex, (match, innerContent) => `$$${innerContent}$$`);
+  // Convert inline delimiters \(...\) to $...$    
+  const inlineRegex = /\\\((.*?)\\\)/gs;  
+  return convertedBlockText.replace(inlineRegex, (_, innerContent) =>   
+    `$${innerContent}$`  
+  );  
+};
 
-        // Convert inline delimiters \(...\) to $...$  
-        const inlineRegex = /\\\((.*?)\\\)/gs;
-        return convertedBlockText.replace(inlineRegex, (match, innerContent) => `$${innerContent}$`);
-    }
-    const renderers = useMemo(() => ({
-        code: ({ node, inline, className, children, ...props }) => {
-            const match = /language-(\w+)/.exec(className || '');
-            if (!inline && match) {
-                return (
-                    <CodeBlock
-                        value={String(children).replace(/\n$/, '')}
-                        language={match[1]}
-                        {...props}
-                    />
-                );
-            }
-            return (
-                <code className={className} {...props}>
-                    {children}
-                </code>
-            );
-        },
-    }), []);
+const MarkdownLatexParser = ({ content = '' }) => {  
+  const processedContent = useMemo(() => {  
+    if (!content) return '';  
+    return convertDelimiters(content.replace(/(?<!\n)\n(?!\n)/g, '  \n'));  
+  }, [content]);
 
-    if (!content) {
-        return <div></div>;
-    }
+  const components = useMemo(() => ({  
+    code: ({ node, inline, className, children, ...props }) => {  
+      const match = /language-(\w+)/.exec(className || '');  
+        
+      if (!inline && match) {  
+        return (  
+          <CodeBlock  
+            value={String(children).replace(/\n$/, '')}  
+            language={match[1]}  
+            {...props}  
+          />  
+        );  
+      }  
+        
+      return (  
+        <code className={className} {...props}>  
+          {children}  
+        </code>  
+      );  
+    },  
+  }), []);
 
-    return (
-        <ReactMarkdown
-            components={renderers}
-            remarkPlugins={[remarkMath, gfm]}
-            rehypePlugins={[rehypeKatex]}
-        >
-            {processedContent}
-        </ReactMarkdown>
-    );
+  if (!content) {  
+    return <div className="markdown-empty" />;  
+  }
+
+  return (  
+    <div className="markdown-container">  
+      <ReactMarkdown  
+        components={components}  
+        remarkPlugins={[remarkMath, gfm]}  
+        rehypePlugins={[rehypeKatex]}  
+      >  
+        {processedContent}  
+      </ReactMarkdown>  
+    </div>  
+  );  
+};
+
+MarkdownLatexParser.propTypes = {  
+  content: PropTypes.string,  
 };
 
 export default MarkdownLatexParser;  

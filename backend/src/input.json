@@ -1,0 +1,25 @@
+[  
+  {  
+    "title": "Conversation 1",  
+    "id": "123",  
+    "mapping": {  
+      "message1": {  
+        "message": {  
+          "id": "m1",  
+          "content": {  
+            "parts": ["Hello"]  
+          },  
+          "metadata": {  
+            "user_context_message_data": "data1",  
+            "model_slug": "model1"  
+          },  
+          "author": {  
+            "role": "user"  
+          }  
+        }  
+      }  
+    },  
+    "create_time": 1634237823,  
+    "update_time": 1634237823  
+  }  
+]  

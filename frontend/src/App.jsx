@@ -1,28 +1,24 @@
-import React, { useState, useEffect, useRef } from "react";
-import { v4 as uuidv4 } from "uuid";
-import moment from "moment";
-import { useTranslation } from "react-i18next";
-
-import { ThemeProvider } from './ThemeContext';
-import {
-  useConversations,
-  updateConversation,
-  postConversation,
-} from "./api/conversationService";
-import Sidebar from "./components/layout/Sidebar/Sidebar";
+import {  useConversations,  updateConversation,  postConversation,} from "./api/conversationService";
+import { ConversationWizard } from "./components/layout/Sidebar/ConversationWizard";
 import { createTitle } from "./components/layout/Sidebar/createTitle";
-import ConversationHeader from "./components/layout/Conversation/ConversationHeader/ConversationHeader";
-import ConversationBody from "./components/layout/Conversation/ConversationBody/ConversationBody";
-import ConversationFooter from "./components/layout/Conversation/ConversationFooter/ConversationFooter";
-import AIConversationFooter from "./components/layout/Conversation/ConversationFooter/AIConversationFooter";
-import LoginDialog from "./components/common/LoginDialog/LoginDialog";
-import { sendMessage } from "./api/messageService";
+import { fetchDataImportModels } from "./api/dataImportModelService";
 import { fetchModels } from "./api/modelService";
 import { fetchSpeechToTextModels } from "./api/speechToTextModelService";
 import { fetchTextToSpeechModels } from "./api/textToSpeechModelService";
+import { sendMessage } from "./api/messageService";
+import { ThemeProvider } from './ThemeContext';
+import { useTranslation } from "react-i18next";
+import { v4 as uuidv4 } from "uuid";
+import AIConversationFooter from "./components/layout/Conversation/ConversationFooter/AIConversationFooter";
+import ConversationBody from "./components/layout/Conversation/ConversationBody/ConversationBody";
+import ConversationFooter from "./components/layout/Conversation/ConversationFooter/ConversationFooter";
+import ConversationHeader from "./components/layout/Conversation/ConversationHeader/ConversationHeader";
 import ErrorBoundary from './ErrorBoundary';
 import i18n from "./i18n";
-import { ConversationWizard } from "./components/layout/Sidebar/ConversationWizard";
+import LoginDialog from "./components/common/LoginDialog/LoginDialog";
+import moment from "moment";
+import React, { useState, useEffect, useRef } from "react";
+import Sidebar from "./components/layout/Sidebar/Sidebar";
 
 import "./App.scss";
 import "./styles/main.scss";
@@ -37,26 +33,26 @@ function App() {
   const [models, setModels] = useState([]);
   const [speechToTextModels, setSpeechToTextModels] = useState([]);
   const [textToSpeechModels, setTextToSpeechModels] = useState([]);
+  const [dataImportModels, setDataImportModels] = useState([]);
   const { t } = useTranslation();
   const fetchedConversations = useConversations(user ? user.userId : null);
+  const [fetchedConversationsState, setFetchedConversationsState] = useState(fetchedConversations);
   const abortControllerRef = useRef(null);
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const [theme, setTheme] = useState('dark');
   const [error, setError] = useState(null);
   const [isWizardVisible, setIsWizardVisible] = useState(false);
-
   const [hasRun, setHasRun] = useState(false);
-
   const previousConversationId = useRef(currentConversation?.conversationId);
 
   useEffect(() => {
-    if (!currentConversation || 
-      currentConversation.messages?.length !== 3||  
-      currentConversation.messages[2]?.content?.length < 10||  
-      isStreaming || 
-      isWaitingForResponse || 
-      !user || 
-      !models || 
+    if (!currentConversation ||
+      currentConversation.messages?.length !== 3 ||
+      currentConversation.messages[2]?.content?.length < 10 ||
+      isStreaming ||
+      isWaitingForResponse ||
+      !user ||
+      !models ||
       !models.length) {
       return;
     }
@@ -66,11 +62,14 @@ function App() {
       previousConversationId.current = currentConversation.conversationId;
     }
 
-    const isTitleDateFormatted = moment(currentConversation?.title, t('title_date_format'), true).isValid();
 
     const processConversation = async () => {
+      const isTitleDateFormatted = moment(currentConversation?.title, t('title_date_format'), true).isValid();
+      console.log('Processing conversation ', currentConversation.messages.length,', ', hasRun,', ', isTitleDateFormatted);
       if (currentConversation.messages?.length === 3 && !hasRun && isTitleDateFormatted) {
+        console.log('Creating new title');
         const newTitle = await createTitle(currentConversation, setCurrentConversation, user, models, t, setIsStreaming, setIsWaitingForResponse);
+        console.log('New title:', newTitle);
         if (newTitle) {
           setCurrentConversation(prevConversation => ({
             ...prevConversation,
@@ -83,7 +82,7 @@ function App() {
 
     processConversation();
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps  
   }, [currentConversation?.conversationId, currentConversation?.messages?.length, currentConversation?.title, hasRun, models, t, user, isStreaming, isWaitingForResponse]);
 
   const handleClose = () => {
@@ -94,6 +93,7 @@ function App() {
     setUser(user);
     setIsLoggedIn(true);
   };
+
   function getModel() {
     let modelName = user.settings.model;
     if (currentConversation.isAIConversation) {
@@ -145,10 +145,12 @@ function App() {
       }
 
       const newConversation = {
-        title,
+        title: title,
         conversationId,
         userId: user.userId,
         messages: defaultContextMessage ? [defaultContextMessage] : [],
+        createdTimestamp: new Date().toISOString(),
+        updatedTimestamp: new Date().toISOString(),
       };
       if (newConversation.messages.length > 0) {
         await postConversation(newConversation);
@@ -164,7 +166,7 @@ function App() {
   }, [user]);
 
   useEffect(() => {
-    // Cleanup function to set isMountedRef to false when the component unmounts
+    // Cleanup function to set isMountedRef to false when the component unmounts  
     return () => {
       isMountedRef.current = false;
     };
@@ -173,6 +175,7 @@ function App() {
   useEffect(() => {
     if (isLoggedIn) {
       setConversations(fetchedConversations);
+      setFetchedConversationsState(fetchedConversations);
       if (fetchedConversations.length > 0)
         setCurrentConversation(fetchedConversations[fetchedConversations.length - 1]);
     }
@@ -188,6 +191,8 @@ function App() {
         setSpeechToTextModels(speechToTextModelsData);
         const textToSpeechModelsData = await fetchTextToSpeechModels();
         setTextToSpeechModels(textToSpeechModelsData);
+        const dataImportModelsData = await fetchDataImportModels();
+        setDataImportModels(dataImportModelsData);
       } catch (error) {
         setError(error.message);
       }
@@ -199,15 +204,15 @@ function App() {
   }, [isLoggedIn]);
 
   useEffect(() => {
-    // Define a flag to check if the component is still mounted
+    // Define a flag to check if the component is still mounted  
     let isMounted = true;
 
-    // Define the async function inside useEffect
+    // Define the async function inside useEffect  
     const fetchData = async () => {
       if (isLoggedIn && currentConversation && !isStreaming && currentConversation.messages.length > 0 && currentConversation.conversationId) {
         try {
           await updateConversation(currentConversation);
-          // Check if the component is still mounted before setting state
+          // Check if the component is still mounted before setting state  
           if (isMounted) {
             setConversations((prevConversations) =>
               prevConversations.map((conversation) =>
@@ -218,16 +223,16 @@ function App() {
             );
           }
         } catch (error) {
-          // Handle errors, e.g., by setting an error state (not shown here)
+          // Handle errors, e.g., by setting an error state (not shown here)  
           console.error('Failed to update conversation', error);
         }
       }
     };
 
-    // Call the async function
+    // Call the async function  
     fetchData();
 
-    // Cleanup function to set the mounted flag to false
+    // Cleanup function to set the mounted flag to false  
     return () => {
       isMounted = false;
     };
@@ -241,7 +246,7 @@ function App() {
   }, [error]);
 
   useEffect(() => {
-    // Only run this effect if the user is logged in
+    // Only run this effect if the user is logged in  
     if (!isLoggedIn || !currentConversation || !newBotMessage || !currentConversation.messages) {
       return;
     }
@@ -251,23 +256,27 @@ function App() {
       const model = getModel();
       setIsWaitingForResponse(true);
       const sendAndWaitForResponse = async () => {
-        await sendMessage(
-          currentConversation,
-          user,
-          setCurrentConversation,
-          newBotMessage.messageId,
-          setIsStreaming,
-          model,
-          abortControllerRef.current.signal,
-          setIsWaitingForResponse,
-          user?.settings?.isStreamResponse
-        );
+        try {
+          await sendMessage(
+            currentConversation,
+            user,
+            setCurrentConversation,
+            newBotMessage.messageId,
+            setIsStreaming,
+            model,
+            abortControllerRef.current.signal,
+            setIsWaitingForResponse,
+            user?.settings?.isStreamResponse
+          );
+        } catch (err) {
+          setError(err.message);
+        }
       };
       sendAndWaitForResponse();
     } catch (err) {
       setError(err.message);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps  
   }, [newBotMessage, isLoggedIn]);
 
   if (!isLoggedIn) {
@@ -341,9 +350,9 @@ function App() {
           return message;
         });
 
-        return { ...prevConversation, messages: updatedMessages }; // Return new state
+        return { ...prevConversation, messages: updatedMessages }; // Return new state  
       }
-      return prevConversation; // Return previous state if condition is not met
+      return prevConversation; // Return previous state if condition is not met  
     });
   };
 
@@ -388,6 +397,9 @@ function App() {
                   setIsLoggedIn={setIsLoggedIn}
                   speechToTextModels={speechToTextModels}
                   textToSpeechModels={textToSpeechModels}
+                  dataImportModels={dataImportModels}
+                  fetchedConversations={fetchedConversationsState}
+                  setFetchedConversations={setFetchedConversationsState}
                 />
                 <ConversationBody
                   currentConversation={currentConversation}
@@ -445,4 +457,4 @@ function App() {
 
 }
 
-export default App;
+export default App;  

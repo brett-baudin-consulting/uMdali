@@ -1,0 +1,148 @@
+version: '3.8'
+services:
+  frontend:
+    container_name: umdali-frontend
+    build:
+      context: ./frontend
+      args:
+        - REACT_APP_SERVER_BASE_URL=http://localhost:8001
+        - REACT_APP_SERVER_WEBSOCKET_URL=ws://localhost:8001
+    ports:
+      - "8080:80"
+      - "8443:443"
+    depends_on:
+      - backend
+    volumes:
+      - ~/certs:/etc/nginx/certs:ro
+    networks:
+      - umdali-network
+
+  backend:
+    container_name: umdali-backend
+    build: ./backend
+    ports:
+      - "8001:8001"
+    depends_on:
+      - mongo # comment out if you don't want to use mongo from the container
+      # - redis # comment out if you don't want to use redis from the container
+    volumes:
+      - ~/certs:/usr/src/app/certs:ro       
+      - ~/uploads:/usr/src/app/uploads:rw       
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/uMdali
+      - PORT=8001
+      - PROTOCOL=http
+      # CORS whitelist
+      - WHITELIST=https://localhost:8443,http://localhost:8080
+      - SSL_CERT_PATH=/usr/src/app/certs/cert.pem
+      - SSL_KEY_PATH=/usr/src/app/certs/key.pem
+      # Session
+      - SESSION_SECRET=abc123
+      # Filters to outbound text
+      # - FILTERS=CreditCardFilter,PiiFilter,ProfanityFilter
+      - FILTERS=
+      #rate limit
+      - USE_BASIC_LIMITER=false
+      - BASIC_LIMIT_WINDOW_MS=900000  # 15 minutes in milliseconds
+      - BASIC_LIMIT_MAX_REQUESTS=1000
+      # The Redis limits are only applied to the message API that talks to the chat APIs
+      - USE_REDIS=false
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # REDIS_PASSWORD=optional
+      - ADVANCED_LIMIT_POINTS=10
+      - ADVANCED_LIMIT_DURATION=60  # Duration in seconds
+      # Note can't use localhost here, use the IP address of the host machine
+      - OLLAMA_OPENAI_API_URL=http://<host ip running Ollama>:11434/v1/chat/completions
+      - OLLAMA_OPENAI_API_KEY=NA
+      # Open AI
+      - OPENAI_API_URL=https://api.openai.com/v1/chat/completions      
+      - OPENAI_API_KEY=NA
+      # Mistral AI
+      - MISTRALAI_API_URL=https://api.mistral.ai/v1/chat/completions
+      - MISTRALAI_API_KEY=NA
+      # Google
+      #- GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/models/
+      - GEMINI_API_URL=https://generativelanguage.googleapis.com/v1/models/
+      - GEMINI_API_KEY=NA
+      # ANTHROPIC
+      - CLAUDE_API_URL=https://api.anthropic.com/v1/messages
+      - CLAUDE_API_KEY=NA
+      # Groq
+      - GROQ_API_URL=https://api.groq.com/openai/v1/chat/completions
+      - GROQ_API_KEY=NA
+      # Reka AI
+      - REKAAI_API_URL=https://api.reka.ai/chat
+      - REKAAI_API_KEY=NA
+      
+      #Log locations
+      - ERROR_LOG_LOCATION=./error.log
+      - COMBINED_LOG_LOCATION=./combined.log
+      # Auth configuration
+      - DISABLE_AUTH=true
+      - LDAP_URL=
+      - BIND_DN=
+      - BIND_CREDENTIALS=
+      - SEARCH_BASE=
+      - SEARCH_FILTER=
+      # Audio transcription Speech to Text
+      - OPENAI_TRANSCRIPTION_API_KEY=NA
+      - OPENAI_TRANSCRIPTION_ENDPOINT=https://api.openai.com/v1/audio/transcriptions
+      - OPENAI_TRANSCRIPTION_TIMEOUT_MS=30000
+      # TTS Text to Speech
+      - ELEVENLABS_API_KEY=NA
+      - ELEVENLABS_API_URL=https://api.elevenlabs.io/v1/text-to-speech
+
+      - OPENAI_TTS_API_KEY=NA
+      - OPENAI_TTS_API_URL=https://api.openai.com/v1/audio/speech
+      - OPENAI_TTS_API_TIMEOUT_MS=30000      
+    networks:
+      - umdali-network
+
+  # Comment out if you don't want to use mongo from the container
+  mongo:
+    container_name: umdali-mongo
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - umdali-network
+  # Uncomment out if you want to use redis from the container
+  # redis:
+  #   container_name: umdali-redis
+  #   image: redis:latest
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis-data:/data
+  #   networks:
+  #     - umdali-network
+
+  #Uncomment to run ollama in a container
+  #there are no models with the inital creation of the ollama container.
+  #once running 'docker-compose exec ollama ollama pull <model name>' will add a model to be used by the container. 
+  #There is no gpu support for the ollama container by default. You should follow 
+  #the ollama documentation to add gpu support to the container.
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+    networks:
+      - umdali-network
+
+networks:
+  umdali-network:
+
+volumes:
+#uncomment to run ollama in a container
+  ollama_data:
+# Comment out if you don't want to use mongo from the container
+  mongo-data:
+# Uncomment out if you want to use redis from the container
+  # redis-data:

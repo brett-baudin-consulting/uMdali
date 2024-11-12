@@ -12,7 +12,7 @@ const fileSchema = new Schema({
 
 const messageSchema = new Schema({
   content: { type: String, required: false },
-  role: { type: String, required: true, enum: ["user", "bot", "context"] },
+  role: { type: String, required: true, enum: ["user", "bot", "context", "tool"] },
   messageId: { type: String, required: true, unique: true },
   modelName: { type: String, required: false },
   files: { type: [fileSchema], default: [] },
@@ -36,12 +36,8 @@ const conversationSchema = new Schema(
     textToSpeechModelId: { type: String, required: false },
     textToSpeechVendor: { type: String, required: false },
     isAIConversation: { type: Boolean, required: false, default: false },
-    },
-  {
-    timestamps: {
-      createdAt: "createdTimestamp",
-      updatedAt: "updatedTimestamp",
-    },
+    createdTimestamp: { type: Date, default: Date.now },
+    updatedTimestamp: { type: Date, default: Date.now }
   }
 );
 

@@ -97,15 +97,20 @@ async function handleRequest(req, res) {
   }
 
   let messages;
-  try {
+  try {  
     messages = await filterMessages(message);
-    if (!model.isSupportsContext) {
-      messages = messages.filter(msg => msg.role !== 'context');
-    }
-  } catch (error) {
-    res.status(error.statusCode || 500).send({ error: error.message });
-    return;
-  }
+  
+    // Filter out messages with role 'tool'  
+    messages = messages.filter(msg => msg.role !== 'tool');
+  
+    // Additional filter if model does not support context  
+    if (!model.isSupportsContext) {  
+      messages = messages.filter(msg => msg.role !== 'context');  
+    }  
+  } catch (error) {  
+    res.status(error.statusCode || 500).send({ error: error.message });  
+    return;  
+  }  
 
   const options = {
     userModel: model.name,

@@ -1,0 +1,536 @@
+[
+    {
+        "title": "Forest Fire Mountain Raging",
+        "create_time": 1715978287.655641,
+        "update_time": 1715978303.910461,
+        "mapping": {
+            "40aa9b71-9b32-4c0a-8dec-2c0f395df54a": {
+                "id": "40aa9b71-9b32-4c0a-8dec-2c0f395df54a",
+                "message": {
+                    "id": "40aa9b71-9b32-4c0a-8dec-2c0f395df54a",
+                    "author": {
+                        "role": "system",
+                        "name": null,
+                        "metadata": ""
+                    },
+                    "create_time": null,
+                    "update_time": null,
+                    "content": {
+                        "content_type": "text",
+                        "parts": [""]
+                    },
+                    "status": "finished_successfully",
+                    "end_turn": true,
+                    "weight": 0,
+                    "metadata": {"is_visually_hidden_from_conversation": true},
+                    "recipient": "all"
+                },
+                "parent": "aaa142c6-ab09-45a8-9194-ca4bc80369c2",
+                "children": ["aaa2dfec-0769-4358-9749-30a6996c4371"]
+            },
+            "aaa142c6-ab09-45a8-9194-ca4bc80369c2": {
+                "id": "aaa142c6-ab09-45a8-9194-ca4bc80369c2",
+                "message": null,
+                "parent": null,
+                "children": ["40aa9b71-9b32-4c0a-8dec-2c0f395df54a"]
+            },
+            "aaa2dfec-0769-4358-9749-30a6996c4371": {
+                "id": "aaa2dfec-0769-4358-9749-30a6996c4371",
+                "message": {
+                    "id": "aaa2dfec-0769-4358-9749-30a6996c4371",
+                    "author": {
+                        "role": "user",
+                        "name": null,
+                        "metadata": ""
+                    },
+                    "create_time": 1715978287.65743,
+                    "update_time": null,
+                    "content": {
+                        "content_type": "text",
+                        "parts": ["A raging forest fire on a mountain side."]
+                    },
+                    "status": "finished_successfully",
+                    "end_turn": null,
+                    "weight": 1,
+                    "metadata": {
+                        "request_id": "885668c83aa38423-YVR",
+                        "timestamp_": "absolute",
+                        "message_type": null
+                    },
+                    "recipient": "all"
+                },
+                "parent": "40aa9b71-9b32-4c0a-8dec-2c0f395df54a",
+                "children": ["b145370c-f0ea-4347-b02f-275f5b41ef7f"]
+            },
+            "b145370c-f0ea-4347-b02f-275f5b41ef7f": {
+                "id": "b145370c-f0ea-4347-b02f-275f5b41ef7f",
+                "message": {
+                    "id": "b145370c-f0ea-4347-b02f-275f5b41ef7f",
+                    "author": {
+                        "role": "assistant",
+                        "name": null,
+                        "metadata": ""
+                    },
+                    "create_time": 1715978303.379585,
+                    "update_time": null,
+                    "content": {
+                        "content_type": "text",
+                        "parts": [""]
+                    },
+                    "status": "finished_successfully",
+                    "end_turn": null,
+                    "weight": 1,
+                    "metadata": {
+                        "message_type": null,
+                        "model_slug": "gpt-4o",
+                        "default_model_slug": "gpt-4o",
+                        "parent_id": "aaa2dfec-0769-4358-9749-30a6996c4371",
+                        "request_id": "885668c83aa38423-YVR",
+                        "timestamp_": "absolute"
+                    },
+                    "recipient": "all"
+                },
+                "parent": "aaa2dfec-0769-4358-9749-30a6996c4371",
+                "children": ["03c7e033-460a-4f59-a7a5-3e5b1ad4ab92"]
+            },
+            "03c7e033-460a-4f59-a7a5-3e5b1ad4ab92": {
+                "id": "03c7e033-460a-4f59-a7a5-3e5b1ad4ab92",
+                "message": {
+                    "id": "03c7e033-460a-4f59-a7a5-3e5b1ad4ab92",
+                    "author": {
+                        "role": "assistant",
+                        "name": null,
+                        "metadata": ""
+                    },
+                    "create_time": 1715978303.379757,
+                    "update_time": null,
+                    "content": {
+                        "content_type": "text",
+                        "parts": ["{\n  \"prompt\": \"A raging forest fire on a mountainside. The fire is intense, with large flames engulfing the trees and thick smoke billowing into the sky. The forest is dense with tall, pine trees, and the flames are spreading rapidly up the mountain. The sky is darkened by the smoke, creating an ominous and dramatic scene. The terrain is rugged and steep, with rocky outcrops visible among the burning trees.\",\n  \"size\": \"1792x1024\"\n}"]
+                    },
+                    "status": "finished_successfully",
+                    "end_turn": false,
+                    "weight": 1,
+                    "metadata": {
+                        "finish_details": {
+                            "type": "stop",
+                            "stop_tokens": [200007]
+                        },
+                        "citations": [],
+                        "gizmo_id": null,
+                        "message_type": null,
+                        "model_slug": "gpt-4o",
+                        "default_model_slug": "gpt-4o",
+                        "pad": "AAAAA",
+                        "parent_id": "b145370c-f0ea-4347-b02f-275f5b41ef7f",
+                        "is_complete": true,
+                        "request_id": "885668c83aa38423-YVR",
+                        "timestamp_": "absolute"
+                    },
+                    "recipient": "dalle.text2im"
+                },
+                "parent": "b145370c-f0ea-4347-b02f-275f5b41ef7f",
+                "children": ["5b965db4-6048-4413-a1ba-2ddd09ef1c3d"]
+            },
+            "5b965db4-6048-4413-a1ba-2ddd09ef1c3d": {
+                "id": "5b965db4-6048-4413-a1ba-2ddd09ef1c3d",
+                "message": {
+                    "id": "5b965db4-6048-4413-a1ba-2ddd09ef1c3d",
+                    "author": {
+                        "role": "tool",
+                        "name": "dalle.text2im",
+                        "metadata": ""
+                    },
+                    "create_time": 1715978303.384242,
+                    "update_time": null,
+                    "content": {
+                        "content_type": "multimodal_text",
+                        "parts": [
+                            {
+                                "content_type": "image_asset_pointer",
+                                "asset_pointer": "file-service://file-HtP96bAq1bdUgoWX1uQxNXXS",
+                                "size_bytes": 396390,
+                                "width": 1792,
+                                "height": 1024,
+                                "fovea": 512,
+                                "metadata": {
+                                    "dalle": {
+                                        "gen_id": "AGmAfv5Au9646pRQ",
+                                        "prompt": "A raging forest fire on a mountainside. The fire is intense, with large flames engulfing the trees and thick smoke billowing into the sky. The forest is dense with tall, pine trees, and the flames are spreading rapidly up the mountain. The sky is darkened by the smoke, creating an ominous and dramatic scene. The terrain is rugged and steep, with rocky outcrops visible among the burning trees.",
+                                        "seed": 3311526988,
+                                        "parent_gen_id": null,
+                                        "edit_op": null,
+                                        "serialization_title": "DALL-E generation metadata"
+                                    },
+                                    "sanitized": false
+                                }
+                            }
+                        ]
+                    },
+                    "status": "finished_successfully",
+                    "end_turn": null,
+                    "weight": 1,
+                    "metadata": {
+                        "message_type": null,
+                        "model_slug": "gpt-4o",
+                        "default_model_slug": "gpt-4o",
+                        "parent_id": "03c7e033-460a-4f59-a7a5-3e5b1ad4ab92",
+                        "request_id": "885668c83aa38423-YVR",
+                        "timestamp_": "absolute"
+                    },
+                    "recipient": "all"
+                },
+                "parent": "03c7e033-460a-4f59-a7a5-3e5b1ad4ab92",
+                "children": ["f0fa395f-6024-4ef8-ac3e-9ff3135dbb5e"]
+            },
+            "f0fa395f-6024-4ef8-ac3e-9ff3135dbb5e": {
+                "id": "f0fa395f-6024-4ef8-ac3e-9ff3135dbb5e",
+                "message": {
+                    "id": "f0fa395f-6024-4ef8-ac3e-9ff3135dbb5e",
+                    "author": {
+                        "role": "tool",
+                        "name": "dalle.text2im",
+                        "metadata": ""
+                    },
+                    "create_time": 1715978303.384747,
+                    "update_time": null,
+                    "content": {
+                        "content_type": "text",
+                        "parts": ["\nDALL\u00b7E displayed 1 images. The images are already plainly visible, so don't repeat the descriptions in detail. Do not list download links as they are available in the ChatGPT UI already. The user may download the images by clicking on them, but do not mention anything about downloading to the user."]
+                    },
+                    "status": "finished_successfully",
+                    "end_turn": null,
+                    "weight": 1,
+                    "metadata": {
+                        "message_type": null,
+                        "model_slug": "gpt-4o",
+                        "default_model_slug": "gpt-4o",
+                        "pad": "AAAAAAAAAAAAAAA",
+                        "parent_id": "5b965db4-6048-4413-a1ba-2ddd09ef1c3d",
+                        "request_id": "885668c83aa38423-YVR",
+                        "timestamp_": "absolute"
+                    },
+                    "recipient": "all"
+                },
+                "parent": "5b965db4-6048-4413-a1ba-2ddd09ef1c3d",
+                "children": ["7d9c4aee-ba5f-4d7a-a03c-19d4bb0d47cc"]
+            },
+            "7d9c4aee-ba5f-4d7a-a03c-19d4bb0d47cc": {
+                "id": "7d9c4aee-ba5f-4d7a-a03c-19d4bb0d47cc",
+                "message": {
+                    "id": "7d9c4aee-ba5f-4d7a-a03c-19d4bb0d47cc",
+                    "author": {
+                        "role": "assistant",
+                        "name": null,
+                        "metadata": ""
+                    },
+                    "create_time": 1715978303.385016,
+                    "update_time": null,
+                    "content": {
+                        "content_type": "text",
+                        "parts": ["Here's the image of a raging forest fire on a mountainside. The intense flames and thick smoke create a dramatic and ominous scene."]
+                    },
+                    "status": "finished_successfully",
+                    "end_turn": true,
+                    "weight": 1,
+                    "metadata": {
+                        "finish_details": {
+                            "type": "stop",
+                            "stop_tokens": [200002]
+                        },
+                        "citations": [],
+                        "gizmo_id": null,
+                        "message_type": null,
+                        "model_slug": "gpt-4o",
+                        "default_model_slug": "gpt-4o",
+                        "pad": "AAAAAAAAAAAAAAAAAAAAAAAAA",
+                        "parent_id": "f0fa395f-6024-4ef8-ac3e-9ff3135dbb5e",
+                        "is_complete": true,
+                        "request_id": "885668c83aa38423-YVR",
+                        "timestamp_": "absolute"
+                    },
+                    "recipient": "all"
+                },
+                "parent": "f0fa395f-6024-4ef8-ac3e-9ff3135dbb5e",
+                "children": []
+            }
+        },
+        "moderation_results": [],
+        "current_node": "7d9c4aee-ba5f-4d7a-a03c-19d4bb0d47cc",
+        "plugin_ids": null,
+        "conversation_id": "c481da8e-144e-49f3-8b43-f5224b3636cb",
+        "conversation_template_id": null,
+        "gizmo_id": null,
+        "is_archived": false,
+        "safe_urls": [],
+        "default_model_slug": "gpt-4o",
+        "id": "c481da8e-144e-49f3-8b43-f5224b3636cb"
+    },
+    {
+        "title": "Mountain Dining Scene",
+        "create_time": 1715951910.44633,
+        "update_time": 1715951934.037178,
+        "mapping": {
+            "298b2ff7-160c-4048-a13b-fa4a220b4cd7": {
+                "id": "298b2ff7-160c-4048-a13b-fa4a220b4cd7",
+                "message": {
+                    "id": "298b2ff7-160c-4048-a13b-fa4a220b4cd7",
+                    "author": {
+                        "role": "system",
+                        "name": null,
+                        "metadata": ""
+                    },
+                    "create_time": null,
+                    "update_time": null,
+                    "content": {
+                        "content_type": "text",
+                        "parts": [""]
+                    },
+                    "status": "finished_successfully",
+                    "end_turn": true,
+                    "weight": 0,
+                    "metadata": {"is_visually_hidden_from_conversation": true},
+                    "recipient": "all"
+                },
+                "parent": "aaa11d23-6746-4ed3-bde6-37a632869172",
+                "children": ["aaa2f8b6-b53f-439b-8402-03a4fa332e28"]
+            },
+            "aaa11d23-6746-4ed3-bde6-37a632869172": {
+                "id": "aaa11d23-6746-4ed3-bde6-37a632869172",
+                "message": null,
+                "parent": null,
+                "children": ["298b2ff7-160c-4048-a13b-fa4a220b4cd7"]
+            },
+            "aaa2f8b6-b53f-439b-8402-03a4fa332e28": {
+                "id": "aaa2f8b6-b53f-439b-8402-03a4fa332e28",
+                "message": {
+                    "id": "aaa2f8b6-b53f-439b-8402-03a4fa332e28",
+                    "author": {
+                        "role": "user",
+                        "name": null,
+                        "metadata": ""
+                    },
+                    "create_time": 1715951910.448546,
+                    "update_time": null,
+                    "content": {
+                        "content_type": "text",
+                        "parts": ["The image depicts a picturesque outdoor dining setting, likely on a balcony or terrace, with a stunning mountainous landscape in the background. The scene includes snow-capped mountains, lush green forests, and a flowing river down in the valley, all under a bright blue sky with a few scattered clouds.\n\nIn the foreground, there is a wooden table set with various dishes and drinks. The food appears to be a mix of Mexican cuisine, including:\n\n1. A plate with three tacos, filled with what looks like a savory mixture topped with cheese and garnished with cilantro.\n2. A bowl with a bean or chili stew, garnished with fresh herbs.\n3. A side dish with green beans or edamame, alongside folded tortillas.\n4. A small bowl of what seems to be a dessert or fruit preserve.\n5. A basket with pieces of crusty bread or toast.\n\nTo accompany the meal, there are two tall glasses of orange juice, which add a vibrant color to the table setting.\n\nThe table itself is made of rustic wood, complementing the natural surroundings and the wooden structure of the terrace or cabin. The overall atmosphere is one of tranquility and enjoyment, combining the beauty of nature with the pleasure of a delicious meal."]
+                    },
+                    "status": "finished_successfully",
+                    "end_turn": null,
+                    "weight": 1,
+                    "metadata": {
+                        "request_id": "8853e4ceba4f2d78-YVR",
+                        "timestamp_": "absolute",
+                        "message_type": null
+                    },
+                    "recipient": "all"
+                },
+                "parent": "298b2ff7-160c-4048-a13b-fa4a220b4cd7",
+                "children": ["77011bb4-886e-45ff-9cc2-1d993b5b95c2"]
+            },
+            "77011bb4-886e-45ff-9cc2-1d993b5b95c2": {
+                "id": "77011bb4-886e-45ff-9cc2-1d993b5b95c2",
+                "message": {
+                    "id": "77011bb4-886e-45ff-9cc2-1d993b5b95c2",
+                    "author": {
+                        "role": "assistant",
+                        "name": null,
+                        "metadata": ""
+                    },
+                    "create_time": 1715951933.399267,
+                    "update_time": null,
+                    "content": {
+                        "content_type": "text",
+                        "parts": [""]
+                    },
+                    "status": "finished_successfully",
+                    "end_turn": null,
+                    "weight": 1,
+                    "metadata": {
+                        "message_type": null,
+                        "model_slug": "gpt-4o",
+                        "default_model_slug": "gpt-4o",
+                        "parent_id": "aaa2f8b6-b53f-439b-8402-03a4fa332e28",
+                        "request_id": "8853e4ceba4f2d78-YVR",
+                        "timestamp_": "absolute"
+                    },
+                    "recipient": "all"
+                },
+                "parent": "aaa2f8b6-b53f-439b-8402-03a4fa332e28",
+                "children": ["97b47e57-0fc5-4675-9a42-427b8f2ad26e"]
+            },
+            "97b47e57-0fc5-4675-9a42-427b8f2ad26e": {
+                "id": "97b47e57-0fc5-4675-9a42-427b8f2ad26e",
+                "message": {
+                    "id": "97b47e57-0fc5-4675-9a42-427b8f2ad26e",
+                    "author": {
+                        "role": "assistant",
+                        "name": null,
+                        "metadata": ""
+                    },
+                    "create_time": 1715951933.399457,
+                    "update_time": null,
+                    "content": {
+                        "content_type": "text",
+                        "parts": ["{\n  \"prompt\": \"A picturesque outdoor dining setting on a balcony or terrace with a stunning mountainous landscape in the background. The scene includes snow-capped mountains, lush green forests, and a flowing river in the valley, under a bright blue sky with a few scattered clouds. In the foreground, there is a rustic wooden table set with various dishes and drinks. The food includes a plate with three tacos filled with a savory mixture topped with cheese and garnished with cilantro, a bowl with a bean or chili stew garnished with fresh herbs, a side dish with green beans or edamame alongside folded tortillas, a small bowl of dessert or fruit preserve, and a basket with pieces of crusty bread or toast. There are two tall glasses of orange juice on the table. The overall atmosphere is tranquil and enjoyable, combining the beauty of nature with the pleasure of a delicious meal.\",\n  \"size\": \"1792x1024\"\n}"]
+                    },
+                    "status": "finished_successfully",
+                    "end_turn": false,
+                    "weight": 1,
+                    "metadata": {
+                        "finish_details": {
+                            "type": "stop",
+                            "stop_tokens": [200007]
+                        },
+                        "citations": [],
+                        "gizmo_id": null,
+                        "message_type": null,
+                        "model_slug": "gpt-4o",
+                        "default_model_slug": "gpt-4o",
+                        "pad": "AAAAAAA",
+                        "parent_id": "77011bb4-886e-45ff-9cc2-1d993b5b95c2",
+                        "is_complete": true,
+                        "request_id": "8853e4ceba4f2d78-YVR",
+                        "timestamp_": "absolute"
+                    },
+                    "recipient": "dalle.text2im"
+                },
+                "parent": "77011bb4-886e-45ff-9cc2-1d993b5b95c2",
+                "children": ["ce6014d7-a09b-441b-b1f4-a984a7785272"]
+            },
+            "ce6014d7-a09b-441b-b1f4-a984a7785272": {
+                "id": "ce6014d7-a09b-441b-b1f4-a984a7785272",
+                "message": {
+                    "id": "ce6014d7-a09b-441b-b1f4-a984a7785272",
+                    "author": {
+                        "role": "tool",
+                        "name": "dalle.text2im",
+                        "metadata": ""
+                    },
+                    "create_time": 1715951933.402829,
+                    "update_time": null,
+                    "content": {
+                        "content_type": "multimodal_text",
+                        "parts": [
+                            {
+                                "content_type": "image_asset_pointer",
+                                "asset_pointer": "file-service://file-EPTt4joAxvMB5lxyqDZIvAwU",
+                                "size_bytes": 622596,
+                                "width": 1792,
+                                "height": 1024,
+                                "fovea": 512,
+                                "metadata": {
+                                    "dalle": {
+                                        "gen_id": "4r40ri0DYSd37WFo",
+                                        "prompt": "A picturesque outdoor dining setting on a balcony or terrace with a stunning mountainous landscape in the background. The scene includes snow-capped mountains, lush green forests, and a flowing river in the valley, under a bright blue sky with a few scattered clouds. In the foreground, there is a rustic wooden table set with various dishes and drinks. The food includes a plate with three tacos filled with a savory mixture topped with cheese and garnished with cilantro, a bowl with a bean or chili stew garnished with fresh herbs, a side dish with green beans or edamame alongside folded tortillas, a small bowl of dessert or fruit preserve, and a basket with pieces of crusty bread or toast. There are two tall glasses of orange juice on the table. The overall atmosphere is tranquil and enjoyable, combining the beauty of nature with the pleasure of a delicious meal.",
+                                        "seed": 3859767108,
+                                        "parent_gen_id": null,
+                                        "edit_op": null,
+                                        "serialization_title": "DALL-E generation metadata"
+                                    },
+                                    "sanitized": false
+                                }
+                            }
+                        ]
+                    },
+                    "status": "finished_successfully",
+                    "end_turn": null,
+                    "weight": 1,
+                    "metadata": {
+                        "message_type": null,
+                        "model_slug": "gpt-4o",
+                        "default_model_slug": "gpt-4o",
+                        "parent_id": "97b47e57-0fc5-4675-9a42-427b8f2ad26e",
+                        "request_id": "8853e4ceba4f2d78-YVR",
+                        "timestamp_": "absolute"
+                    },
+                    "recipient": "all"
+                },
+                "parent": "97b47e57-0fc5-4675-9a42-427b8f2ad26e",
+                "children": ["522ebfc5-4580-41d3-a017-f0989808cb8a"]
+            },
+            "522ebfc5-4580-41d3-a017-f0989808cb8a": {
+                "id": "522ebfc5-4580-41d3-a017-f0989808cb8a",
+                "message": {
+                    "id": "522ebfc5-4580-41d3-a017-f0989808cb8a",
+                    "author": {
+                        "role": "tool",
+                        "name": "dalle.text2im",
+                        "metadata": ""
+                    },
+                    "create_time": 1715951933.40307,
+                    "update_time": null,
+                    "content": {
+                        "content_type": "text",
+                        "parts": ["\nDALL\u00b7E displayed 1 images. The images are already plainly visible, so don't repeat the descriptions in detail. Do not list download links as they are available in the ChatGPT UI already. The user may download the images by clicking on them, but do not mention anything about downloading to the user."]
+                    },
+                    "status": "finished_successfully",
+                    "end_turn": null,
+                    "weight": 1,
+                    "metadata": {
+                        "message_type": null,
+                        "model_slug": "gpt-4o",
+                        "default_model_slug": "gpt-4o",
+                        "pad": "AAAAAAAAAAAAAAA",
+                        "parent_id": "ce6014d7-a09b-441b-b1f4-a984a7785272",
+                        "request_id": "8853e4ceba4f2d78-YVR",
+                        "timestamp_": "absolute"
+                    },
+                    "recipient": "all"
+                },
+                "parent": "ce6014d7-a09b-441b-b1f4-a984a7785272",
+                "children": ["2f799565-bc57-43ff-ba0a-946348ab0f72"]
+            },
+            "2f799565-bc57-43ff-ba0a-946348ab0f72": {
+                "id": "2f799565-bc57-43ff-ba0a-946348ab0f72",
+                "message": {
+                    "id": "2f799565-bc57-43ff-ba0a-946348ab0f72",
+                    "author": {
+                        "role": "assistant",
+                        "name": null,
+                        "metadata": ""
+                    },
+                    "create_time": 1715951933.403215,
+                    "update_time": null,
+                    "content": {
+                        "content_type": "text",
+                        "parts": ["Here is the image you described, depicting a picturesque outdoor dining setting on a balcony with a stunning mountainous landscape in the background. Enjoy the tranquil atmosphere and delicious meal!"]
+                    },
+                    "status": "finished_successfully",
+                    "end_turn": true,
+                    "weight": 1,
+                    "metadata": {
+                        "finish_details": {
+                            "type": "stop",
+                            "stop_tokens": [200002]
+                        },
+                        "citations": [],
+                        "gizmo_id": null,
+                        "message_type": null,
+                        "model_slug": "gpt-4o",
+                        "default_model_slug": "gpt-4o",
+                        "pad": "AAAAAAAAAAAAAAAAAAAAA",
+                        "parent_id": "522ebfc5-4580-41d3-a017-f0989808cb8a",
+                        "is_complete": true,
+                        "request_id": "8853e4ceba4f2d78-YVR",
+                        "timestamp_": "absolute"
+                    },
+                    "recipient": "all"
+                },
+                "parent": "522ebfc5-4580-41d3-a017-f0989808cb8a",
+                "children": []
+            }
+        },
+        "moderation_results": [],
+        "current_node": "2f799565-bc57-43ff-ba0a-946348ab0f72",
+        "plugin_ids": null,
+        "conversation_id": "566a1a94-14fb-41d0-bc7b-2c19ec1d89e0",
+        "conversation_template_id": null,
+        "gizmo_id": null,
+        "is_archived": false,
+        "safe_urls": [],
+        "default_model_slug": "gpt-4o",
+        "id": "566a1a94-14fb-41d0-bc7b-2c19ec1d89e0"
+    }
+]

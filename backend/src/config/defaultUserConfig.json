@@ -1,6 +1,6 @@
 {
   "settings": {
-    "model": "openai/gpt-4-turbo",
+    "model": "openai/gpt-4o",
     "temperature": 0.7,
     "maxTokens": 1500,
     "isStreamResponse": true,
@@ -100,6 +100,7 @@
         "text": "I'm struggling with a complex ethical dilemma in a patient case. Can you help me analyze the situation from different perspectives?",
         "macroId": "77d37a6b-8610-4cfd-aea3-9b570ff7f5b6"
       }
-    ]
+    ],
+    "dataImport": {"dataImportId": "chatgpt.openai" }
   }
 }
