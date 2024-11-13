@@ -12,9 +12,9 @@ import i18n from "./i18n";
 import LoginDialog from "./components/common/LoginDialog/LoginDialog";
 import React, { useState, useEffect, useRef } from "react";
 import Sidebar from "./components/layout/Sidebar/Sidebar";
-import { useLoadModels } from "./hooks/useLoadModels";
-import { useConversationManager } from "./hooks/useConversationManager";
-import { useMessageHandler } from "./hooks/useMessageHandler";
+import { useLoadModels } from "./hooks/useModels";
+import { useConversationManager } from "./hooks/useConversation";
+import { useMessageHandler } from "./hooks/useMessages";
 import moment from "moment";
 
 import "./App.scss";
