@@ -34,6 +34,11 @@ const PROTOCOL = process.env.PROTOCOL || 'http';
 const USE_BASIC_LIMITER = process.env.USE_BASIC_LIMITER === 'true';
 let redisClient;
 
+// Log URL and method for each request
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
 if (USE_BASIC_LIMITER) {
   // Apply basic rate limiting middleware
   app.use(basicLimiter);

@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { login } from "../api/authService";
+import { authService } from "../api/authService";
 
 const useAuth = () => {
   const [user, setUser] = useState(null);
@@ -14,9 +14,9 @@ const useAuth = () => {
         setError("Username and password are required.");
         return "Username and password are required.";
       }
-  
+
       try {
-        const response = await login(username, password);
+        const response = await authService.login(username, password);
         if (response.error) {
           setError(response.error.message);
           return response.error.message;
@@ -29,7 +29,7 @@ const useAuth = () => {
     },
     [clearError]
   );
-  
+
 
   const logout = useCallback(() => {
     setUser(null);
