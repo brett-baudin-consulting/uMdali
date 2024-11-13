@@ -1,4 +1,4 @@
-import { useConversations } from "./api/conversationService";
+import { useConversations } from './api/conversationService';
 import { ConversationWizard } from "./components/layout/Sidebar/ConversationWizard";
 import { createTitle } from "./components/layout/Sidebar/createTitle";
 import { ThemeProvider } from './ThemeContext';
