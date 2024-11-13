@@ -1,3 +1,4 @@
+// apiClient.jsx  
 import { SERVER_BASE_URL } from '../config/config';
 import { COMMON_HEADERS } from '../constants';
 
@@ -23,6 +24,16 @@ export const apiClient = {
           ...options.headers,
         },
       });
+
+      // If streaming is requested, return the raw response  
+      if (options.stream) {
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP error! status: ${response.status} ${errorText}`);
+        }
+        return response;
+      }
+
       return await handleResponse(response);
     } catch (error) {
       console.error('API request failed:', error);

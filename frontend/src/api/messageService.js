@@ -1,9 +1,16 @@
-import { SERVER_BASE_URL } from "../config/config";
-import { COMMON_HEADERS } from "../constants";
+import { apiClient } from './apiClient';
 
-// sendMessage simplifies error handling and streamlines response processing  
-export const sendMessage = async (currentConversation,
-  user, setCurrentConversation, newBotMessageMessageId, setIsStreaming, model, signal, setIsWaitingForResponse, stream) => {
+export const sendMessage = async (
+  currentConversation,
+  user,
+  setCurrentConversation,
+  newBotMessageMessageId,
+  setIsStreaming,
+  model,
+  signal,
+  setIsWaitingForResponse,
+  stream
+) => {
   const filteredMessages = filterMessages(currentConversation, newBotMessageMessageId);
   const requestBody = {
     title: currentConversation.title,
@@ -14,29 +21,25 @@ export const sendMessage = async (currentConversation,
     stream: stream,
     model: model,
   };
+
   setIsStreaming(stream);
-  // Utilize AbortController for better fetch control  
-  const options = {
-    method: "POST",
-    headers: COMMON_HEADERS,
-    body: JSON.stringify(requestBody),
-    signal: signal,
-  };
 
   try {
-    const response = await fetch(`${SERVER_BASE_URL}/message`, options);
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Error sending message: ${errorText}`);
-    }
+    const response = await apiClient.fetch('/message', {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+      signal: signal,
+      stream: stream, // Add stream flag for apiClient  
+    });
 
-    // Handle streaming and synchronous response differently  
-    return stream
-      ? await streamResponse(response, setCurrentConversation, newBotMessageMessageId, setIsStreaming, signal)
-      : await syncResponse(response, setCurrentConversation, newBotMessageMessageId, setIsWaitingForResponse);
+    if (stream) {
+      return await streamResponse(response, setCurrentConversation, newBotMessageMessageId, setIsStreaming, signal);
+    } else {
+      return await syncResponse(response, setCurrentConversation, newBotMessageMessageId, setIsWaitingForResponse);
+    }
   } catch (error) {
     if (error.name !== 'AbortError') {
-      console.error("Failed to process stream:", error);
+      console.error("Failed to process message:", error);
       throw error;
     }
   } finally {
@@ -45,28 +48,26 @@ export const sendMessage = async (currentConversation,
   }
 };
 
-const syncResponse = async (response, setCurrentConversation, newBotMessageMessageId, setIsWaitingForResponse) => {
-  const data = await response.json();
+const syncResponse = async (data, setCurrentConversation, newBotMessageMessageId, setIsWaitingForResponse) => {
   setIsWaitingForResponse(false);
   updateConversationState(data?.content, newBotMessageMessageId, setCurrentConversation);
   return data;
 };
-// Refactor streamResponse to improve readability and error handling  
+
 const streamResponse = async (response, setCurrentConversation, newBotMessage, setIsStreaming, signal) => {
   const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
   let data = "";
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (signal.aborted) throw new Error("AbortError");
-      if (done) break;
-      data += value;
-      updateConversationState(data, newBotMessage, setCurrentConversation);
-    }
-    return { "content": data};
+  while (true) {
+    const { done, value } = await reader.read();
+    if (signal.aborted) throw new Error("AbortError");
+    if (done) break;
+    data += value;
+    updateConversationState(data, newBotMessage, setCurrentConversation);
+  }
+  return { "content": data };
 };
 
-// Utility function to update conversation state  
 function updateConversationState(data, newBotMessageMessageId, setCurrentConversation) {
   setCurrentConversation(prev => ({
     ...prev,
@@ -76,7 +77,6 @@ function updateConversationState(data, newBotMessageMessageId, setCurrentConvers
   }));
 }
 
-// Utility function to filter messages  
 function filterMessages(currentConversation, newBotMessageMessageId) {
   return currentConversation.messages.filter(
     message => message.content !== "" && message.messageId !== newBotMessageMessageId
