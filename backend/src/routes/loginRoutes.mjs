@@ -40,6 +40,10 @@ router.post('/', skipAuth, async function (req, res, next) {
                 contexts: userTemplate.settings.contexts.map(context => ({
                     ...context,
                     contextId: uuidv4()
+                })),
+                macros: userTemplate.settings.macros.map(macro => ({
+                    ...macro,
+                    macroId: uuidv4()
                 }))
             };
 
