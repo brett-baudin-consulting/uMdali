@@ -1,10 +1,8 @@
 import { useConversations } from "./api/conversationService";
 import { ConversationWizard } from "./components/layout/Sidebar/ConversationWizard";
 import { createTitle } from "./components/layout/Sidebar/createTitle";
-import { sendMessage } from "./api/messageService";
 import { ThemeProvider } from './ThemeContext';
 import { useTranslation } from "react-i18next";
-import { v4 as uuidv4 } from "uuid";
 import AIConversationFooter from "./components/layout/Conversation/ConversationFooter/AIConversationFooter";
 import ConversationBody from "./components/layout/Conversation/ConversationBody/ConversationBody";
 import ConversationFooter from "./components/layout/Conversation/ConversationFooter/ConversationFooter";
@@ -16,6 +14,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Sidebar from "./components/layout/Sidebar/Sidebar";
 import { useLoadModels } from "./hooks/useLoadModels";
 import { useConversationManager } from "./hooks/useConversationManager";
+import { useMessageHandler } from "./hooks/useMessageHandler";
 import moment from "moment";
 
 import "./App.scss";
@@ -24,7 +23,6 @@ import "./styles/main.scss";
 function App() {
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [newBotMessage, setNewBotMessage] = useState({});
   const [isStreaming, setIsStreaming] = useState(false);
   const { t } = useTranslation();
   const {
@@ -37,14 +35,11 @@ function App() {
   } = useLoadModels(isLoggedIn);
 
   const fetchedConversations = useConversations(user ? user.userId : null);
-  const abortControllerRef = useRef(null);
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const [theme, setTheme] = useState('dark');
-  const [error, setError] = useState(null);
   const [isWizardVisible, setIsWizardVisible] = useState(false);
   const [hasRun, setHasRun] = useState(false);
   const previousConversationId = useRef(null);
-
 
   const {
     conversations,
@@ -56,6 +51,30 @@ function App() {
     createNewConversation
   } = useConversationManager(user, isLoggedIn, fetchedConversations, isStreaming);
 
+  const {
+    handleNewUserMessage,
+    handleResendMessage,
+    abortFetch,
+    error,
+    setError,
+    processNewBotMessage,
+    newBotMessage
+  } = useMessageHandler(
+    user,
+    isLoggedIn,
+    currentConversation,
+    setCurrentConversation,
+    setConversations,
+    setIsStreaming,
+    setIsWaitingForResponse,
+    getModel,
+    setUser
+  );
+
+  useEffect(() => {
+    processNewBotMessage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps  
+  }, [newBotMessage, isLoggedIn]);
 
   useEffect(() => {
     if (!currentConversation ||
@@ -89,7 +108,7 @@ function App() {
     };
 
     processConversation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps  
   }, [currentConversation?.conversationId, currentConversation?.messages?.length, currentConversation?.title, hasRun, models, t, user, isStreaming, isWaitingForResponse]);
 
   const handleClose = () => {
@@ -120,117 +139,9 @@ function App() {
     }
   }, [error, modelError]);
 
-  useEffect(() => {
-    if (!isLoggedIn || !currentConversation || !newBotMessage || !currentConversation.messages) {
-      return;
-    }
-    abortControllerRef.current = new AbortController();
-
-    try {
-      const model = getModel(user, currentConversation, setUser);
-      setIsWaitingForResponse(true);
-      const sendAndWaitForResponse = async () => {
-        try {
-          await sendMessage(
-            currentConversation,
-            user,
-            setCurrentConversation,
-            newBotMessage.messageId,
-            setIsStreaming,
-            model,
-            abortControllerRef.current.signal,
-            setIsWaitingForResponse,
-            user?.settings?.isStreamResponse
-          );
-        } catch (err) {
-          setError(err.message);
-        }
-      };
-      sendAndWaitForResponse();
-    } catch (err) {
-      setError(err.message);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [newBotMessage, isLoggedIn]);
-
   if (!isLoggedIn) {
     return <LoginDialog setUser={handleLogin} />;
   }
-
-  const createNewBotMessageAndUpdateConversation = (model, alias) => {
-    setIsStreaming(false);
-
-    const newBotMessage = {
-      content: "",
-      role: "bot",
-      messageId: uuidv4(),
-      modelName: model,
-      alias: alias,
-    };
-
-    updateMessages(newBotMessage);
-    setNewBotMessage(newBotMessage);
-  };
-
-  const handleNewUserMessage = async (input, files, model, alias1, alias2) => {
-    let userModel = model;
-    if (currentConversation?.isAIConversation) {
-      userModel = 'human'
-    }
-    model = model || user?.settings?.model;
-    const newUserMessage = {
-      content: input,
-      role: "user",
-      messageId: uuidv4(),
-      files: files,
-      alias: alias2,
-      modelName: userModel,
-    };
-
-    updateMessages(newUserMessage);
-    createNewBotMessageAndUpdateConversation(model, alias1);
-  };
-
-  const handleResendMessage = async (model, alias) => {
-    setError(null);
-    createNewBotMessageAndUpdateConversation(model, alias);
-  };
-
-  const updateMessages = (message) => {
-    setCurrentConversation((prevConversation) => {
-      if (prevConversation?.messages) {
-        const updatedMessages = [
-          ...prevConversation.messages,
-          message,
-        ];
-
-        setConversations((prevConversations) =>
-          prevConversations.map((conversation) =>
-            conversation.conversationId === prevConversation.conversationId
-              ? { ...prevConversation, messages: updatedMessages }
-              : conversation
-          )
-        );
-
-        return { ...prevConversation, messages: updatedMessages };
-      }
-      return prevConversation;
-    });
-  };
-
-  const abortFetch = () => {
-    if (abortControllerRef.current) {
-      try {
-        abortControllerRef.current.abort();
-      }
-      catch (error) {
-        console.error("Failed to abort fetch:", error);
-      }
-      finally {
-        abortControllerRef.current = null;
-      }
-    }
-  };
 
   return (
     <ThemeProvider>
