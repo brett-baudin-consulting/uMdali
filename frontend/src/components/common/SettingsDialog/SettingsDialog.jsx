@@ -14,16 +14,16 @@ import DataTab from "./DataTab";
 
 import "./SettingsDialog.scss";
 
-function SettingsDialog({ onClose, 
-  models, 
-  user, 
-  setUser, 
-  speechToTextModels, 
-  textToSpeechModels, 
+function SettingsDialog({ onClose,
+  models,
+  user,
+  setUser,
+  speechToTextModels,
+  textToSpeechModels,
   dataImportModels,
   fetchedConversations,
   setFetchedConversations
- }) {
+}) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("general");
   const modalContentRef = useRef(null);
@@ -65,16 +65,16 @@ function SettingsDialog({ onClose,
       case 'macro':
         return <MacroTab user={user} setUser={setUser} />;
       case 'data':
-        return <DataTab 
-        user={user} 
-        setUser={setUser} 
-        dataImportModels={dataImportModels}
-        fetchedConversations={fetchedConversations}
-        setFetchedConversations={setFetchedConversations} />;
+        return <DataTab
+          user={user}
+          setUser={setUser}
+          dataImportModels={dataImportModels}
+          fetchedConversations={fetchedConversations}
+          setFetchedConversations={setFetchedConversations} />;
       default:
         return null; // or a default component
     }
-  }, [activeTab, user, setUser, models, speechToTextModels, textToSpeechModels, dataImportModels]);
+  }, [activeTab, user, setUser, models, speechToTextModels, textToSpeechModels, dataImportModels, fetchedConversations, setFetchedConversations]);
 
   const handleClose = () => {
     const updateUserAsync = async () => {
