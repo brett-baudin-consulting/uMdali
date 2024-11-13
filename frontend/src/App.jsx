@@ -32,8 +32,10 @@ function App() {
     speechToTextModels,
     textToSpeechModels,
     dataImportModels,
-    error: modelError
+    error: modelError,
+    getModel
   } = useLoadModels(isLoggedIn);
+
   const fetchedConversations = useConversations(user ? user.userId : null);
   const abortControllerRef = useRef(null);
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
@@ -42,6 +44,7 @@ function App() {
   const [isWizardVisible, setIsWizardVisible] = useState(false);
   const [hasRun, setHasRun] = useState(false);
   const previousConversationId = useRef(null);
+
 
   const {
     conversations,
@@ -52,6 +55,7 @@ function App() {
     setFetchedConversationsState,
     createNewConversation
   } = useConversationManager(user, isLoggedIn, fetchedConversations, isStreaming);
+
 
   useEffect(() => {
     if (!currentConversation ||
@@ -97,33 +101,6 @@ function App() {
     setIsLoggedIn(true);
   };
 
-  function getModel() {
-    let modelName = user.settings.model;
-    if (currentConversation.isAIConversation) {
-      modelName = currentConversation.messages.length % 2 === 0 ? currentConversation.model2 : currentConversation.model1;
-    }
-    let model;
-    if (modelName.indexOf('/') === -1) {
-      modelName = user.settings.model;
-      model = models.find((model) => model.name === modelName)
-      setUser((prevUser) => ({
-        ...prevUser,
-        settings: {
-          ...prevUser.settings,
-          model: model.vendor + '/' + model.name,
-        },
-      }));
-    }
-    else {
-      const [vendor, name] = modelName.split('/');
-      model = models.find((model) => model.vendor === vendor && model.name === name);
-    }
-    if (!model) {
-      model = models.find((model) => model.name === 'gpt-4-turbo');
-    }
-    return model;
-  }
-
   useEffect(() => {
     if (user?.settings?.language) {
       i18n.changeLanguage(user.settings.language);
@@ -150,7 +127,7 @@ function App() {
     abortControllerRef.current = new AbortController();
 
     try {
-      const model = getModel();
+      const model = getModel(user, currentConversation, setUser);
       setIsWaitingForResponse(true);
       const sendAndWaitForResponse = async () => {
         try {
