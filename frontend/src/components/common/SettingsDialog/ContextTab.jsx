@@ -19,7 +19,7 @@ function ContextTab({ user, setUser }) {
   useEffect(() => {
     const sorted = [...contexts].sort((a, b) => a.name.localeCompare(b.name));
     setSortedContexts(sorted);
-    // Select the first item if no item is currently selected and the list is not empty
+    // Select the first item if no item is currently selected and the list is not empty  
     if (sorted.length > 0 && selectedItemId === null) {
       setSelectedItemId(sorted[0].contextId);
     }
@@ -133,4 +133,4 @@ ContextTab.propTypes = {
   setUser: PropTypes.func.isRequired,
 };
 
-export default ContextTab;
+export default ContextTab;  
