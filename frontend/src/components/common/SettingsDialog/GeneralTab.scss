@@ -1,43 +1,28 @@
-.general-tab {
-  background-color: var(--color-background-primary);
-  color: var(--color-text-primary);
-  padding: 20px;
+.general-tab {  
+  background-color: var(--color-background-primary);  
+  color: var(--color-text-primary);  
+  padding: 1.25rem;
 
-  h1 {
-    margin-bottom: 20px;
-  }
+  .form-group {  
+    display: flex;  
+    align-items: center;  
+    gap: 0.625rem;  
+    margin-bottom: 1rem;
 
-  label,
-  div {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    margin-bottom: 15px;
-  }
-
-  select,
-  input[type="range"] {
-    margin-left: 10px;
-  }
-
-  .readonly-label {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .readonly-input {
-    pointer-events: none;
-  }
-
-  .readonly-checkbox-container {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2px 5px;
-    margin-top: 10px;
-    margin-bottom: 0;
-
-    >div {
-      margin-bottom: 0;
+    label {  
+      flex-shrink: 0;  
     }
+
+    select,  
+    input[type="range"] {  
+      flex: 1;  
+    }  
   }
-}
+
+  .readonly-checkbox-container {  
+    display: grid;  
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));  
+    gap: 0.5rem;  
+    margin: 1rem 0;  
+  }  
+}  

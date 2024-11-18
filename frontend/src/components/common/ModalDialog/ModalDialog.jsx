@@ -1,33 +1,82 @@
-import React from "react";
-import PropTypes from "prop-types";
-import "./ModalDialog.scss";
+// ModalDialog.jsx  
+import React, { useEffect, useCallback } from 'react';  
+import PropTypes from 'prop-types';  
+import { createPortal } from 'react-dom';  
+import './ModalDialog.scss';
 
-const ModalDialog = ({ isOpen, onClose, onCancel, onConfirm, children }) => {
+const ModalDialog = ({   
+  isOpen,   
+  onClose,   
+  onCancel,   
+  onConfirm,   
+  children,  
+  confirmText = 'Delete',  
+  cancelText = 'Cancel'   
+}) => {  
+  const handleEscapeKey = useCallback((e) => {  
+    if (e.key === 'Escape' && isOpen) {  
+      onClose();  
+    }  
+  }, [isOpen, onClose]);
+
+  useEffect(() => {  
+    if (isOpen) {  
+      document.addEventListener('keydown', handleEscapeKey);  
+      document.body.style.overflow = 'hidden';  
+    }  
+      
+    return () => {  
+      document.removeEventListener('keydown', handleEscapeKey);  
+      document.body.style.overflow = 'unset';  
+    };  
+  }, [isOpen, handleEscapeKey]);
+
   if (!isOpen) return null;
 
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-        {children}
-        <div className="modal-button-container">
-          <button className="modal-button" onClick={onCancel}>
-            Cancel
-          </button>
-          <button className="modal-button" onClick={onConfirm}>
-            Delete
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  return createPortal(  
+    <div   
+      className="modal-overlay"   
+      onClick={onClose}  
+      role="dialog"  
+      aria-modal="true"  
+    >  
+      <div   
+        className="modal-container"   
+        onClick={(e) => e.stopPropagation()}  
+      >  
+        <div className="modal-content">  
+          {children}  
+        </div>  
+        <div className="modal-button-container">  
+          <button   
+            className="modal-button modal-button--secondary"  
+            onClick={onCancel}  
+            type="button"  
+          >  
+            {cancelText}  
+          </button>  
+          <button   
+            className="modal-button modal-button--primary"  
+            onClick={onConfirm}  
+            type="button"  
+          >  
+            {confirmText}  
+          </button>  
+        </div>  
+      </div>  
+    </div>,  
+    document.body  
+  );  
 };
 
-ModalDialog.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  onConfirm: PropTypes.func.isRequired,
-  children: PropTypes.node,
+ModalDialog.propTypes = {  
+  isOpen: PropTypes.bool.isRequired,  
+  onClose: PropTypes.func.isRequired,  
+  onCancel: PropTypes.func.isRequired,  
+  onConfirm: PropTypes.func.isRequired,  
+  children: PropTypes.node,  
+  confirmText: PropTypes.string,  
+  cancelText: PropTypes.string  
 };
 
-export default ModalDialog;
+export default ModalDialog;  
