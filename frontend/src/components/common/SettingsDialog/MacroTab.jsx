@@ -1,83 +1,70 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 import { v4 as uuidv4 } from "uuid";
 
 import { userShape } from "../../../model/userPropType";
 import { isShortcutAllowed } from "../util/shortcutValidator";
-import { DISALLOWED_SHORTCUTS } from '../util/constants/shortcuts';
+
 import "./MacroTab.scss";
 
 function MacroTab({ user, setUser }) {
   const { t } = useTranslation();
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [macros, setMacros] = useState(() => user.settings.macros || []);
-  const [sortedMacros, setSortedMacros] = useState([]);
+
+  const sortedMacros = useMemo(() =>
+    [...macros].sort((a, b) => a.shortcut.localeCompare(b.shortcut)),
+    [macros]
+  );
 
   useEffect(() => {
     setMacros(user.settings.macros);
   }, [user.settings.macros]);
 
   useEffect(() => {
-    const sorted = [...macros].sort((a, b) => a.shortcut.localeCompare(b.shortcut));
-    setSortedMacros(sorted);
-    if (sorted.length > 0 && selectedItemId === null) {
-      setSelectedItemId(sorted[0].macroId);
+    if (sortedMacros.length > 0 && selectedItemId === null) {
+      setSelectedItemId(sortedMacros[0].macroId);
     }
-  }, [macros, selectedItemId]);
+  }, [sortedMacros, selectedItemId]);
 
-  useEffect(() => {
-    setUser((prevUser) => ({
-      ...prevUser,
-      settings: { ...prevUser.settings, macros },
-    }));
-  }, [macros, setUser]);
+  const handleMacroChange = useCallback((macro, key, value) => {
+    setMacros(prevMacros => prevMacros.map((m) =>
+      m.macroId === macro.macroId ? { ...m, [key]: value } : m
+    ));
+  }, []);
 
-  const handleMacroChange = (macro, key, value) => {
-    const updatedMacros = macros.map((m) => {
-      if (m.macroId === macro.macroId) {
-        return { ...m, [key]: value };
-      }
-      return m;
-    });
-    setMacros(updatedMacros);
-  };
-
-  const handleAdd = () => {
+  const handleAdd = useCallback(() => {
     const newItem = {
       shortcut: "",
       text: "",
-      macroId: `${uuidv4()}`,
+      macroId: uuidv4(),
     };
-    setMacros([newItem, ...macros]);
+    setMacros(prevMacros => [newItem, ...prevMacros]);
     setSelectedItemId(newItem.macroId);
-  };
+  }, []);
 
-  const handleDelete = () => {
-    const updatedMacros = macros.filter(macro => macro.macroId !== selectedItemId);
-    setMacros(updatedMacros);
-    setSelectedItemId(updatedMacros.length > 0 ? updatedMacros[0].macroId : null);
-  };
+  const handleDelete = useCallback(() => {
+    setMacros(prevMacros => {
+      const updatedMacros = prevMacros.filter(macro => macro.macroId !== selectedItemId);
+      setSelectedItemId(updatedMacros.length > 0 ? updatedMacros[0].macroId : null);
+      return updatedMacros;
+    });
+  }, [selectedItemId]);
 
-  const handleShortcutValidation = (macro, value) => {
-
-    // Check if a shortcut is disallowed  
-    const isDisallowed = DISALLOWED_SHORTCUTS.has(value); // returns true
-    console.log('isDisallowed', isDisallowed);
-    console.log('!isShortcutAllowed(value)', !isShortcutAllowed(value));
-
-    console.log('value', value);
+  const handleShortcutValidation = useCallback((macro, value) => {
     if (!isShortcutAllowed(value)) {
       alert(t('shortcutNotAllowed', { value }));
-
-      setTimeout(() => {
-        document.querySelector(`input[data-id='${macro.macroId}'][name='shortcut']`).focus();
-      }, 0);
+      requestAnimationFrame(() => {
+        document.querySelector(`input[data-id='${macro.macroId}'][name='shortcut']`)?.focus();
+      });
     }
-  };
+  }, [t]);
 
-  // Finding the selected macro
-  const selectedMacro = macros.find(macro => macro.macroId === selectedItemId);
+  const selectedMacro = useMemo(() =>
+    macros.find(macro => macro.macroId === selectedItemId),
+    [macros, selectedItemId]
+  );
 
   return (
     <div className="macro-tab">

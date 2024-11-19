@@ -57,11 +57,6 @@ export const isShortcutAllowed = (shortcut) => {
   const sortedParts = sortShortcutParts(parts);  
   const normalizedShortcut = sortedParts.join('+');
 
-  // Add debugging logs  
-  console.log('Input shortcut:', shortcut);  
-  console.log('Normalized shortcut:', normalizedShortcut);  
-  console.log('Is in disallowed set:', DISALLOWED_SHORTCUTS.has(normalizedShortcut));
-
   return validateShortcutFormat(normalizedShortcut) &&   
          !DISALLOWED_SHORTCUTS.has(normalizedShortcut);  
 };
@@ -79,9 +74,7 @@ export const testShortcutValidator = () => {
     'cmd+shift+z'  
   ];
 
-  console.log('Running shortcut validator tests:');  
   testCases.forEach(testCase => {  
     const result = isShortcutAllowed(testCase);  
-    console.log(`Testing "${testCase}": ${result ? 'Allowed' : 'Blocked'}`);  
   });  
 };  
