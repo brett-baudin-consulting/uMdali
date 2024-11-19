@@ -3,26 +3,4 @@
   color: var(--color-text-primary);  
   padding: 1.25rem;
 
-  .form-group {  
-    display: flex;  
-    align-items: center;  
-    gap: 0.625rem;  
-    margin-bottom: 1rem;
-
-    label {  
-      flex-shrink: 0;  
-    }
-
-    select,  
-    input[type="range"] {  
-      flex: 1;  
-    }  
-  }
-
-  .readonly-checkbox-container {  
-    display: grid;  
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));  
-    gap: 0.5rem;  
-    margin: 1rem 0;  
-  }  
 }  

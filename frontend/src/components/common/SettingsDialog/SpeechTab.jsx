@@ -1,128 +1,140 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
 import { userShape } from "../../../model/userPropType";
 import { textToSpeechModelShape } from "../../../model/textToSpeechModelPropType";
 import { speechToTextModelShape } from "../../../model/speechToTextModelPropType";
+import SelectField from "./SelectField";
+
 import "./SpeechTab.scss";
 
 const SpeechTab = ({ user, setUser, speechToTextModels, textToSpeechModels }) => {
   const { t } = useTranslation();
   const [selectedModelVoices, setSelectedModelVoices] = useState([]);
 
-  useEffect(() => {
-    const initialModel = textToSpeechModels.find(
-      (model) => model.id === user.settings.textToSpeechModel.model_id
-    );
-    const initialVoices = initialModel?.voices?.filter((voice) => voice?.name).sort((a, b) => a.name.localeCompare(b.name)) || [];
-    setSelectedModelVoices(initialVoices);
-  }, [user.settings.textToSpeechModel.model_id, textToSpeechModels]);
-
-  const handleSpeechToTextModelChange = useCallback((e) => {
-    const selectedModel = speechToTextModels.find((model) => model.name === e.target.value);
+  const updateUserSettings = useCallback((newSettings) => {
     setUser((prevUser) => ({
       ...prevUser,
       settings: {
         ...prevUser.settings,
-        speechToTextModel: {
-          model: selectedModel.name,
-          vendor: selectedModel.vendor,
-        },
+        ...newSettings,
       },
     }));
-  }, [setUser, speechToTextModels]);
+  }, [setUser]);
 
-  const speechToTextOptions = speechToTextModels.map((model) => (
-    <option key={model.name} value={model.name}>
-      {model.vendor} / {model.name}
-    </option>
-  ));
+  useEffect(() => {
+    const initialModel = textToSpeechModels.find(
+      (model) => model.id === user.settings.textToSpeechModel.model_id
+    );
+    const initialVoices = initialModel?.voices
+      ?.filter((voice) => voice?.name)
+      .sort((a, b) => a.name.localeCompare(b.name)) || [];
+    setSelectedModelVoices(initialVoices);
+  }, [user.settings.textToSpeechModel.model_id, textToSpeechModels]);
 
-  const handleTextToSpeechModelChange = (e) => {
+  const speechToTextOptions = useMemo(() =>
+    speechToTextModels.map((model) => (
+      <option key={model.name} value={model.name}>
+        {model.vendor} / {model.name}
+      </option>
+    )),
+    [speechToTextModels]
+  );
+
+  const textToSpeechOptions = useMemo(() =>
+    textToSpeechModels.map((model) => (
+      <option key={model.name} value={model.id}>
+        {model.vendor} / {model.name}
+      </option>
+    )),
+    [textToSpeechModels]
+  );
+
+  const voiceOptions = useMemo(() =>
+    selectedModelVoices.map((voice) => (
+      <option key={voice.id} value={voice.id}>
+        {voice.name}
+      </option>
+    )),
+    [selectedModelVoices]
+  );
+
+  const handleSpeechToTextModelChange = useCallback((e) => {
+    const selectedModel = speechToTextModels.find((model) => model.name === e.target.value);
+    updateUserSettings({
+      speechToTextModel: {
+        model: selectedModel.name,
+        vendor: selectedModel.vendor,
+      },
+    });
+  }, [speechToTextModels, updateUserSettings]);
+
+  const handleTextToSpeechModelChange = useCallback((e) => {
     const selectedModel = textToSpeechModels.find((model) => model.id === e.target.value);
 
     if (selectedModel) {
       const sortedVoices = selectedModel.voices
         ?.filter((voice) => voice?.name)
         .sort((a, b) => a.name.localeCompare(b.name)) || [];
+
       setSelectedModelVoices(sortedVoices);
 
-      // Check if the currently selected voice is in the new list of voices
       const currentVoiceId = user.settings.textToSpeechModel.voice_id;
-      const defaultVoiceId = sortedVoices.length > 0 ? sortedVoices[0].id : '';
+      const defaultVoiceId = sortedVoices[0]?.id || '';
       const isCurrentVoiceInList = sortedVoices.some(voice => voice.id === currentVoiceId);
 
-      setUser((prevUser) => ({
-        ...prevUser,
-        settings: {
-          ...prevUser.settings,
-          textToSpeechModel: {
-            ...prevUser.settings.textToSpeechModel,
-            model_id: e.target.value,
-            voice_id: isCurrentVoiceInList ? currentVoiceId : defaultVoiceId, // Use default voice if current is not in list
-            vendor: selectedModel.vendor,
-          },
-        },
-      }));
-    } else {
-      setSelectedModelVoices([]);
-    }
-  };
-
-  const textToSpeechOptions = textToSpeechModels.map((model) => (
-    <option key={model.name} value={model.id}>
-      {model.vendor} / {model.name}
-    </option>
-  ));
-
-  const voiceOptions = selectedModelVoices.map((voice) => (
-    <option key={voice.id} value={voice.id}>
-      {voice.name}
-    </option>
-  ));
-
-  const handleVoiceChange = (e) => {
-    const selectedVoiceId = e.target.value;
-    setUser((prevUser) => ({
-      ...prevUser,
-      settings: {
-        ...prevUser.settings,
+      updateUserSettings({
         textToSpeechModel: {
-          ...prevUser.settings.textToSpeechModel,
-          voice_id: selectedVoiceId,
+          ...user.settings.textToSpeechModel,
+          model_id: e.target.value,
+          voice_id: isCurrentVoiceInList ? currentVoiceId : defaultVoiceId,
+          vendor: selectedModel.vendor,
         },
+      });
+    }
+  }, [textToSpeechModels, user.settings.textToSpeechModel, updateUserSettings]);
+
+  const handleVoiceChange = useCallback((e) => {
+    updateUserSettings({
+      textToSpeechModel: {
+        ...user.settings.textToSpeechModel,
+        voice_id: e.target.value,
       },
-    }));
-  };
+    });
+  }, [user.settings.textToSpeechModel, updateUserSettings]);
 
   return (
     <div className="speech-tab">
-      <label>
-        {t('speech_to_text_model_title')}:
-        <select value={user.settings.speechToTextModel} onChange={handleSpeechToTextModelChange}>
-          {speechToTextOptions}
-        </select>
-      </label>
-      <label>
-        {t('text_to_speech_model_title')}:
-        <select value={user.settings.textToSpeechModel.model_id} onChange={handleTextToSpeechModelChange}>
-          {textToSpeechOptions}
-        </select>
-      </label>
+      <SelectField
+        label={t('speech_to_text_model_title')}
+        value={user.settings.speechToTextModel}
+        onChange={handleSpeechToTextModelChange}
+        options={speechToTextOptions}
+      />
+      <SelectField
+        label={t('text_to_speech_model_title')}
+        value={user.settings.textToSpeechModel.model_id}
+        onChange={handleTextToSpeechModelChange}
+        options={textToSpeechOptions}
+      />
       {selectedModelVoices.length > 0 && (
-        <label>
-          {t('voice_settings_title')}:
-          <select
-            value={user.settings.textToSpeechModel.voice_id || ''}
-            onChange={handleVoiceChange}
-          >
-            {voiceOptions}
-          </select>
-        </label>
+        <SelectField
+          label={t('voice_settings_title')}
+          value={user.settings.textToSpeechModel.voice_id || ''}
+          onChange={handleVoiceChange}
+          options={voiceOptions}
+        />
       )}
     </div>
   );
+};
+
+SelectField.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+  options: PropTypes.node.isRequired,
 };
 
 SpeechTab.propTypes = {
@@ -132,4 +144,4 @@ SpeechTab.propTypes = {
   textToSpeechModels: PropTypes.arrayOf(textToSpeechModelShape).isRequired,
 };
 
-export default SpeechTab;
+export default SpeechTab;  

@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { userShape } from "../../../model/userPropType";
 import { isShortcutAllowed } from "../util/shortcutValidator";
-import { DISALLOWED_SHORTCUTS, SHORTCUT_CATEGORIES } from '../util/constants/shortcuts';
+import { DISALLOWED_SHORTCUTS } from '../util/constants/shortcuts';
 import "./MacroTab.scss";
 
 function MacroTab({ user, setUser }) {
@@ -61,10 +61,10 @@ function MacroTab({ user, setUser }) {
 
   const handleShortcutValidation = (macro, value) => {
 
-// Check if a shortcut is disallowed  
-  const isDisallowed = DISALLOWED_SHORTCUTS.has(value); // returns true
-  console.log('isDisallowed', isDisallowed);
-  console.log('!isShortcutAllowed(value)', !isShortcutAllowed(value));
+    // Check if a shortcut is disallowed  
+    const isDisallowed = DISALLOWED_SHORTCUTS.has(value); // returns true
+    console.log('isDisallowed', isDisallowed);
+    console.log('!isShortcutAllowed(value)', !isShortcutAllowed(value));
 
     console.log('value', value);
     if (!isShortcutAllowed(value)) {
