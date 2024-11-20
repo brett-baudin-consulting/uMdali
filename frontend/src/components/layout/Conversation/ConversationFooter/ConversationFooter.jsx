@@ -10,7 +10,7 @@ import { conversationShape } from "../../../../model/conversationPropType";
 import { userShape } from "../../../../model/userPropType";
 import { handleKeyDown as handleKeyDownUtility } from "../../../common/util/useTextareaKeyHandlers";
 import {modelShape} from "../../../../model/modelPropType";
-import SpeechToText from "./SpeechToText";
+import AudioRecorder from "./AudioRecorder";
 
 import "./ConversationFooter.scss";
 
@@ -265,7 +265,7 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
         <button onClick={toggleHeight} title={t("toggle_height_title")}>
           {isExpanded ? t("expand") : t("shrink")}
         </button>
-        <SpeechToText 
+        <AudioRecorder 
         isStreaming={isStreaming} 
         setInput={setInput}
         setError={setError}
