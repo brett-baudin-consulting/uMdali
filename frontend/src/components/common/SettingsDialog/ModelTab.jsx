@@ -1,9 +1,13 @@
+// components/ModelTab/ModelTab.jsx  
 import React, { useMemo } from "react";
 import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
+
+import SelectField from "./SelectField";
 import ReadonlyCheckbox from "./ReadonlyCheckbox";
 import { userShape } from "../../../model/userPropType";
 import { modelShape } from "../../../model/modelPropType";
+
 import "./ModelTab.scss";
 
 const ModelTab = ({ user, setUser, models }) => {
@@ -22,6 +26,22 @@ const ModelTab = ({ user, setUser, models }) => {
         ),
         [models]
     );
+
+    const modelOptions = useMemo(() => (
+        sortedModels.map((model) => (
+            <option
+                key={`${model.vendor}/${model.name}`}
+                value={`${model.vendor}/${model.name}`}
+            >
+                {`${model.vendor}/${model.name}`}
+                {model.isSupportsVision ? 'I ' : ''}
+                {model.isSupportsAudio ? 'A ' : ''}
+                {model.isSupportsVideo ? 'V ' : ''}
+                {model.isSupportsContext ? 'C ' : ''}
+                {model.isSupportsStreaming ? 'S' : ''}
+            </option>
+        ))
+    ), [sortedModels]);
 
     const handleModelChange = (e) => {
         const [newVendor, newName] = e.target.value.split('/');
@@ -75,28 +95,12 @@ const ModelTab = ({ user, setUser, models }) => {
 
     return (
         <div className="model-tab">
-            <div className="form-group">
-                <label htmlFor="model-select">{t('model_title')}:</label>
-                <select
-                    id="model-select"
-                    value={user.settings.model}
-                    onChange={handleModelChange}
-                >
-                    {sortedModels.map((model) => (
-                        <option
-                            key={`${model.vendor}/${model.name}`}
-                            value={`${model.vendor}/${model.name}`}
-                        >
-                            {`${model.vendor}/${model.name}`}
-                            {model.isSupportsVision ? 'I ' : ''}
-                            {model.isSupportsAudio ? 'A ' : ''}
-                            {model.isSupportsVideo ? 'V ' : ''}
-                            {model.isSupportsContext ? 'C ' : ''}
-                            {model.isSupportsStreaming ? 'S' : ''}
-                        </option>
-                    ))}
-                </select>
-            </div>
+            <SelectField
+                label={t('model_title')}
+                value={user.settings.model}
+                onChange={handleModelChange}
+                options={modelOptions}
+            />
 
             <div className="readonly-checkbox-container">
                 <ReadonlyCheckbox

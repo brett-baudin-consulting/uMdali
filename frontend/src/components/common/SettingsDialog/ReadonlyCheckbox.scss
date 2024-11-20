@@ -1,8 +1,13 @@
-.readonly-label {
-    opacity: 0.6;
-    cursor: not-allowed;
+.readonly-checkbox-container {
 
-    .readonly-input {
-        pointer-events: none;
+    margin-bottom: 10px;
+
+    .readonly-label {
+        opacity: 0.6;
+        cursor: not-allowed;
+
+        .readonly-input {
+            pointer-events: none;
+        }
     }
 }
