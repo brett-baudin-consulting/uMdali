@@ -1,9 +1,7 @@
 // DataTab.jsx  
 import React, { useMemo, useRef, useState, useCallback } from "react";
-import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 import SelectField from "./SelectField";
-import { userShape } from "../../../model/userPropType";
 import { importData } from "../../../api/dataImportModelService";
 import "./DataTab.scss";
 

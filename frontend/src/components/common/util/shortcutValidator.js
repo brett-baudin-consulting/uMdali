@@ -75,6 +75,7 @@ export const testShortcutValidator = () => {
   ];
 
   testCases.forEach(testCase => {  
-    const result = isShortcutAllowed(testCase);  
+    const result = isShortcutAllowed(testCase); 
+    console.log(`Shortcut ${testCase} is ${result ? 'allowed' : 'not allowed'}`); 
   });  
 };  
