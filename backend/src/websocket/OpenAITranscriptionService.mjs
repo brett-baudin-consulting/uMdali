@@ -17,7 +17,6 @@ class OpenAITranscriptionService extends TranscriptionService {
     const requiredEnvVars = [
       'OPENAI_TRANSCRIPTION_API_KEY',
       'OPENAI_TRANSCRIPTION_ENDPOINT',
-      'OPENAI_TRANSCRIPTION_MODEL',
       'OPENAI_TRANSCRIPTION_TIMEOUT_MS'];
     const missingEnvVars = requiredEnvVars.filter(envVar => !env[envVar]);
     if (missingEnvVars.length > 0) {
