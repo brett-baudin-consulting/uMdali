@@ -74,6 +74,8 @@ const AudioRecorder = ({ setInput, isStreaming, setError }) => {
 
                 const audioBlob = new Blob(audioChunks);
                 const base64Data = await convertBlobToBase64(audioBlob);
+                // log base64Data size to console
+                console.log("base64Data size", base64Data.length);
                 if (webSocketRef.current.readyState === WebSocket.OPEN) {
                     const message = JSON.stringify({
                         options: { serviceId: 'OpenAITranscriptionService' },

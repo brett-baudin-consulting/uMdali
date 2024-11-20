@@ -28,6 +28,7 @@ class OpenAITranscriptionService extends TranscriptionService {
     try {
       const formData = new FormData();
       const blob = new Blob([audioBuffer], { type: 'audio/webm' });
+      console.log('blob length', blob.length);
       formData.append('model', 'whisper-1');
       formData.append('file', blob, 'audio.webm'); // Adjusted for native FormData usage
 
