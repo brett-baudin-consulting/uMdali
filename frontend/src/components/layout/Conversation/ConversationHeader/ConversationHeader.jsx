@@ -103,7 +103,7 @@ ConversationHeader.propTypes = {
           modelName: PropTypes.string,
           content: PropTypes.string,
           role: PropTypes.string,
-          files: PropTypes.arrayOf(PropTypes.string),
+          files: PropTypes.arrayOf(PropTypes.object),
         })
       ),
       createdTimestamp: PropTypes.string,

@@ -60,22 +60,3 @@ export const isShortcutAllowed = (shortcut) => {
   return validateShortcutFormat(normalizedShortcut) &&   
          !DISALLOWED_SHORTCUTS.has(normalizedShortcut);  
 };
-
-// Test function  
-export const testShortcutValidator = () => {  
-  const testCases = [  
-    'Ctrl+C',  
-    'ctrl+c',  
-    'Control+c',  
-    'CTRL+C',  
-    'ctrl+v',  
-    'alt+f4',  
-    'shift+ctrl+t',  
-    'cmd+shift+z'  
-  ];
-
-  testCases.forEach(testCase => {  
-    const result = isShortcutAllowed(testCase); 
-    console.log(`Shortcut ${testCase} is ${result ? 'allowed' : 'not allowed'}`); 
-  });  
-};  

@@ -16,28 +16,45 @@ const handleResponse = async (response) => {
 export const apiClient = {
   async fetch(endpoint, options = {}) {
     const url = `${SERVER_BASE_URL}${endpoint}`;
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers: {
-          ...COMMON_HEADERS,
-          ...options.headers,
-        },
-      });
+    const defaultHeaders = {
+      'Content-Type': 'application/json',
+    };
 
-      // If streaming is requested, return the raw response  
-      if (options.stream) {
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`HTTP error! status: ${response.status} ${errorText}`);
-        }
-        return response;
-      }
-
-      return await handleResponse(response);
-    } catch (error) {
-      console.error('API request failed:', error);
-      throw error;
+    // Don't set Content-Type for FormData  
+    if (options.body instanceof FormData) {
+      delete defaultHeaders['Content-Type'];
     }
+
+    const config = {
+      ...options,
+      headers: {
+        ...defaultHeaders,
+        ...options.headers,
+      },
+    };
+
+    const response = await fetch(url, config);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Handle different response types  
+    if (options.responseType === 'blob') {
+      return response.blob();
+    }
+
+    if (options.stream) {
+      return response;
+    }
+
+    // Check if the response is a stream  
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('text/event-stream')) {
+      return response;
+    }
+
+    // Default to JSON parsing  
+    return response.json();
   }
 };  

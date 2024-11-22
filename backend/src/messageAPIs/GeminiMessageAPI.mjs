@@ -191,7 +191,6 @@ class GeminiMessageAPI extends MessageAPI {
 
   async _fetchStreamResponse(requestOptions, userModel, signal) {
     const FULL_URL = `${GEMINI_API_URL}${userModel || this.MODEL}:streamGenerateContent?key=${this.API_KEY}`;
-    console.log("requestOptions:", requestOptions);
     const response = await fetch(FULL_URL, requestOptions);
     if (!response.ok) {
       await handleApiErrorResponse(response);

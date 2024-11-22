@@ -28,6 +28,16 @@ function MacroTab({ user, setUser }) {
     }
   }, [sortedMacros, selectedItemId]);
 
+  useEffect(() => {
+    setUser(prevUser => ({
+      ...prevUser,
+      settings: {
+        ...prevUser.settings,
+        macros: macros
+      }
+    }));
+  }, [macros, setUser]);
+
   const handleMacroChange = useCallback((macro, key, value) => {
     setMacros(prevMacros => prevMacros.map((m) =>
       m.macroId === macro.macroId ? { ...m, [key]: value } : m
@@ -55,9 +65,7 @@ function MacroTab({ user, setUser }) {
   const handleShortcutValidation = useCallback((macro, value) => {
     if (!isShortcutAllowed(value)) {
       alert(t('shortcutNotAllowed', { value }));
-      requestAnimationFrame(() => {
-        document.querySelector(`input[data-id='${macro.macroId}'][name='shortcut']`)?.focus();
-      });
+      // Using refs could be a better approach here instead of querying the DOM  
     }
   }, [t]);
 
@@ -120,4 +128,4 @@ MacroTab.propTypes = {
   setUser: PropTypes.func.isRequired,
 };
 
-export default MacroTab;
+export default MacroTab;  

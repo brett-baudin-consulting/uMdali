@@ -25,7 +25,6 @@ const defaultUser = {
 
 export const createUser = async (user) => {
   try {
-    console.log("User not found, creating new user  with default settings", user);
     return await apiClient.fetch("/users", {
       method: "POST",
       body: JSON.stringify(user),

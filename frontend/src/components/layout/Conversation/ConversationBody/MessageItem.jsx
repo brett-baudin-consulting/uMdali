@@ -7,7 +7,7 @@ import ModalDialog from '../../../common/ModalDialog/ModalDialog';
 import { messageShape, conversationShape } from '../../../../model/conversationPropType';
 import { handleKeyDown as handleKeyDownUtility } from "../../../common/util/useTextareaKeyHandlers";
 import { userShape } from "../../../../model/userPropType";
-import FileItem from '../ConversationFooter/FileItem';
+import ImageFileItem from './ImageFileItem';
 import { deleteFile } from "../../../../api/fileService";
 import MarkdownLatexParser from './MarkdownLatexParser';
 import useVoice from './UseVoice';
@@ -195,7 +195,7 @@ function MessageItem({ message, onDelete, onEdit, user, setError, currentConvers
 
         <div className="file-list">
           {message?.files?.map((file) => (
-            <FileItem key={file.name} file={file} onDelete={handleDeleteFile} currentConversation={currentConversation} />
+            <ImageFileItem key={file.name} file={file} currentConversation={currentConversation} />
           ))}
         </div>
         <div className={`message-content ${!isExpanded ? 'message-content-shrink' : ''}`}>
