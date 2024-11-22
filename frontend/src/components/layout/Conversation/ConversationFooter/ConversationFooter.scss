@@ -1,68 +1,63 @@
-.conversation-footer {
-  display: table-row;
-  align-items: center;
-  padding: 10px 20px;
-  background-color: var(--color-background-secondary);
-  width: 80%;
-  margin: 0 auto;
-  border-radius: 8px;
+@use 'sass:math';
 
-  .top-footer-menu {
+$footer-width: 80%;
+$footer-padding: 10px 20px;
+$border-radius: 8px;
+$transition-duration: 0.3s;
+
+.conversation-footer {
+  display: flex;
+  flex-direction: column;
+  width: $footer-width;
+  margin: 0 auto;
+  background-color: var(--color-background-secondary);
+  border-radius: $border-radius;
+
+  &__top-menu {
     display: flex;
     justify-content: center;
-    align-items: center;
-    width: 100%;
-    margin-bottom: 10px;
+    gap: 10px;
+    padding: $footer-padding;
   }
 
-  .file-list {
+  &__file-list {
     display: flex;
     flex-wrap: wrap;
-    justify-content: flex-start;
-    align-items: center;
-    margin-bottom: 10px;
+    gap: 10px;
+    padding: 0 $footer-padding;
   }
 
-  .footer-body {
+  &__input-container {
     display: flex;
     align-items: center;
-    padding: 10px 20px;
+    gap: 2px;
+    padding: $footer-padding;
     background-color: var(--color-background-primary);
-    width: 100%;
-    margin: 0 auto;
-    border-radius: 8px;
+    border-radius: $border-radius;
   }
 
-  textarea {
+  &__textarea {
     flex: 1;
-    padding: 8px 10px;
-    margin-right: 10px;
-    margin-left: 10px;
+    min-height: 40px;
+    padding: 8px;
     border: none;
-    border-radius: 4px;
+    border-radius: math.div($border-radius, 2);
     background-color: var(--color-background-primary);
     color: var(--color-text-primary);
-    outline: none;
     resize: none;
+    transition: height $transition-duration ease;
 
-    &::placeholder {
-      color: #aaa;
+    &--expanded {
+      height: 100vh;
     }
-
-    font: 1em sans-serif;
-  }
-
-  .spacer {
-    width: 5px;
   }
 
   button {
-    padding: 8px 8px;
+    padding: 8px;
     border: none;
-    border-radius: 4px;
-
+    border-radius: math.div($border-radius, 2);
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color $transition-duration ease;
 
     &:disabled {
       background-color: var(--color-background-secondary);
