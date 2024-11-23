@@ -8,18 +8,16 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem 1rem;
+    padding: 5px;
     background-color: rgba(75, 70, 70, 0.8);
   }
 
   &__language {
     color: #fff;
-    font-size: 0.875rem;
-    text-transform: uppercase;
   }
 
   &__copy-button {
-    padding: 0.5rem 1rem;
+    padding: 5px 10px;
     background-color: transparent;
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 4px;
