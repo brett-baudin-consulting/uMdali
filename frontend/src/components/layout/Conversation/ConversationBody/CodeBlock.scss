@@ -1,32 +1,47 @@
-.code-block-container {
-    position: relative;
-    padding-top: 30px;
-    font-size: small;
-  }
-  
-  .code-block-header {
-    position: absolute;
-    top: 0;
-    left: 0;
-    padding: 5px;
-    z-index: 1;
+// CodeBlock.scss  
+.code-block {
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+
+  &__header {
     display: flex;
     justify-content: space-between;
-    width: 100%;
-    background: rgba(75, 70, 70, 0.8);
-    box-sizing: border-box;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: rgba(75, 70, 70, 0.8);
   }
-  
-  .copy-code-button {
-    padding: 5px 10px;
-    margin-right: 5px;
+
+  &__language {
+    color: #fff;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+  }
+
+  &__copy-button {
+    padding: 0.5rem 1rem;
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    color: #fff;
     cursor: pointer;
-    background: transparent;
-    border: none;
-    border-radius: 3px;
-    transition: background 0.3s ease;
-  
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+
     &:hover {
-      background: #ccc;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
     }
   }
+
+  &__content {
+    pre {
+      margin: 0 !important;
+      border-radius: 0 0 4px 4px;
+    }
+  }
+}
