@@ -15,7 +15,7 @@ export const useTextArea = (initialValue = '') => {
     textarea.style.height = 'auto'; // Reset height before calculating
 
     const newHeight = isExpanded
-      ? `${window.innerHeight}px`
+      ? `${window.innerHeight-140}px`
       : `${Math.min(textarea.scrollHeight, MAX_HEIGHT)}px`;
 
     textarea.style.height = newHeight;
