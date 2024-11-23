@@ -1,67 +1,81 @@
 @use 'sass:math';
 
-$footer-width: 80%;
-$footer-padding: 10px 20px;
-$border-radius: 8px;
+$footer-padding: 10px 20px;  
+$border-radius: 8px;  
 $transition-duration: 0.3s;
 
-.conversation-footer {
-  display: flex;
-  flex-direction: column;
-  width: $footer-width;
-  margin: 0 auto;
-  background-color: var(--color-background-secondary);
-  border-radius: $border-radius;
+.conversation-footer {  
+  display: flex;  
+  flex-direction: column;  
+  width: 100%; // Take full width of parent  
+  max-width: 1200px; // Optional: set maximum width  
+  margin: 0 auto;  
+  background-color: var(--color-background-secondary);  
+  border-radius: $border-radius;  
+  padding: 10px;  
+  box-sizing: border-box;
 
-  &__top-menu {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    padding: $footer-padding;
+  &__top-menu {  
+    display: flex;  
+    justify-content: center;  
+    gap: 10px;  
+    padding: $footer-padding;  
+    box-sizing: border-box;  
   }
 
-  &__file-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 0 $footer-padding;
+  &__file-list {  
+    display: flex;  
+    flex-wrap: wrap;  
+    gap: 10px;  
+    padding: 0 $footer-padding;  
+    box-sizing: border-box;  
+    width: 100%;  
   }
 
-  &__input-container {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    padding: $footer-padding;
-    background-color: var(--color-background-primary);
-    border-radius: $border-radius;
+  &__input-container {  
+    display: flex;  
+    align-items: center;  
+    gap: 2px;  
+    padding: $footer-padding;  
+    background-color: var(--color-background-primary);  
+    border-radius: $border-radius;  
+    margin: 0 10px 10px 10px;  
+    width: calc(100% - 20px);  
+    box-sizing: border-box;  
   }
 
-  &__textarea {
-    flex: 1;
-    min-height: 40px;
-    padding: 8px;
-    border: none;
-    border-radius: math.div($border-radius, 2);
-    background-color: var(--color-background-primary);
-    color: var(--color-text-primary);
-    resize: none;
-    transition: height $transition-duration ease;
+  &__textarea {  
+    flex: 1;  
+    min-height: 40px;  
+    max-height: 200px;  
+    padding: 8px;  
+    border: none;  
+    border-radius: math.div($border-radius, 2);  
+    background-color: var(--color-background-primary);  
+    color: var(--color-text-primary);  
+    resize: none;  
+    transition: height $transition-duration ease;  
+    overflow-y: auto;  
+    box-sizing: border-box;
 
-    &--expanded {
-      height: 100vh;
-    }
+    &--expanded {  
+      height: 100vh;  
+      max-height: none;  
+    }  
   }
 
-  button {
-    padding: 8px;
-    border: none;
-    border-radius: math.div($border-radius, 2);
-    cursor: pointer;
-    transition: background-color $transition-duration ease;
+  button {  
+    padding: 8px;  
+    border: none;  
+    border-radius: math.div($border-radius, 2);  
+    cursor: pointer;  
+    transition: background-color $transition-duration ease;  
+    flex-shrink: 0;  
+    box-sizing: border-box;
 
-    &:disabled {
-      background-color: var(--color-background-secondary);
-      cursor: not-allowed;
-    }
-  }
-}
+    &:disabled {  
+      background-color: var(--color-background-secondary);  
+      cursor: not-allowed;  
+    }  
+  }  
+}  

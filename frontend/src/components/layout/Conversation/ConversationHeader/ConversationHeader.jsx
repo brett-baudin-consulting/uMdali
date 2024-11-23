@@ -1,63 +1,72 @@
-import React, { useState, useCallback } from "react";
-import { useTranslation } from "react-i18next";
+import React, { useState, useCallback, memo } from "react";  
+import { useTranslation } from "react-i18next";  
 import PropTypes from "prop-types";
 
-import SettingsDialog from "../../../common/SettingsDialog/SettingsDialog";
+import SettingsDialog from "../../../common/SettingsDialog/SettingsDialog";  
 import UserMenu from "./UserMenu";
 
 import "./ConversationHeader.scss";
 
-const ConversationHeader = ({ models,
-  user,
-  setUser,
-  isLoggedIn,
-  setIsLoggedIn,
-  speechToTextModels,
-  textToSpeechModels,
-  dataImportModels,
-  fetchedConversations,
-  setFetchedConversations
-}) => {
-  const { t } = useTranslation();
+const SettingsButton = memo(({ onClick, label }) => (  
+  <button  
+    aria-label={label}  
+    className="settings-button"  
+    onClick={onClick}  
+  >  
+    {label}  
+  </button>  
+));
+
+const ConversationHeader = memo(({   
+  models,  
+  user,  
+  setUser,  
+  isLoggedIn,  
+  setIsLoggedIn,  
+  speechToTextModels,  
+  textToSpeechModels,  
+  dataImportModels,  
+  fetchedConversations,  
+  setFetchedConversations  
+}) => {  
+  const { t } = useTranslation();  
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  const handleSettingsClick = useCallback(() => {
-    setIsSettingsOpen((isOpen) => !isOpen);
+  const handleSettingsClick = useCallback(() => {  
+    setIsSettingsOpen(prev => !prev);  
   }, []);
 
-  const handleCloseSettings = useCallback(() => {
-    setIsSettingsOpen(false);
+  const handleCloseSettings = useCallback(() => {  
+    setIsSettingsOpen(false);  
   }, []);
 
-  return (
-    <div className="conversation-header">
-      <div className="title-container">
-        <h3>{t("app_title")}</h3>
-      </div>
-      {isLoggedIn && <UserMenu user={user} setIsLoggedIn={setIsLoggedIn} />}
-      <button
-        title={t("settings_title")}
-        className="settings-button"
-        onClick={handleSettingsClick}
-      >
-        {t("settings")}
-      </button>
-      {isSettingsOpen && (
-        <SettingsDialog
-          onClose={handleCloseSettings}
-          user={user}
-          setUser={setUser}
-          models={models}
-          speechToTextModels={speechToTextModels}
-          textToSpeechModels={textToSpeechModels}
-          dataImportModels={dataImportModels}
-          fetchedConversations={fetchedConversations}
-          setFetchedConversations={setFetchedConversations}
-        />
-      )}
-    </div>
-  );
-};
+  return (  
+    <header className="conversation-header">  
+      <div className="title-container">  
+        <h1>{t("app_title")}</h1>  
+      </div>  
+      {isLoggedIn && <UserMenu user={user} setIsLoggedIn={setIsLoggedIn} />}  
+      <SettingsButton   
+        onClick={handleSettingsClick}  
+        label={t("settings")}  
+      />  
+      {isSettingsOpen && (  
+        <SettingsDialog  
+          onClose={handleCloseSettings}  
+          user={user}  
+          setUser={setUser}  
+          models={models}  
+          speechToTextModels={speechToTextModels}  
+          textToSpeechModels={textToSpeechModels}  
+          dataImportModels={dataImportModels}  
+          fetchedConversations={fetchedConversations}  
+          setFetchedConversations={setFetchedConversations}  
+        />  
+      )}  
+    </header>  
+  );  
+});
+
 
 ConversationHeader.propTypes = {
   user: PropTypes.shape({
