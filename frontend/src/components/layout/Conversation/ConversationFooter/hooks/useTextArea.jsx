@@ -56,6 +56,7 @@ export const useTextArea = (initialValue = '') => {
     setValue,
     textareaRef,
     isExpanded,
+    setIsExpanded,
     toggleExpand,
     lastHeight,
     handleChange,

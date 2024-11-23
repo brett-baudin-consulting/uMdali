@@ -1,7 +1,6 @@
-// ConversationFooter.jsx    
 import { useState, useEffect, useCallback, useRef } from "react";
-import PropTypes from 'prop-types';
 import { useTranslation } from "react-i18next";
+import PropTypes from "prop-types";
 import hljs from 'highlight.js';
 
 import { deleteFile } from "../../../../api/fileService";
@@ -23,14 +22,14 @@ const BOT_ROLE = "bot";
 
 const ConversationFooter = ({
   user,
-  currentConversation,
+  currentConversation = null,
   setCurrentConversation,
   onSendMessage,
   onResendMessage,
-  isStreaming,
+  isStreaming = false,
   setIsStreaming,
   abortFetch,
-  isWaitingForResponse,
+  isWaitingForResponse = false,
   setError,
   models
 }) => {
@@ -44,7 +43,8 @@ const ConversationFooter = ({
     textareaRef,
     isExpanded,
     setIsExpanded,
-    toggleExpand
+    toggleExpand, 
+    handleChange
   } = useTextArea("");
 
   const {
@@ -62,11 +62,11 @@ const ConversationFooter = ({
     if (!isStreaming) {
       textareaRef.current?.focus();
     }
-  }, [isStreaming]);
+  }, [isStreaming, textareaRef]);
 
   useEffect(() => {
     if (currentConversation?.messages?.length > 0) {
-      setLastMessageRole(currentConversation.messages[currentConversation.messages.length - 1].role);
+      setLastMessageRole(currentConversation.messages.slice(-1)[0].role);
     }
   }, [currentConversation?.messages]);
 
@@ -77,29 +77,37 @@ const ConversationFooter = ({
     if (trimmedInput || fileList.length > 0) {
       try {
         await onSendMessage(trimmedInput, fileList, user.settings.model);
-        textareaRef.current?.focus();
         setInput("");
         setFileList([]);
         setIsExpanded(false);
+        textareaRef.current?.focus(); // Focus after state updates  
       } catch (error) {
         setError(error);
         console.error('Failed to send message:', error);
       }
     }
-  }, [currentConversation, input, fileList, onSendMessage, user.settings.model, setInput, setFileList, toggleExpand, setError]);
+  }, [currentConversation, input, fileList, onSendMessage, user.settings.model, setInput, setFileList, setIsExpanded, setError, textareaRef]);
 
   const handleAbort = useCallback(() => {
-    setIsStreaming(false);
     abortFetch();
-    textareaRef.current?.focus();
-  }, [setIsStreaming, abortFetch]);
+    setIsStreaming(false);
+    textareaRef.current?.focus(); // Focus after state updates  
+  }, [abortFetch, setIsStreaming, textareaRef]);
+
 
   const handleRetry = useCallback(async () => {
-    const newMessages = [...currentConversation.messages.slice(0, -1)];
+    if (!currentConversation) return;
+    const newMessages = currentConversation.messages.slice(0, -1);
     setCurrentConversation(prevState => ({ ...prevState, messages: newMessages }));
-    await onResendMessage(user.settings.model);
-    textareaRef.current?.focus();
-  }, [currentConversation, setCurrentConversation, onResendMessage, user.settings.model]);
+    try {
+      await onResendMessage(user.settings.model);
+      textareaRef.current?.focus();
+    } catch (error) {
+      setError(error);
+      console.error("Failed to resend message:", error);
+    }
+  }, [currentConversation, setCurrentConversation, onResendMessage, user.settings.model, setError, textareaRef]);
+
 
   const handlePaste = useCallback(async () => {
     try {
@@ -107,39 +115,50 @@ const ConversationFooter = ({
       const detectedLanguage = hljs.highlightAuto(clipboardText);
       const language = detectedLanguage.language || 'plaintext';
       const formattedText = `\n\`\`\`${language}\n${clipboardText}\n\`\`\`\n`;
+      setInput(prevInput => {
+        const cursorPosition = textareaRef.current.selectionStart;
+        const textBeforeCursor = prevInput.substring(0, cursorPosition);
+        const textAfterCursor = prevInput.substring(cursorPosition);
+        const newText = textBeforeCursor + formattedText + textAfterCursor;
 
-      const cursorPosition = textareaRef.current.selectionStart;
-      const textBeforeCursor = input.substring(0, cursorPosition);
-      const textAfterCursor = input.substring(cursorPosition);
-
-      setInput(textBeforeCursor + formattedText + textAfterCursor);
-
-      requestAnimationFrame(() => {
-        const newPosition = (textBeforeCursor + formattedText).length;
-        textareaRef.current?.setSelectionRange(newPosition, newPosition);
-        textareaRef.current?.scrollTo(0, textareaRef.current.scrollHeight);
+        requestAnimationFrame(() => {
+          const newPosition = (textBeforeCursor + formattedText).length;
+          textareaRef.current?.setSelectionRange(newPosition, newPosition);
+        });
+        return newText;
       });
+
     } catch (err) {
       setError(err);
       console.error('Failed to read clipboard:', err);
     }
-  }, [input, setInput, setError]);
+  }, [setInput, setError, textareaRef]);
 
   const handleDeleteFile = useCallback((fileToDelete) => {
     if (!currentConversation?.userId) return;
 
-    deleteFile(currentConversation.userId, fileToDelete.name);
+    deleteFile(currentConversation.userId, fileToDelete.name)
+      .catch(error => {
+        setError(error);
+        console.error("Failed to delete file:", error);
+      });
     setFileList(prev => prev.filter(file => file.name !== fileToDelete.name));
-    textareaRef.current?.focus();
-  }, [currentConversation?.userId, setFileList]);
+  }, [currentConversation?.userId, setFileList, setError]);
 
   const handleFileChange = useCallback(async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    await handleUpload(file);
-    event.target.value = '';
-  }, [handleUpload]);
+    try {
+      await handleUpload(file);
+    } catch (error) {
+      setError(error);
+      console.error("Failed to upload file:", error);
+    } finally {
+      event.target.value = ''; // Reset file input  
+    }
+
+  }, [handleUpload, setError]);
 
   const handleKeyDown = useCallback((e) => {
     handleKeyDownUtility(e, setInput, input, textareaRef, user.settings.macros);
@@ -147,7 +166,7 @@ const ConversationFooter = ({
       e.preventDefault();
       handleSend();
     }
-  }, [input, user.settings.macros, handleSend, setInput]);
+  }, [input, user.settings.macros, handleSend, setInput, textareaRef]);
 
   const doesModelSupportFiles = useCallback((models, modelName) => {
     const [vendor, name] = modelName.split('/');
@@ -157,7 +176,7 @@ const ConversationFooter = ({
 
   const handleFileButtonClick = useCallback(() => {
     fileInputRef.current?.click();
-  }, []);
+  }, [fileInputRef]);
 
   return (
     <ErrorBoundary>
@@ -255,12 +274,6 @@ ConversationFooter.propTypes = {
   isWaitingForResponse: PropTypes.bool,
   setError: PropTypes.func.isRequired,
   models: PropTypes.arrayOf(modelShape).isRequired,
-};
-
-ConversationFooter.defaultProps = {
-  isStreaming: false,
-  isWaitingForResponse: false,
-  currentConversation: null
 };
 
 export default ConversationFooter;    
