@@ -240,7 +240,7 @@ const ConversationFooter = ({
             onClick={toggleExpand}
             title={t("toggle_height_title")}
           >
-            {isExpanded ? t("shrink") : t("expand")}
+            {!isExpanded ? t("shrink") : t("expand")}
           </button>
 
           <AudioRecorder
