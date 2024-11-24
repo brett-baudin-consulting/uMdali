@@ -1,64 +1,60 @@
-// ConversationBody.scss  
-:root {
-  --conversation-body-height: calc(100vh - 110px);
-  --scrollbar-width: 8px;
-  --scrollbar-thumb-color: #888;
-  --scrollbar-track-color: #f1f1f1;
-  --message-background-user: darkgray;
-  --message-background-default: lightgrey;
-}
-
-.conversation-body {
-  $self: &;
-
-  display: flex;
-  flex-direction: column;
-  height: var(--conversation-body-height);
-  width: 80%;
-  margin: 0 auto;
-  padding: 10px 20px;
-  background-color: var(--color-background-secondary);
-  border-radius: 8px;
+.conversation-body {  
+  display: flex;  
+  flex-direction: column; // Changed to column for proper message flow    
+  overflow-y: auto;  
+  height: calc(100vh - (60px + 50px));  
+  align-items: flex-start; // Align messages to the start    
+  padding: 10px 20px;  
+  background-color: var(--color-background-secondary);  
+  width: 80%;  
+  margin: 0 auto;  
+  border-radius: 8px;  
   box-sizing: border-box;
 
-  &__message-list {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-    width: 100%;
-    overflow-y: auto;
-    display: flex;
+
+  .message-list {  
+    list-style-type: none;  
+    padding: 0;  
+    margin: 0;  
+    width: 100%; // Ensure list takes full width    
+    overflow-y: auto; // Add scroll to the list    
+    display: flex;  
     flex-direction: column;
-    scrollbar-width: thin;
-    scrollbar-color: var(--scrollbar-thumb-color) var(--scrollbar-track-color);
 
-    &::-webkit-scrollbar {
-      width: var(--scrollbar-width);
+    // Scrollbar styles    
+    scrollbar-width: thin;  
+    scrollbar-color: #888 #f1f1f1;
+
+    &::-webkit-scrollbar {  
+      width: 8px;  
     }
 
-    &::-webkit-scrollbar-track {
-      background: var(--scrollbar-track-color);
+    &::-webkit-scrollbar-track {  
+      background: #f1f1f1;  
     }
 
-    &::-webkit-scrollbar-thumb {
-      background: var(--scrollbar-thumb-color);
-      border-radius: 4px;
-    }
+    &::-webkit-scrollbar-thumb {  
+      background: #888;  
+      border-radius: 4px;  
+    }  
   }
 
-  &__message {
-    padding: 10px;
-    margin-bottom: 8px;
-    border-radius: 5px;
-    max-width: 100%;
-    align-self: flex-start;
-    background-color: var(--message-background-default);
-    color: #000000;
 
-    &--user {
-      background-color: var(--message-background-user);
-      color: #ffffff;
-      align-self: flex-end;
-    }
+
+  .message {  
+    padding: 10px;  
+    margin-bottom: 8px;  
+    border-radius: 5px;  
+    max-width: 100%;  
+    align-self: flex-start; // Default alignment    
+    background-color: lightgrey;  
+    color: #000000;  
   }
-}
+
+
+  .user {  
+    background-color: darkgray;  
+    color: #ffffff;  
+    align-self: flex-end; // Align user messages to the right    
+  }  
+}  
