@@ -1,94 +1,86 @@
-import React, { useRef, useEffect } from "react";
+// ConversationBody.jsx  
+import React, { useRef, useLayoutEffect, useMemo, memo } from "react";
 import PropTypes from "prop-types";
-
-import MessageItem from "../ConversationBody/MessageItem";
+import MessageItem from "../ConversationBody/MessageItem.jsx";
 import { conversationShape } from "../../../../model/conversationPropType";
 import { userShape } from "../../../../model/userPropType";
-
 import "./ConversationBody.scss";
+
+const MemoizedMessageItem = memo(MessageItem);
 
 const ConversationBody = ({
   currentConversation,
   setCurrentConversation,
   setConversations,
   user,
-  setError
-
+  setError,
 }) => {
-
   const messagesEndRef = useRef(null);
 
-
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
+  useLayoutEffect(() => {
+    const scrollElement = messagesEndRef.current;
+    if (scrollElement) {
+      scrollElement.scrollTop = scrollElement.scrollHeight;
     }
-  }, [currentConversation]);
+  }, [currentConversation?.messages]);
 
-  const deleteMessage = (messageId) => {
-    const newMessages = currentConversation.messages.filter(
-      (message) => message.messageId !== messageId
-    );
+  const messageHandlers = useMemo(() => ({
+    updateConversation: (updatedConversation) => {
+      setConversations((prevConversations) =>
+        prevConversations.map((conversation) =>
+          conversation.conversationId === updatedConversation.conversationId
+            ? updatedConversation
+            : conversation
+        )
+      );
+      setCurrentConversation(updatedConversation);
+    },
 
-    const updatedConversation = {
-      ...currentConversation,
-      messages: newMessages,
-    };
+    deleteMessage: (messageId) => {
+      const updatedConversation = {
+        ...currentConversation,
+        messages: currentConversation.messages.filter(
+          (message) => message.messageId !== messageId
+        ),
+      };
+      messageHandlers.updateConversation(updatedConversation);
+    },
 
-    setConversations((prevConversations) =>
-      prevConversations.map((conversation) =>
-        conversation.conversationId === updatedConversation.conversationId
-          ? { ...updatedConversation }
-          : conversation
-      )
-    );
-    setCurrentConversation(updatedConversation);
-  };
-
-  const editMessage = (messageId, newContent) => {
-    const newMessages = currentConversation.messages.map((message) =>
-      message.messageId === messageId
-        ? { ...message, content: newContent }
-        : message
-    );
-
-    const updatedConversation = {
-      ...currentConversation,
-      messages: newMessages,
-    };
-
-    setConversations((prevConversations) =>
-      prevConversations.map((conversation) =>
-        conversation.conversationId === updatedConversation.conversationId
-          ? updatedConversation
-          : conversation
-      )
-    );
-    setCurrentConversation(updatedConversation);
-  };
+    editMessage: (messageId, newContent) => {
+      const updatedConversation = {
+        ...currentConversation,
+        messages: currentConversation.messages.map((message) =>
+          message.messageId === messageId
+            ? { ...message, content: newContent }
+            : message
+        ),
+      };
+      messageHandlers.updateConversation(updatedConversation);
+    },
+  }), [currentConversation, setConversations, setCurrentConversation]);
 
   return (
     <div className="conversation-body">
-      <div className="scrollable-container" ref={messagesEndRef}>
-        <ul>
-          {currentConversation?.messages?.map((msg, index) => (
-            <li key={msg.messageId} className={msg.role}>
-              <MessageItem
-                message={msg}
-                onDelete={() => deleteMessage(msg.messageId)}
-                onEdit={(newContent) => editMessage(msg.messageId, newContent)}
-                user={user}
-                setError={setError}
-                currentConversation={currentConversation}
-                setCurrentConversation={setCurrentConversation}
-              />
-            </li>
-          ))}
-        </ul>
-      </div>
+      <ul className="conversation-body__message-list" ref={messagesEndRef}>
+        {currentConversation?.messages?.map((msg) => (
+          <li
+            key={msg.messageId}
+            className={`conversation-body__message conversation-body__message--${msg.role}`}
+          >
+            <MemoizedMessageItem
+              message={msg}
+              onDelete={() => messageHandlers.deleteMessage(msg.messageId)}
+              onEdit={(newContent) => messageHandlers.editMessage(msg.messageId, newContent)}
+              user={user}
+              setError={setError}
+              currentConversation={currentConversation}
+              setCurrentConversation={setCurrentConversation}
+            />
+          </li>
+        ))}
+      </ul>
     </div>
   );
-
 };
 
 ConversationBody.propTypes = {
@@ -96,7 +88,7 @@ ConversationBody.propTypes = {
   setConversations: PropTypes.func.isRequired,
   setCurrentConversation: PropTypes.func.isRequired,
   user: userShape.isRequired,
-  setError: PropTypes.func.isRequired
+  setError: PropTypes.func.isRequired,
 };
 
-export default ConversationBody;
+export default memo(ConversationBody);  

@@ -1,70 +1,64 @@
+// ConversationBody.scss  
+:root {
+  --conversation-body-height: calc(100vh - 110px);
+  --scrollbar-width: 8px;
+  --scrollbar-thumb-color: #888;
+  --scrollbar-track-color: #f1f1f1;
+  --message-background-user: darkgray;
+  --message-background-default: lightgrey;
+}
+
 .conversation-body {
+  $self: &;
+
   display: flex;
-  justify-content: center;
-  overflow-y: auto;
-  height: calc(100vh - (60px + 50px)); // Adjusted for header and footer
-  align-items: center;
-  padding: 10px 20px;
-  background-color: var(--color-background-secondary);
+  flex-direction: column;
+  height: var(--conversation-body-height);
   width: 80%;
   margin: 0 auto;
+  padding: 10px 20px;
+  background-color: var(--color-background-secondary);
   border-radius: 8px;
   box-sizing: border-box;
 
-  .scrollable-container {
-    box-sizing: border-box;
+  &__message-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    overflow-y: auto;
-
-    // Scrollbar styles for Firefox
     scrollbar-width: thin;
-    scrollbar-color: #888 #f1f1f1;
+    scrollbar-color: var(--scrollbar-thumb-color) var(--scrollbar-track-color);
 
-    // Scrollbar styles for Chrome, Safari, and Edge
     &::-webkit-scrollbar {
-      width: 8px;
+      width: var(--scrollbar-width);
     }
 
     &::-webkit-scrollbar-track {
-      background: #f1f1f1;
+      background: var(--scrollbar-track-color);
     }
 
     &::-webkit-scrollbar-thumb {
-      background: #888;
+      background: var(--scrollbar-thumb-color);
       border-radius: 4px;
     }
-
-    >ul {
-      list-style-type: none;
-      padding: 0;
-      margin: 0;
-      align-items: center;
-      width: 100%;
-    }
-
-    >ul>li {
-      padding: 10px;
-      margin-bottom: 8px;
-      border-radius: 5px;
-      max-width: 100%;
-    }
   }
 
-  .user,
-  .bot,
-  .context {
+  &__message {
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 5px;
+    max-width: 100%;
     align-self: flex-start;
-    background-color: lightgrey; // Default color for messages
+    background-color: var(--message-background-default);
     color: #000000;
-  }
 
-  .user {
-    background-color: darkgray; // Dark color for user messages
-    color: #ffffff;
-    align-self: flex-end;
+    &--user {
+      background-color: var(--message-background-user);
+      color: #ffffff;
+      align-self: flex-end;
+    }
   }
 }
