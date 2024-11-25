@@ -1,11 +1,13 @@
 import jsonata from "jsonata";
-
 import { logger } from "../logger.mjs";
 import MessageAPI from "./MessageAPI.mjs";
 import { encodeFiles } from './FileEncoder.mjs';
 
-const { GEMINI_API_KEY, GEMINI_API_URL } =
-  process.env;
+const { GEMINI_API_KEY, GEMINI_API_URL } = process.env;
+
+if (!GEMINI_API_URL || !GEMINI_API_KEY) {
+  throw new Error("Gemini environment variables are not set correctly.");
+}
 
 const SAFETY_SETTINGS = [
   { "category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE" },
@@ -15,188 +17,119 @@ const SAFETY_SETTINGS = [
   { "category": "HARM_CATEGORY_CIVIC_INTEGRITY", "threshold": "BLOCK_NONE" },
 ];
 
-async function handleApiErrorResponse(response) {
-  const text = await response.text();
-  let parsedText;
-  try {
-    parsedText = JSON.parse(text);
-  } catch (error) {
-    // If JSON parsing fails, use the original text  
-    parsedText = text;
-  }
-
-  // Log the error  
-  logger.error("Gemini API response error: ", parsedText);
-
-  // Throw an error with a message, checking if parsedText is an object and has an error.message  
-  const errorMessage = `Gemini API Error: ${parsedText[0]?.error?.message || 'Unknown error occurred'}`;
-  throw new Error(errorMessage);
-}
-
-// JSONata expression  
-const transformWithVision = `  
-{  
-  "contents": $map(*[role != 'context'], function($v, $i, $a) {  
-    {  
-      "role": $v.role = 'bot' ? 'model' : $v.role,  
-      "parts":[   
-          $map($v.files, function($file) {  
-              {  
-                "inlineData": {  
-                  "mimeType": $file.type,  
-                  "data": $file.base64  
-                }  
-              }  
-          }),{  
-        "text": $v.content  
-      }  
-    ]  
-    }  
-  }),  
-    "systemInstruction": $map(*[role = 'context'], function($v, $i, $a) {  
-    {  
-      "role": $v.role = 'bot' ? 'model' : $v.role,  
-      "parts":[   
-          $map($v.files, function($file) {  
-              {  
-                "inlineData": {  
-                  "mimeType": $file.type,  
-                  "data": $file.base64  
-                }  
-              }  
-          }),{  
-        "text": $v.content  
-      }  
-    ]  
-    }  
-  }),  
-  "generation_config": {}  
-}  
-`;
-const transformWithoutVision = `  
-{  
-  "contents": $map(*[role != 'context'], function($v, $i, $a) {  
-    {  
-      "role": $v.role = 'bot' ? 'model' : $v.role,  
-      "parts": {  
-        "text": $v.content  
-      }  
-    }  
-  }),  
-  "generation_config": {}  
-}  
-`;
-
-async function messageToGeminiFormat(messages, isSupportsVision) {
-  if (!isSupportsVision) {
-    const transform = jsonata(transformWithoutVision);
-    const gemini = await transform.evaluate(messages);
-    return gemini;
-  }
-  const transform = jsonata(transformWithVision);
-  const gemini = await transform.evaluate(messages);
-  return gemini;
-}
-
-const checkEnvVariables = () => {
-  if (!GEMINI_API_URL || !GEMINI_API_KEY) {
-    throw new Error("Gemini environment variables are not set correctly.");
-  }
-}
+const messageTransform = jsonata(`      
+  {      
+    "contents": $map(*[role != 'context'], function($v) {      
+      {      
+        "role": $v.role = 'bot' ? 'model' : $v.role,      
+        "parts": $v.files ? [      
+          $map($v.files, function($file) {      
+            { "inlineData": { "mimeType": $file.type, "data": $file.base64 } }      
+          }),      
+          { "text": $v.content }      
+        ] : { "text": $v.content }      
+      }      
+    }),      
+    "systemInstruction": $map(*[role = 'context'], function($v) {      
+      {      
+        "role": $v.role = 'bot' ? 'model' : $v.role,      
+        "parts": $v.files ? [      
+          $map($v.files, function($file) {      
+            { "inlineData": { "mimeType": $file.type, "data": $file.base64 } }      
+          }),      
+          { "text": $v.content }      
+        ] : { "text": $v.content }      
+      }      
+    })      
+  }      
+`);
 
 class GeminiMessageAPI extends MessageAPI {
   constructor() {
     super();
-    checkEnvVariables();
     this.API_KEY = GEMINI_API_KEY;
-    this.MODEL = 'models/gemini-1'; // Set a default model  
+    this.MODEL = 'models/gemini-1';
   }
 
-  _prepareHeaders() {
-    return {
-      "Content-Type": "application/json",
-    };
-  }
 
-  _prepareOptions(body, signal) {
-    return {
-      method: "POST",
-      headers: this._prepareHeaders(),
-      body: JSON.stringify(body),
-      signal: signal,
-    };
-  }
-
-  async sendRequest(messages, signal, options = {}) {
-    const { userModel, maxTokens, temperature, isSupportsVision } = options;
-    if (isSupportsVision) {
-      await encodeFiles(messages);
-    }
-    const updatedMessages = await messageToGeminiFormat(messages, isSupportsVision);
-
-    const requestOptions = this._prepareOptions({
-      contents: updatedMessages.contents,
-      systemInstruction: updatedMessages.systemInstruction,
-      "safetySettings": SAFETY_SETTINGS,
-      generation_config: {
-        temperature: temperature,
-        maxOutputTokens: maxTokens,
-      }
-    }, signal);
-
-    try {
-      const FULL_URL = `${GEMINI_API_URL}${userModel || this.MODEL}:generateContent?key=${this.API_KEY}`;
-      const response = await fetch(FULL_URL, requestOptions);
-      if (!response.ok) {
-        await handleApiErrorResponse(response);
-      }
-
-      const data = await response.json();
-      const content = data?.candidates[0]?.content?.parts[0]?.text;
-      return content;
-    } catch (err) {
-      logger.error("Error in sendRequest:", err);
-      throw err; // Re-throw the error to be handled by the caller  
-    }
-  }
-
-  async sendRequestStreamResponse(messages, resClient, signal, options = {}) {
-    try {
-      const requestOptions = await this._prepareRequestOptions(messages, options, signal);
-      const response = await this._fetchStreamResponse(requestOptions, options.userModel, signal);
-
-      await this._processStreamResponse(response, resClient);
-    } catch (err) {
-      this._handleStreamResponseError(err);
-    }
-  }
-
-  async _prepareRequestOptions(messages, options, signal) {
+  async _prepareRequest(messages, options, signal) {
     const { maxTokens, temperature, isSupportsVision } = options;
     if (isSupportsVision) {
       await encodeFiles(messages);
     }
-    const updatedMessages = await messageToGeminiFormat(messages, isSupportsVision);
 
-    return this._prepareOptions({
-      contents: updatedMessages.contents,
-      systemInstruction: updatedMessages.systemInstruction,
-      "safetySettings": SAFETY_SETTINGS,
-      generation_config: {
-        temperature: temperature,
-        maxOutputTokens: maxTokens,
-      }
-    }, signal);
+    const updatedMessages = await messageTransform.evaluate(messages);
+
+    return {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: updatedMessages.contents,
+        systemInstruction: updatedMessages.systemInstruction || [],
+        safetySettings: SAFETY_SETTINGS,
+        generation_config: { temperature, maxOutputTokens: maxTokens }
+      }),
+      signal
+    };
   }
 
-  async _fetchStreamResponse(requestOptions, userModel, signal) {
-    const FULL_URL = `${GEMINI_API_URL}${userModel || this.MODEL}:streamGenerateContent?key=${this.API_KEY}`;
-    const response = await fetch(FULL_URL, requestOptions);
-    if (!response.ok) {
-      await handleApiErrorResponse(response);
-    }
 
-    return response;
+  async handleApiErrorResponse(response) {
+    const text = await response.text();
+    try {
+      const parsedText = JSON.parse(text);
+      const errorMessage = parsedText[0]?.error?.message ||
+        parsedText.error?.message ||
+        `HTTP ${response.status}: ${response.statusText}`;
+      logger.error("Gemini API response error: ", parsedText);
+      throw new Error(`Gemini API Error: ${errorMessage}`);
+    } catch (error) {
+      logger.error("Gemini API response error: ", text);
+      throw new Error(`Gemini API Error: ${text || response.statusText}`);
+    }
+  }
+
+
+  async sendRequest(messages, signal, options = {}) {
+    try {
+      const requestOptions = await this._prepareRequest(messages, options, signal);
+      const url = new URL(`${GEMINI_API_URL}${options.userModel || this.MODEL}:generateContent`);
+      url.searchParams.append('key', this.API_KEY);
+      const response = await fetch(url, requestOptions);
+
+      if (!response.ok) {
+        await this.handleApiErrorResponse(response); // Use this.handleApiErrorResponse  
+      }
+
+      const data = await response.json();
+      return data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    } catch (err) {
+      logger.error("Error in sendRequest:", err);
+      throw err;
+    }
+  }
+
+
+  async sendRequestStreamResponse(messages, resClient, signal, options = {}) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), options.timeout || 30000);
+
+    try {
+      const requestOptions = await this._prepareRequest(messages, options, signal || controller.signal);
+      const url = new URL(`${GEMINI_API_URL}${options.userModel || this.MODEL}:streamGenerateContent`);
+      url.searchParams.append('key', this.API_KEY);
+      const response = await fetch(url, requestOptions);
+
+      if (!response.ok) {
+        await this.handleApiErrorResponse(response); // Use this.handleApiErrorResponse  
+      }
+
+      await this._processStreamResponse(response, resClient);
+    } catch (err) {
+      this._handleStreamResponseError(err);
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 
   async _processStreamResponse(response, resClient) {
@@ -204,14 +137,16 @@ class GeminiMessageAPI extends MessageAPI {
     let lastChunk = "";
 
     try {
-      for await (const chunk of response.body) {
-        let decodedChunk = textDecoder.decode(chunk, { stream: true });
+      const reader = response.body.getReader();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        let decodedChunk = textDecoder.decode(value, { stream: true });
         decodedChunk = lastChunk + decodedChunk;
 
-        // Split decodedChunk into lines  
         const lines = decodedChunk.split("\n");
 
-        // Handle incomplete lines  
         if (!decodedChunk.endsWith("\n")) {
           lastChunk = lines.pop();
         } else {
@@ -221,46 +156,43 @@ class GeminiMessageAPI extends MessageAPI {
         for (const line of lines) {
           const text = this._extractTextFromLine(line);
           if (text) {
-            resClient.write(text);
+            await new Promise(resolve => resClient.write(text, resolve));
           }
         }
       }
 
-      // Process any remaining data in lastChunk  
       if (lastChunk) {
         const text = this._extractTextFromLine(lastChunk);
         if (text) {
-          resClient.write(text);
+          await new Promise(resolve => resClient.write(text, resolve));
         }
       }
     } catch (err) {
       this._handleStreamResponseError(err);
     } finally {
       resClient.end();
+      if (!response.body.locked) {
+        response.body.cancel();
+      }
     }
   }
 
   _extractTextFromLine(line) {
+    if (!line.trim()) return null;
+
     try {
-      if (!line.trim()) return null;
-
-      // Parse the JSON line if it's valid JSON    
       const data = JSON.parse(line);
-
-      // Extract text from Gemini's response structure    
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
       if (text) {
-        // Handle escaped characters properly    
-        return JSON.parse(`"${text}"`); // This properly unescapes the string    
+        return this._unescapeString(text);
       }
     } catch (err) {
-      // Fallback to regex method if JSON parsing fails    
       try {
         const regex = /"text"\s*:\s*"((?:\\.|[^"\\])*?)"/;
         const match = regex.exec(line);
-        if (match && match[1]) {
-          return JSON.parse(`"${match[1]}"`); // Properly unescapes the string    
+        if (match?.[1]) {
+          return this._unescapeString(match[1]);
         }
       } catch (regexErr) {
         logger.error("Failed to extract text from line:", regexErr);
@@ -269,17 +201,23 @@ class GeminiMessageAPI extends MessageAPI {
     return null;
   }
 
+  _unescapeString(text) {
+    try {
+      return JSON.parse(`"${text}"`);
+    } catch (err) {
+      logger.error("Failed to unescape string:", err);
+      return text;
+    }
+  }
+
   _handleStreamResponseError(err) {
     if (err.name === 'AbortError') {
       logger.error("Fetch aborted:", err);
     } else {
       logger.error("Error sending stream response:", err);
-    }
-    // Do not rethrow the error if it's an AbortError since it's expected behavior  
-    if (err.name !== 'AbortError') {
       throw err;
     }
   }
 }
 
-export default GeminiMessageAPI;
+export default GeminiMessageAPI;  
