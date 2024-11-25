@@ -17,31 +17,31 @@ const SAFETY_SETTINGS = [
   { "category": "HARM_CATEGORY_CIVIC_INTEGRITY", "threshold": "BLOCK_NONE" },
 ];
 
-const messageTransform = jsonata(`      
-  {      
-    "contents": $map(*[role != 'context'], function($v) {      
-      {      
-        "role": $v.role = 'bot' ? 'model' : $v.role,      
-        "parts": $v.files ? [      
-          $map($v.files, function($file) {      
-            { "inlineData": { "mimeType": $file.type, "data": $file.base64 } }      
-          }),      
-          { "text": $v.content }      
-        ] : { "text": $v.content }      
-      }      
-    }),      
-    "systemInstruction": $map(*[role = 'context'], function($v) {      
-      {      
-        "role": $v.role = 'bot' ? 'model' : $v.role,      
-        "parts": $v.files ? [      
-          $map($v.files, function($file) {      
-            { "inlineData": { "mimeType": $file.type, "data": $file.base64 } }      
-          }),      
-          { "text": $v.content }      
-        ] : { "text": $v.content }      
-      }      
-    })      
-  }      
+const messageTransform = jsonata(`  
+  {  
+    "contents": $map(*[role != 'context'], function($v) {  
+      {  
+        "role": $v.role = 'bot' ? 'model' : $v.role,  
+        "parts": $v.files ? [  
+          $map($v.files, function($file) {  
+            { "inlineData": { "mimeType": $file.type, "data": $file.base64 } }  
+          }),  
+          { "text": $v.content }  
+        ] : [{ "text": $v.content }]
+      }  
+    }),  
+    "systemInstruction": $map(*[role = 'context'], function($v) {  
+      {  
+        "role": $v.role = 'bot' ? 'model' : $v.role,  
+        "parts": $v.files ? [  
+          $map($v.files, function($file) {  
+            { "inlineData": { "mimeType": $file.type, "data": $file.base64 } }  
+          }),  
+          { "text": $v.content }  
+        ] : [{ "text": $v.content }] 
+      }  
+    })  
+  }  
 `);
 
 class GeminiMessageAPI extends MessageAPI {
