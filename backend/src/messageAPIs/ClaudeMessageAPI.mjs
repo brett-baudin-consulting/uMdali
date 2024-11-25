@@ -5,218 +5,284 @@ import MessageAPI from "./MessageAPI.mjs";
 import { logger } from "../logger.mjs";
 import { encodeFiles } from './FileEncoder.mjs';
 
-// JSONata expression
+const API_CONSTANTS = {
+    ANTHROPIC_VERSION: '2023-06-01',
+    CONTENT_TYPE: 'application/json',
+    DEFAULT_MAX_TOKENS: 1000,
+    DEFAULT_TEMPERATURE: 0.7,
+    REQUEST_TIMEOUT: 30000
+};
 
-const transformWithVision = `
-$map($filter($, function($message) {
-    $message.role != 'context'
-}), function($message) {
-  {
-      "role": $message.role = 'bot' ? 'assistant' :
-              $message.role = 'context' ? 'system' :
-              $message.role,
-      "content": [
-          {
-            "type": "text", 
-            "text": $message.content
-          },
-          $map($message.files, function($file) {
-              {"type": "image",
-              "source":
-                {
-                    "type": "base64",
-                    "media_type": $file.type,
-                    "data": $file.base64
-                }
-              }
-          })
-      ]
-  }
-})[]
+const transformWithVision = `  
+$map($filter($, function($message) {  
+    $message.role != 'context'  
+}), function($message) {  
+  {  
+      "role": $message.role = 'bot' ? 'assistant' :  
+              $message.role = 'context' ? 'system' :  
+              $message.role,  
+      "content": [  
+          {  
+            "type": "text",   
+            "text": $message.content  
+          },  
+          $map($message.files, function($file) {  
+              {"type": "image",  
+              "source":  
+                {  
+                    "type": "base64",  
+                    "media_type": $file.type,  
+                    "data": $file.base64  
+                }  
+              }  
+          })  
+      ]  
+  }  
+})[]  
 `;
-const transformWithoutVision = `
-$map($filter($, function($message) {
-    $message.role != 'context'
-}), function($message) {
-    {
-        "role": $message.role = 'bot' ? 'assistant' :
-                $message.role, 
-        "content": $message.content
-    }
-})[]
+
+const transformWithoutVision = `  
+$map($filter($, function($message) {  
+    $message.role != 'context'  
+}), function($message) {  
+    {  
+        "role": $message.role = 'bot' ? 'assistant' :  
+                $message.role,   
+        "content": $message.content  
+    }  
+})[]  
 `;
+
 async function messageToClaudeFormat(messages, isSupportsVision) {
-    if (!isSupportsVision) {
-        const transform = jsonata(transformWithoutVision);
-        const claude = await transform.evaluate(messages);
-        return claude;
-    }
-    const transform = jsonata(transformWithVision);
-    const claude = await transform.evaluate(messages);
-    return claude;
+    const transform = jsonata(isSupportsVision ? transformWithVision : transformWithoutVision);
+    return await transform.evaluate(messages);
 }
 
-const { CLAUDE_API_KEY, CLAUDE_API_URL } =
-    process.env;
+const { CLAUDE_API_KEY, CLAUDE_API_URL } = process.env;
 
-const checkEnvVariables = () => {
+function checkEnvVariables() {
     if (!CLAUDE_API_KEY || !CLAUDE_API_URL) {
         throw new Error("Claude environment variables are not set correctly.");
     }
-};
-
-checkEnvVariables();
+}
 
 async function handleApiErrorResponse(response) {
     const text = await response.text();
-    let parsedText;
-    try {
-        parsedText = JSON.parse(text);
-    } catch (error) {
-        // If JSON parsing fails, use the original text
-        parsedText = text;
-    }
-
-    // Log the error
-    logger.error("Claude API response error: ", parsedText);
-
-    // Throw an error with a message, checking if parsedText is an object and has an error.message
-    const errorMessage = `Claude API Error: ${parsedText?.error?.message || 'Unknown error occurred'}`;
+    const parsedText = text ? JSON.parse(text) : null;
+    const errorMessage = `Claude API Error: ${parsedText?.error?.message ?? 'Unknown error occurred'}`;
+    logger.error("Claude API response error: ", parsedText ?? text);
     throw new Error(errorMessage);
 }
 
+function validateRequestOptions(messages, options) {
+    if (!Array.isArray(messages) || messages.length === 0) {
+        throw new Error('Messages must be a non-empty array');
+    }
+
+    const { temperature, maxTokens, userModel } = options;
+
+    if (temperature !== undefined) {
+        if (typeof temperature !== 'number' || temperature < 0 || temperature > 1) {
+            throw new Error('Temperature must be a number between 0 and 1');
+        }
+    }
+
+    if (maxTokens !== undefined) {
+        if (!Number.isInteger(maxTokens) || maxTokens <= 0) {
+            throw new Error('maxTokens must be a positive integer');
+        }
+    }
+
+    if (userModel !== undefined && typeof userModel !== 'string') {
+        throw new Error('userModel must be a string');
+    }
+}
 class ClaudeMessageAPI extends MessageAPI {
     constructor() {
         super();
+        checkEnvVariables();
         this.API_KEY = CLAUDE_API_KEY;
     }
 
     _prepareHeaders() {
         return {
             "x-api-key": this.API_KEY,
-            "anthropic-version": "2023-06-01",
-            "Content-Type": "application/json",
+            "anthropic-version": API_CONSTANTS.ANTHROPIC_VERSION,
+            "Content-Type": API_CONSTANTS.CONTENT_TYPE,
         };
     }
 
     _prepareOptions(body, signal) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), API_CONSTANTS.REQUEST_TIMEOUT);
+
+        const cleanup = () => clearTimeout(timeoutId);
+        signal?.addEventListener('abort', cleanup);
+
         return {
             method: "POST",
             headers: this._prepareHeaders(),
             body: JSON.stringify(body),
-            signal: signal,
+            signal: signal || controller.signal,
+            timeout: API_CONSTANTS.REQUEST_TIMEOUT,
+            cleanup
         };
     }
 
     async sendRequest(messages, signal, options = {}) {
-        const { userModel, maxTokens, temperature, isSupportsVision } = options;
-        if (isSupportsVision) {
-            await encodeFiles(messages);
-        }
-        const updatedMessages = await messageToClaudeFormat(messages, isSupportsVision);
-        let systemMessage = messages.find(m => m.role === 'context');
-        const requestOptions = this._prepareOptions({
-            system: systemMessage?.content,
-            model: userModel,
-            messages: updatedMessages,
-            max_tokens: maxTokens,
-            temperature: temperature,
-        }, signal);
+        validateRequestOptions(messages, options);
+        let cleanup;
+
+        const {
+            userModel,
+            maxTokens = API_CONSTANTS.DEFAULT_MAX_TOKENS,
+            temperature = API_CONSTANTS.DEFAULT_TEMPERATURE,
+            isSupportsVision
+        } = options;
 
         try {
-            const response = await fetch(CLAUDE_API_URL, requestOptions, signal);
+            if (isSupportsVision) {
+                await encodeFiles(messages);
+            }
+
+            const updatedMessages = await messageToClaudeFormat(messages, isSupportsVision);
+            const systemMessage = messages.find(m => m.role === 'context');
+
+            const requestOptions = this._prepareOptions({
+                system: systemMessage?.content,
+                model: userModel,
+                messages: updatedMessages,
+                max_tokens: maxTokens,
+                temperature: temperature,
+            }, signal);
+
+            cleanup = requestOptions.cleanup;
+            delete requestOptions.cleanup;
+
+            const response = await fetch(CLAUDE_API_URL, requestOptions);
 
             if (!response.ok) {
                 await handleApiErrorResponse(response);
             }
 
             const data = await response.json();
-            const content = data?.content[0]?.text;
-            return content;
+            return data?.content[0]?.text;
+
         } catch (err) {
             if (err.name === 'AbortError') {
-                logger.error("Fetch aborted:", err);
-            } else {
-                logger.error("Error sending request:", err);
+                logger.error("Request aborted:", err);
+                throw new Error('Request was aborted');
             }
             throw err;
+        } finally {
+            cleanup?.();
         }
     }
 
     async sendRequestStreamResponse(messages, resClient, signal, options = {}) {
-        const { userModel, maxTokens, temperature, isSupportsVision } = options;
-        if (isSupportsVision) {
-            await encodeFiles(messages);
-        }
-        const updatedMessages = await messageToClaudeFormat(messages, isSupportsVision);
-        let systemMessage = messages.find(m => m.role === 'context');
-        const requestOptions = this._prepareOptions({
-            system: systemMessage?.content,
-            model: userModel,
-            messages: updatedMessages,
-            max_tokens: maxTokens,
-            temperature: temperature,
-            stream: true,
-        }, signal);
+        validateRequestOptions(messages, options);
+        let cleanup;
+
+        const {
+            userModel,
+            maxTokens = API_CONSTANTS.DEFAULT_MAX_TOKENS,
+            temperature = API_CONSTANTS.DEFAULT_TEMPERATURE,
+            isSupportsVision
+        } = options;
+
         try {
-            const response = await fetch(CLAUDE_API_URL, requestOptions, signal);
+            if (isSupportsVision) {
+                await encodeFiles(messages);
+            }
+
+            const updatedMessages = await messageToClaudeFormat(messages, isSupportsVision);
+            const systemMessage = messages.find(m => m.role === 'context');
+
+            const requestOptions = this._prepareOptions({
+                system: systemMessage?.content,
+                model: userModel,
+                messages: updatedMessages,
+                max_tokens: maxTokens,
+                temperature: temperature,
+                stream: true,
+            }, signal);
+
+            cleanup = requestOptions.cleanup;
+            delete requestOptions.cleanup;
+
+            const response = await fetch(CLAUDE_API_URL, requestOptions);
+
             if (!response.ok) {
                 await handleApiErrorResponse(response);
             }
+
             await this.processResponseStream(response, resClient);
         } catch (err) {
             handleStreamError(err);
+        } finally {
+            cleanup?.();
         }
     }
 
     async processResponseStream(response, resClient) {
-        const textDecoder = new TextDecoder();
-        let lastChunk = "";
+        try {
+            // Use for-await loop for ReadableStream  
+            for await (const chunk of response.body) {
+                const decodedChunk = new TextDecoder().decode(chunk);
+                const lines = decodedChunk.split('\n');
 
-        for await (const chunk of response.body) {
-            let decodedChunk = textDecoder.decode(chunk, { stream: true });
-            if (!decodedChunk.startsWith("data:")) {
-                decodedChunk = lastChunk + decodedChunk;
-            }
-            const lines = decodedChunk.split("\n");
-            lastChunk = this.handleStreamedContent(lines, resClient, lastChunk);
-        }
-        resClient.end();
-    }
-    async handleStreamedContent(lines, resClient, lastChunk) {
-        for (const line of lines) {
-            if (line.startsWith("data: ")) {
-                const content = line.replace(/^data: /, "").trim();
-                try {
-                    const event = JSON.parse(content);
-
-                    switch (event.type) {
-                        case 'content_block_delta':
-                            resClient.write(event.delta.text);
-                            break;
-                        case 'message_stop':
-                            break;
-                        default:
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        await this.handleStreamedContent([line], resClient);
                     }
-                } catch (error) {
-                    lastChunk = line; // Keep the partial line for the next iteration
                 }
             }
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                logger.info('Stream processing aborted');
+            } else {
+                logger.error('Stream processing error:', error);
+                throw error;
+            }
+        } finally {
+            resClient.end();
         }
-        return lastChunk; // Return the lastChunk for the next iteration
+    }
+
+    async handleStreamedContent(lines, resClient) {
+        for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+
+            const content = line.replace(/^data: /, "").trim();
+            if (!content) continue;
+
+            try {
+                const event = JSON.parse(content);
+                switch (event.type) {
+                    case 'content_block_delta':
+                        if (event.delta?.text) {
+                            resClient.write(event.delta.text);
+                        }
+                        break;
+                    case 'message_stop':
+                        break;
+                    default:
+                        logger.debug(`Unknown event type: ${event.type}`);
+                }
+            } catch (error) {
+                logger.error('Error parsing streamed content:', error, { content });
+            }
+        }
     }
 }
 
 function handleStreamError(err) {
     if (err.name === 'AbortError') {
-        logger.error("Fetch aborted:", err);
-    } else {
-        logger.error("Error sending stream response:", err);
+        logger.error("Stream aborted:", err);
+        throw new Error('Stream was aborted');
     }
-    // Do not rethrow the error if it's an AbortError since it's expected behavior
-    if (err.name !== 'AbortError') {
-        throw err;
-    }
+    logger.error("Error in stream response:", err);
+    throw err;
 }
 
-export default ClaudeMessageAPI;
+export default ClaudeMessageAPI;  
