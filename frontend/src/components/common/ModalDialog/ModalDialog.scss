@@ -1,63 +1,64 @@
-// ModalDialog.scss  
-.modal-overlay {  
-  position: fixed;  
-  top: 0;  
-  left: 0;  
-  width: 100%;  
-  height: 100%;  
-  background: rgba(0, 0, 0, 0.7);  
-  color: black;  
-  z-index: 999;  
-  display: flex;  
-  justify-content: center;  
-  align-items: center;  
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
-.modal-container {  
-  width: 300px;  
-  padding: 20px;  
-  background: #fff;  
-  border-radius: 8px;  
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);  
-    
-  &:focus {  
-    outline: none;  
-  }  
+.modal-container {
+  background-color: white;
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
-.modal-content {  
-  margin-bottom: 20px;  
+.modal-title {
+  margin: 0 0 16px;
+  font-size: 1.5rem;
 }
 
-.modal-button-container {  
-  display: flex;  
-  justify-content: flex-end;  
-  gap: 8px;  
+.modal-content {
+  margin-bottom: 24px;
 }
 
-.modal-button {  
-  padding: 8px 16px;  
-  border-radius: 4px;  
-  border: none;  
-  font-weight: 500;  
-  cursor: pointer;  
-  transition: background-color 0.2s ease;  
-    
-  &--primary {  
-    background: #dc3545;  
-    color: white;  
-      
-    &:hover {  
-      background: darken(#dc3545, 10%);  
-    }  
-  }  
-    
-  &--secondary {  
-    background: #f8f9fa;  
-    color: #212529;  
-      
-    &:hover {  
-      background: darken(#f8f9fa, 10%);  
-    }  
-  }  
-}  
+.modal-button-container {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.modal-button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+
+  &--primary {
+    background-color: #007bff;
+    color: white;
+
+    &:hover {
+      background-color: darken(#007bff, 10%);
+    }
+  }
+
+  &--secondary {
+    background-color: #6c757d;
+    color: white;
+
+    &:hover {
+      background-color: darken(#6c757d, 10%);
+    }
+  }
+}
