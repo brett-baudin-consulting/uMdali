@@ -1,44 +1,63 @@
-import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
-import { useTranslation } from "react-i18next";
-
-import { conversationShape, fileShape } from "../../../../model/conversationPropType";
+// ImageFileItem.jsx  
+import React, { useState, useEffect } from 'react';  
+import { conversationShape, fileShape } from "../../../../model/conversationPropType";  
 import { fetchImageFile } from "../../../../api/fileService";
 
-import './ImageFileItem.scss';
+const ImageFileItem = ({ file, currentConversation }) => {  
+    const [imageFileUrl, setImageFileUrl] = useState('');  
+    const [error, setError] = useState(null);
 
-const ImageFileItem = ({ file, currentConversation }) => {
-    const { t } = useTranslation();
+    useEffect(() => {  
+        let isMounted = true;
 
-    const [imageFileUrl, setImageFileUrl] = useState('');
+        const fetchImage = async () => {  
+            if (!currentConversation?.userId || !file) return;
 
-    useEffect(() => {
-        if (currentConversation?.userId && file) {
-            const fetchImage = async () => {
-                try {
-                    const icon = await fetchImageFile(currentConversation.userId, file);
-                    setImageFileUrl(icon);
-                } catch (error) {
-                    console.error('Failed to fetch file icon:', error);
-                }
-            };
+            try {  
+                const imageUrl = await fetchImageFile(currentConversation.userId, file);  
+                if (isMounted) {  
+                    setImageFileUrl(imageUrl);  
+                }  
+            } catch (err) {  
+                if (isMounted) {  
+                    setError('Failed to load image');  
+                    console.error('Failed to fetch file icon:', err);  
+                }  
+            }  
+        };
 
-            fetchImage();
-        }
-    }, [file]);
+        fetchImage();
 
-    return (
-        <div className="image-file-item">
-            <div className="image-file-item-content">
-                <img src={imageFileUrl} alt={file.originalName} title={file.originalName} />
-            </div>
-        </div>
-    );
+        return () => {  
+            isMounted = false;  
+        };  
+    }, [file, currentConversation?.userId]);
+
+    if (error) {  
+        return <div className="image-file-item image-file-item--error">{error}</div>;  
+    }
+
+    return (  
+        <div className="image-file-item">  
+            <div className="image-file-item-content">  
+                {imageFileUrl ? (  
+                    <img   
+                        src={imageFileUrl}   
+                        alt={file.originalName}   
+                        title={file.originalName}  
+                        loading="lazy"  
+                    />  
+                ) : (  
+                    <div className="image-file-item-loading">Loading...</div>  
+                )}  
+            </div>  
+        </div>  
+    );  
 };
 
-ImageFileItem.propTypes = {
-    file: fileShape.isRequired,
-    currentConversation: conversationShape.isRequired,
+ImageFileItem.propTypes = {  
+    file: fileShape.isRequired,  
+    currentConversation: conversationShape.isRequired,  
 };
 
-export default ImageFileItem;
+export default ImageFileItem;  

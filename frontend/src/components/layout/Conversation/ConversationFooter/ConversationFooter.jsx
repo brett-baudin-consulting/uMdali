@@ -43,15 +43,13 @@ const ConversationFooter = ({
     textareaRef,
     isExpanded,
     setIsExpanded,
-    toggleExpand, 
-    handleChange
+    toggleExpand
   } = useTextArea("");
 
   const {
     fileList,
     setFileList,
-    handleUpload,
-    isUploading
+    handleUpload
   } = useFileUpload(currentConversation?.userId, setError);
 
   useEffect(() => {

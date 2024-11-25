@@ -25,7 +25,6 @@ const MessageItem = React.memo(function MessageItem({
 }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedMessage, setEditedMessage] = useState(message.content);
   const [isExpanded, setIsExpanded] = useState(true);
@@ -38,10 +37,7 @@ const MessageItem = React.memo(function MessageItem({
     setCopied(false);
   }, []);
 
-  const handleModalClose = useCallback(() => setIsModalOpen(false), []);
-  const handleDeleteClick = useCallback(() => setIsModalOpen(true), []);
   const handleDeleteConfirm = useCallback(() => {
-    setIsModalOpen(false);
     onDelete();
   }, [onDelete]);
 
@@ -108,7 +104,7 @@ const MessageItem = React.memo(function MessageItem({
             isExpanded={isExpanded}
             lineCount={message.content.split('\n').length}
             onCopy={() => copyToClipboard(message.content)}
-            onDelete={handleDeleteClick}
+            onDelete={handleDeleteConfirm}
             onEdit={handleEditClick}
             onExpand={() => setIsExpanded(true)}
             onShrink={() => setIsExpanded(false)}

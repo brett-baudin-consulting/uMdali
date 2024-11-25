@@ -1,7 +1,6 @@
 import { apiClient } from './apiClient';
 
 const FALLBACK_ICON = '/public/images/fallback_icon.png';
-const STANDARD_ICON = '/public/images/standard_icon.png';
 
 export const fetchBlobUrl = async (path) => {
   try {

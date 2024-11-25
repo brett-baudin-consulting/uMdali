@@ -108,7 +108,7 @@ const SpeechTab = ({ user, setUser, speechToTextModels, textToSpeechModels }) =>
     <div className="speech-tab">
       <SelectField
         label={t('speech_to_text_model_title')}
-        value={user.settings.speechToTextModel}
+        value={user.settings.speechToTextModel.model}
         onChange={handleSpeechToTextModelChange}
         options={speechToTextOptions}
       />
