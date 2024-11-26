@@ -1,81 +1,109 @@
 @use 'sass:math';
 
-$footer-padding: 10px 20px;  
-$border-radius: 8px;  
+$footer-padding: 10px 20px;
+$border-radius: 8px;
 $transition-duration: 0.3s;
 
-.conversation-footer {  
-  display: flex;  
-  flex-direction: column;  
+.conversation-footer {
+  display: flex;
+  flex-direction: column;
   width: 100%; // Take full width of parent  
   max-width: 1200px; // Optional: set maximum width  
-  margin: 0 auto;  
-  background-color: var(--color-background-secondary);  
-  border-radius: $border-radius;  
-  padding: 10px;  
+  margin: 0 auto;
+  background-color: var(--color-background-secondary);
+  border-radius: $border-radius;
+  padding: 10px;
   box-sizing: border-box;
 
-  &__top-menu {  
-    display: flex;  
-    justify-content: center;  
-    gap: 10px;  
-    padding: $footer-padding;  
-    box-sizing: border-box;  
+  &--dragging {
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.1);
+      border: 2px dashed #666;
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    &::after {
+      content: 'Drop file here';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 8px 16px;
+      border-radius: 4px;
+      z-index: 2;
+    }
   }
 
-  &__file-list {  
-    display: flex;  
-    flex-wrap: wrap;  
-    gap: 10px;  
-    padding: 0 $footer-padding;  
-    box-sizing: border-box;  
-    width: 100%;  
+  &__top-menu {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: $footer-padding;
+    box-sizing: border-box;
   }
 
-  &__input-container {  
-    display: flex;  
-    align-items: center;  
-    gap: 2px;  
-    padding: $footer-padding;  
-    background-color: var(--color-background-primary);  
-    border-radius: $border-radius;  
-    margin: 0 10px 10px 10px;  
-    width: calc(100% - 20px);  
-    box-sizing: border-box;  
+  &__file-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 0 $footer-padding;
+    box-sizing: border-box;
+    width: 100%;
   }
 
-  &__textarea {  
-    flex: 1;  
-    min-height: 40px;  
-    max-height: 200px;  
-    padding: 8px;  
-    border: none;  
-    border-radius: math.div($border-radius, 2);  
-    background-color: var(--color-background-primary);  
-    color: var(--color-text-primary);  
-    resize: none;  
-    transition: height $transition-duration ease;  
-    overflow-y: auto;  
+  &__input-container {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: $footer-padding;
+    background-color: var(--color-background-primary);
+    border-radius: $border-radius;
+    margin: 0 10px 10px 10px;
+    width: calc(100% - 20px);
+    box-sizing: border-box;
+  }
+
+  &__textarea {
+    flex: 1;
+    min-height: 40px;
+    max-height: 200px;
+    padding: 8px;
+    border: none;
+    border-radius: math.div($border-radius, 2);
+    background-color: var(--color-background-primary);
+    color: var(--color-text-primary);
+    resize: none;
+    transition: height $transition-duration ease;
+    overflow-y: auto;
     box-sizing: border-box;
 
-    &--expanded {  
-      height: 100vh;  
-      max-height: none;  
-    }  
+    &--expanded {
+      height: 100vh;
+      max-height: none;
+    }
   }
 
-  button {  
-    padding: 8px;  
-    border: none;  
-    border-radius: math.div($border-radius, 2);  
-    cursor: pointer;  
-    transition: background-color $transition-duration ease;  
-    flex-shrink: 0;  
+  button {
+    padding: 8px;
+    border: none;
+    border-radius: math.div($border-radius, 2);
+    cursor: pointer;
+    transition: background-color $transition-duration ease;
+    flex-shrink: 0;
     box-sizing: border-box;
 
-    &:disabled {  
-      background-color: var(--color-background-secondary);  
-      cursor: not-allowed;  
-    }  
-  }  
-}  
+    &:disabled {
+      background-color: var(--color-background-secondary);
+      cursor: not-allowed;
+    }
+  }
+}

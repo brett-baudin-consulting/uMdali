@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import PropTypes from "prop-types";
 import hljs from 'highlight.js';
 
-import { deleteFile } from "../../../../api/fileService";
 import FileItem from './FileItem';
 import { conversationShape } from "../../../../model/conversationPropType";
 import { userShape } from "../../../../model/userPropType";
@@ -12,6 +11,7 @@ import { modelShape } from "../../../../model/modelPropType";
 import AudioRecorder from "./AudioRecorder";
 import { useTextArea } from "./hooks/useTextArea";
 import { useFileUpload } from "./hooks/useFileUpload";
+import { useFileHandling } from "./hooks/useFileHandling";
 import SendButton from "./components/SendButton";
 import FileUploadButton from "./components/FileUploadButton";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -36,6 +36,7 @@ const ConversationFooter = ({
   const { t } = useTranslation();
   const fileInputRef = useRef(null);
   const [lastMessageRole, setLastMessageRole] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const {
     value: input,
@@ -51,6 +52,17 @@ const ConversationFooter = ({
     setFileList,
     handleUpload
   } = useFileUpload(currentConversation?.userId, setError);
+
+  const {
+    handleDeleteFile,
+    handleFileChange,
+    handleDrop
+  } = useFileHandling(
+    currentConversation,
+    setError,
+    handleUpload,
+    setFileList
+  );
 
   useEffect(() => {
     setError(null);
@@ -68,6 +80,23 @@ const ConversationFooter = ({
     }
   }, [currentConversation?.messages]);
 
+  const handleDragEnter = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
   const handleSend = useCallback(async () => {
     if (!currentConversation) return;
 
@@ -78,7 +107,7 @@ const ConversationFooter = ({
         setInput("");
         setFileList([]);
         setIsExpanded(false);
-        textareaRef.current?.focus(); // Focus after state updates  
+        textareaRef.current?.focus();
       } catch (error) {
         setError(error);
         console.error('Failed to send message:', error);
@@ -89,9 +118,8 @@ const ConversationFooter = ({
   const handleAbort = useCallback(() => {
     abortFetch();
     setIsStreaming(false);
-    textareaRef.current?.focus(); // Focus after state updates  
+    textareaRef.current?.focus();
   }, [abortFetch, setIsStreaming, textareaRef]);
-
 
   const handleRetry = useCallback(async () => {
     if (!currentConversation) return;
@@ -105,7 +133,6 @@ const ConversationFooter = ({
       console.error("Failed to resend message:", error);
     }
   }, [currentConversation, setCurrentConversation, onResendMessage, user.settings.model, setError, textareaRef]);
-
 
   const handlePaste = useCallback(async () => {
     try {
@@ -125,38 +152,11 @@ const ConversationFooter = ({
         });
         return newText;
       });
-
     } catch (err) {
       setError(err);
       console.error('Failed to read clipboard:', err);
     }
   }, [setInput, setError, textareaRef]);
-
-  const handleDeleteFile = useCallback((fileToDelete) => {
-    if (!currentConversation?.userId) return;
-
-    deleteFile(currentConversation.userId, fileToDelete.name)
-      .catch(error => {
-        setError(error);
-        console.error("Failed to delete file:", error);
-      });
-    setFileList(prev => prev.filter(file => file.name !== fileToDelete.name));
-  }, [currentConversation?.userId, setFileList, setError]);
-
-  const handleFileChange = useCallback(async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      await handleUpload(file);
-    } catch (error) {
-      setError(error);
-      console.error("Failed to upload file:", error);
-    } finally {
-      event.target.value = ''; // Reset file input  
-    }
-
-  }, [handleUpload, setError]);
 
   const handleKeyDown = useCallback((e) => {
     handleKeyDownUtility(e, setInput, input, textareaRef, user.settings.macros);
@@ -175,6 +175,8 @@ const ConversationFooter = ({
   const handleFileButtonClick = useCallback(() => {
     fileInputRef.current?.click();
   }, [fileInputRef]);
+
+  const isDisabled = isStreaming || isWaitingForResponse || !doesModelSupportFiles(models, user?.settings?.model);
 
   return (
     <ErrorBoundary>
@@ -203,9 +205,19 @@ const ConversationFooter = ({
           ))}
         </div>
 
-        <div className="conversation-footer__input-container">
+        <div
+          className={`    
+            conversation-footer__input-container     
+            ${isDragging ? 'conversation-footer__input-container--dragging' : ''}    
+            ${isDisabled ? 'conversation-footer__input-container--disabled' : ''}    
+          `}
+          onDragEnter={!isDisabled ? handleDragEnter : undefined}
+          onDragOver={!isDisabled ? handleDragOver : undefined}
+          onDragLeave={!isDisabled ? handleDragLeave : undefined}
+          onDrop={!isDisabled ? handleDrop : undefined}
+        >
           <FileUploadButton
-            disabled={isStreaming || isWaitingForResponse || !doesModelSupportFiles(models, user?.settings?.model)}
+            disabled={isDisabled}
             onClick={handleFileButtonClick}
           />
 
@@ -274,4 +286,4 @@ ConversationFooter.propTypes = {
   models: PropTypes.arrayOf(modelShape).isRequired,
 };
 
-export default ConversationFooter;    
+export default ConversationFooter;  
