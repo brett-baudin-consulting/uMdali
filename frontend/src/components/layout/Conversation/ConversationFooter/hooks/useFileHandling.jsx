@@ -1,10 +1,10 @@
-// hooks/useFileHandling.jsx  
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { deleteFile } from "../../../../../api/fileService";
 
 const ACCEPTED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'audio/mpeg', 'video/mp4'];
 
 export const useFileHandling = (currentConversation, setError, handleUpload, setFileList) => {
+    const [isDragging, setIsDragging] = useState(false);
     const validateFile = useCallback((file) => {
         if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
             throw new Error('File type not supported');
@@ -38,9 +38,29 @@ export const useFileHandling = (currentConversation, setError, handleUpload, set
         }
     }, [handleUpload, setError, validateFile]);
 
+    const handleDragEnter = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    }, []);
+
+    const handleDragLeave = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.currentTarget === e.target) {
+            setIsDragging(false);
+        }
+    }, []);
+
+    const handleDragOver = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    }, []);
+
     const handleDrop = useCallback((e) => {
         e.preventDefault();
         e.stopPropagation();
+        setIsDragging(false);
 
         const files = Array.from(e.dataTransfer.files);
         if (files.length > 0) {
@@ -61,6 +81,10 @@ export const useFileHandling = (currentConversation, setError, handleUpload, set
         validateFile,
         handleDeleteFile,
         handleFileChange,
-        handleDrop
+        handleDrop,
+        handleDragEnter,
+        handleDragLeave,
+        handleDragOver,
+        isDragging
     };
 };  

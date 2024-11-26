@@ -36,7 +36,6 @@ const ConversationFooter = ({
   const { t } = useTranslation();
   const fileInputRef = useRef(null);
   const [lastMessageRole, setLastMessageRole] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
 
   const {
     value: input,
@@ -56,7 +55,11 @@ const ConversationFooter = ({
   const {
     handleDeleteFile,
     handleFileChange,
-    handleDrop
+    handleDrop,
+    handleDragEnter,
+    handleDragLeave,
+    handleDragOver,
+    isDragging
   } = useFileHandling(
     currentConversation,
     setError,
@@ -79,23 +82,6 @@ const ConversationFooter = ({
       setLastMessageRole(currentConversation.messages.slice(-1)[0].role);
     }
   }, [currentConversation?.messages]);
-
-  const handleDragEnter = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  }, []);
-
-  const handleDragOver = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
 
   const handleSend = useCallback(async () => {
     if (!currentConversation) return;
@@ -180,15 +166,33 @@ const ConversationFooter = ({
 
   return (
     <ErrorBoundary>
-      <div className="conversation-footer">
+      <div
+        className={`  
+          conversation-footer  
+          ${isDragging ? 'conversation-footer--dragging' : ''}  
+          ${isDisabled ? 'conversation-footer--disabled' : ''}  
+        `}
+        onDragEnter={!isDisabled ? handleDragEnter : undefined}
+        onDragOver={!isDisabled ? handleDragOver : undefined}
+        onDragLeave={!isDisabled ? handleDragLeave : undefined}
+        onDrop={!isDisabled ? handleDrop : undefined}
+      >
         <div className="conversation-footer__top-menu">
           {(isStreaming || isWaitingForResponse) && (
-            <button title={t("abort_title")} onClick={handleAbort}>
+            <button
+              className="conversation-footer__abort-button"
+              title={t("abort_title")}
+              onClick={handleAbort}
+            >
               {t("abort")}
             </button>
           )}
           {!isStreaming && lastMessageRole === BOT_ROLE && (
-            <button title={t("retry_title")} onClick={handleRetry}>
+            <button
+              className="conversation-footer__retry-button"
+              title={t("retry_title")}
+              onClick={handleRetry}
+            >
               {t("retry")}
             </button>
           )}
@@ -205,25 +209,19 @@ const ConversationFooter = ({
           ))}
         </div>
 
-        <div
-          className={`    
-            conversation-footer__input-container     
-            ${isDragging ? 'conversation-footer__input-container--dragging' : ''}    
-            ${isDisabled ? 'conversation-footer__input-container--disabled' : ''}    
-          `}
-          onDragEnter={!isDisabled ? handleDragEnter : undefined}
-          onDragOver={!isDisabled ? handleDragOver : undefined}
-          onDragLeave={!isDisabled ? handleDragLeave : undefined}
-          onDrop={!isDisabled ? handleDrop : undefined}
-        >
+        <div className="conversation-footer__input-container">
           <FileUploadButton
+            className="conversation-footer__file-upload"
             disabled={isDisabled}
             onClick={handleFileButtonClick}
           />
 
           <textarea
             ref={textareaRef}
-            className={`conversation-footer__textarea ${isExpanded ? 'conversation-footer__textarea--expanded' : ''}`}
+            className={`  
+              conversation-footer__textarea  
+              ${isExpanded ? 'conversation-footer__textarea--expanded' : ''}  
+            `}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -232,6 +230,7 @@ const ConversationFooter = ({
           />
 
           <SendButton
+            className="conversation-footer__send-button"
             disabled={!input.trim() && fileList.length === 0}
             isStreaming={isStreaming}
             isWaitingForResponse={isWaitingForResponse}
@@ -239,6 +238,7 @@ const ConversationFooter = ({
           />
 
           <button
+            className="conversation-footer__paste-button"
             title={t("paste_title")}
             onClick={handlePaste}
             disabled={isStreaming}
@@ -247,6 +247,7 @@ const ConversationFooter = ({
           </button>
 
           <button
+            className="conversation-footer__expand-button"
             onClick={toggleExpand}
             title={t("toggle_height_title")}
           >
@@ -254,6 +255,7 @@ const ConversationFooter = ({
           </button>
 
           <AudioRecorder
+            className="conversation-footer__audio-recorder"
             isStreaming={isStreaming}
             setInput={setInput}
             setError={setError}
@@ -262,6 +264,7 @@ const ConversationFooter = ({
           <input
             type="file"
             ref={fileInputRef}
+            className="conversation-footer__file-input"
             onChange={handleFileChange}
             disabled={isStreaming}
             style={{ display: 'none' }}
