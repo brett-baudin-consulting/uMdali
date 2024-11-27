@@ -39,14 +39,11 @@
     }  
   }
 
-
-
   .message {  
     padding: 10px;  
     margin-bottom: 8px;  
     border-radius: 5px;  
-    max-width: 100%;  
-    align-self: flex-start; // Default alignment    
+    width: 100%;  
     background-color: lightgrey;  
     color: #000000;  
   }
