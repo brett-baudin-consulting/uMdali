@@ -25,10 +25,14 @@ const defaultUser = {
 
 export const createUser = async (user) => {
   try {
-    return await apiClient.fetch("/users", {
+    const response = await apiClient.fetch("/users", {
       method: "POST",
       body: JSON.stringify(user),
     });
+    if (!response.success) {
+      throw new Error(response.message || "Error creating user.");
+    }
+    return response.data;
   } catch (error) {
     console.error("Error creating user:", error);
     throw error;
@@ -37,10 +41,14 @@ export const createUser = async (user) => {
 
 export const updateUser = async (user) => {
   try {
-    return await apiClient.fetch(`/users/${user.userId}`, {
+    const response = await apiClient.fetch(`/users/${user.userId}`, {
       method: "PUT",
       body: JSON.stringify(user),
     });
+    if (!response.success) {
+      throw new Error(response.message || "Error updating user.");
+    }
+    return response.data;
   } catch (error) {
     console.error("Error updating user:", error);
     throw error;
@@ -60,7 +68,10 @@ export const getUser = async (userId) => {
       }
       throw error;
     });
-    return response;
+    if (!response.success) {
+      throw new Error(response.message || "Error fetching user.");
+    }
+    return response.data;
   } catch (error) {
     console.error("Error fetching user:", error);
     throw error;
@@ -69,9 +80,13 @@ export const getUser = async (userId) => {
 
 export const getAllUsers = async () => {
   try {
-    return await apiClient.fetch("/users", {
+    const response = await apiClient.fetch("/users", {
       method: "GET",
     });
+    if (!response.success) {
+      throw new Error(response.message || "Error fetching users.");
+    }
+    return response.data;
   } catch (error) {
     console.error("Error fetching users:", error);
     throw error;
@@ -80,9 +95,13 @@ export const getAllUsers = async () => {
 
 export const deleteUser = async (userId) => {
   try {
-    return await apiClient.fetch(`/users/${userId}`, {
+    const response = await apiClient.fetch(`/users/${userId}`, {
       method: "DELETE",
     });
+    if (!response.success) {
+      throw new Error(response.message || "Error deleting user.");
+    }
+    return response.data;
   } catch (error) {
     console.error("Error deleting user:", error);
     throw error;
