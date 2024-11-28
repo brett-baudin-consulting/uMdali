@@ -121,7 +121,6 @@ class MistralAIMessageAPI extends MessageAPI {
         isSupportsVision,
         updatedMessages
       );
-      console.log(JSON.stringify(config));
       const stream = await this.client.chat.stream(config);
 
       signal?.addEventListener('abort', () => {
