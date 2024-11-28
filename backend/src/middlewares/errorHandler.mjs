@@ -1,7 +1,13 @@
-import { logger } from '../logger.mjs';
+import { logger } from "../logger.mjs";
 
-export default function errorHandler(err, req, res, next) {
+export const errorHandler = (err, req, res, next) => {
+  logger.error(`Error processing ${req.method} ${req.url}: ${err.message}`);
   logger.error(err.stack);
-  if (!err.status) err.status = 500;
-  res.status(err.status).send({ error: err.message });
-}
+
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal server error',
+    errors: err.errors || null,
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+};  
