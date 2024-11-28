@@ -1,5 +1,5 @@
 import express from "express";
-import conversationService from "../services/conversationService.mjs";
+import conversationController from "../controllers/conversationController.mjs";
 import { logger } from "../logger.mjs";
 import conversationSchemaJoi from "../models/ConversationJoi.mjs";
 import { asyncHandler, errorResponse } from "../middlewares/index.mjs";
@@ -25,61 +25,36 @@ const validateUserId = (req, res, next) => {
 };
 
 // Routes  
-router.post("/", validateConversation, asyncHandler(async (req, res) => {
-  const conversation = await conversationService.createConversation(req.body);
-  res.status(201).json({ success: true, data: conversation });
-}));
+router.post("/",
+  validateConversation,
+  asyncHandler(conversationController.createConversation)
+);
 
-router.post("/import", validateUserId, asyncHandler(async (req, res) => {
-  if (!Array.isArray(req.body)) {
-    return errorResponse(res, 400, "Request body must be an array of conversations");
-  }
-  await conversationService.importConversations(req.body);
-  res.status(201).json({ success: true, message: "Conversations imported successfully" });
-}));
+router.post("/import",
+  validateUserId,
+  asyncHandler(conversationController.importConversations)
+);
 
-router.get("/", validateUserId, asyncHandler(async (req, res) => {
-  const conversations = await conversationService.getConversationsByUserId(req.query.userId);
-  res.json({ success: true, data: conversations });
-}));
+router.get("/",
+  validateUserId,
+  asyncHandler(conversationController.getConversationsByUserId)
+);
 
-router.get('/search', asyncHandler(async (req, res) => {
-  const { query } = req.query;
-  if (!query) {
-    return errorResponse(res, 400, "Query parameter is required");
-  }
-  const conversations = await conversationService.searchConversations(query);
-  res.json({
-    success: true,
-    data: conversations.map(conv => conv.conversationId)
-  });
-}));
+router.get('/search',
+  asyncHandler(conversationController.searchConversations)
+);
 
-router.get("/:conversationId", asyncHandler(async (req, res) => {
-  const conversation = await conversationService.getConversationById(req.params.conversationId);
-  if (!conversation) {
-    return errorResponse(res, 404, "Conversation not found");
-  }
-  res.json({ success: true, data: conversation });
-}));
+router.get("/:conversationId",
+  asyncHandler(conversationController.getConversationById)
+);
 
-router.put("/:conversationId", validateConversation, asyncHandler(async (req, res) => {
-  const conversation = await conversationService.updateConversation(
-    req.params.conversationId,
-    req.body
-  );
-  if (!conversation) {
-    return errorResponse(res, 404, "Conversation not found");
-  }
-  res.json({ success: true, data: conversation });
-}));
+router.put("/:conversationId",
+  validateConversation,
+  asyncHandler(conversationController.updateConversation)
+);
 
-router.delete("/:conversationId", asyncHandler(async (req, res) => {
-  const conversation = await conversationService.deleteConversation(req.params.conversationId);
-  if (!conversation) {
-    return errorResponse(res, 404, "Conversation not found");
-  }
-  res.sendStatus(204);
-}));
+router.delete("/:conversationId",
+  asyncHandler(conversationController.deleteConversation)
+);
 
 export default router;  
