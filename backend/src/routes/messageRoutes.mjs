@@ -1,6 +1,7 @@
 import express from 'express';
 
-import messageController, { messageAPIs } from '../controllers/messageController.mjs';
+import messageController from '../controllers/messageController.mjs';
+import { messageAPIs } from '../controllers/messageAPIs.mjs';
 import { rateLimiterMiddleware } from '../rateLimit/rateLimitConfig.mjs';
 import {logger} from '../logger.mjs';
 
