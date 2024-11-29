@@ -1,5 +1,5 @@
 import { logger } from "../logger.mjs";
-import { MessageService } from "../services/messageService.mjs";
+import { MessageService } from "../services/MessageService.mjs";
 import { messageAPIs } from "./messageAPIs.mjs";
 
 const messageService = new MessageService(messageAPIs);

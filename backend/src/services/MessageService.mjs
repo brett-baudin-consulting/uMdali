@@ -110,3 +110,4 @@ export class MessageService {
             .filter(msg => model.isSupportsContext || msg.role !== 'context');
     }
 }  
+export default MessageService;

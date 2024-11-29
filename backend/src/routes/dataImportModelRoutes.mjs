@@ -1,5 +1,5 @@
 import express from "express";
-import DataImportModelService from "../services/dataImportModelService.mjs";
+import DataImportModelService from "../services/DataImportModelService.mjs";
 import { asyncHandler } from "../middlewares/index.mjs";
 
 const router = express.Router();

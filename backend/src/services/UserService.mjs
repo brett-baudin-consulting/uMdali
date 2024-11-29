@@ -1,14 +1,14 @@
 import User from "../models/User.mjs";
 
-const userService = {
+export class UserService {
     async createUser(userData) {
         const user = new User(userData);
         return user.save();
-    },
+    }
 
     async getAllUsers() {
         return User.find({});
-    },
+    }
 
     async getUser(userId) {
         const user = await User.findOne({ userId }).lean();
@@ -33,7 +33,7 @@ const userService = {
         }
 
         return this.cleanObject(user);
-    },
+    }
 
     async updateUser(userId, userData) {
         return User.findOneAndUpdate(
@@ -41,11 +41,11 @@ const userService = {
             userData,
             { new: true, overwrite: true, runValidators: true }
         );
-    },
+    }
 
     async deleteUser(userId) {
         return User.findOneAndDelete({ userId });
-    },
+    }
 
     cleanObject(obj) {
         if (obj instanceof Date || !(obj instanceof Object) || obj === null) {
@@ -65,6 +65,15 @@ const userService = {
         }
         return obj;
     }
-};
 
-export default userService;  
+    // Static instance getter to implement singleton pattern (optional)  
+    static getInstance() {
+        if (!UserService.instance) {
+            UserService.instance = new UserService();
+        }
+        return UserService.instance;
+    }
+}
+
+export default UserService;
+

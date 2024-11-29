@@ -1,4 +1,4 @@
-import conversationService from "../services/conversationService.mjs";
+import conversationService from "../services/ConversationService.mjs";
 import { errorResponse } from "../middlewares/index.mjs";
 
 const conversationController = {

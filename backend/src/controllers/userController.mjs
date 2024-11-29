@@ -1,5 +1,7 @@
-import userService from "../services/userService.mjs";
+import UserService from "../services/UserService.mjs";
 import { errorResponse } from "../middlewares/index.mjs";
+
+const userService = new UserService();
 
 export const createUser = async (req, res) => {
     const user = await userService.createUser(req.body);
