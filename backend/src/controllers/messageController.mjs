@@ -3,8 +3,7 @@ import { MessageService } from "../services/MessageService.mjs";
 import { messageAPIs } from "./messageAPIs.mjs";
 
 const messageService = new MessageService(messageAPIs);
-const TIMEOUT_MS = 30000; // 30 seconds  
-let lastRequestTime = 0;
+const TIMEOUT_MS = 60000; // 60 seconds
 
 function validateRequest(req) {
   const { userDetails, message, model } = req.body;
@@ -34,16 +33,20 @@ function sanitizeOptions(settings) {
 }
 
 async function handleRequest(req, res) {
-
   const abortController = new AbortController();
-  const timeoutId = setTimeout(() => {
-    abortController.abort();
-    res.status(504).json({ error: 'Request timeout' });
-  }, TIMEOUT_MS);
+  let timeoutId;
 
-  // Set security headers    
+  // Set security headers before any potential response  
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Cache-Control', 'no-store');
+
+  // Create a promise that rejects on timeout  
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => {
+      abortController.abort();
+      reject(new Error('Request timeout'));
+    }, TIMEOUT_MS);
+  });
 
   try {
     validateRequest(req);
@@ -62,27 +65,34 @@ async function handleRequest(req, res) {
       isSupportsVision: Boolean(model.isSupportsVision),
     };
 
-    if (stream) {
-      await messageService.streamMessage(
-        messageAPI,
-        processedMessages,
-        options,
-        res,
-        abortController.signal
-      );
-    } else {
-      const content = await messageService.sendMessage(
-        messageAPI,
-        processedMessages,
-        options,
-        abortController.signal
-      );
-      res.json({ content });
-    }
+    // Race between the actual request and timeout  
+    await Promise.race([
+      stream
+        ? messageService.streamMessage(
+          messageAPI,
+          processedMessages,
+          options,
+          res,
+          abortController.signal
+        )
+        : messageService.sendMessage(
+          messageAPI,
+          processedMessages,
+          options,
+          abortController.signal
+        ).then(content => {
+          if (!res.headersSent) {
+            res.json({ content });
+          }
+        }),
+      timeoutPromise
+    ]);
+
   } catch (error) {
     logger.error("Error handling request:", error);
     if (!res.headersSent) {
-      res.status(error.statusCode || 500).json({
+      const statusCode = error.message === 'Request timeout' ? 504 : (error.statusCode || 500);
+      res.status(statusCode).json({
         error: error.message || 'Internal server error'
       });
     }
@@ -92,4 +102,4 @@ async function handleRequest(req, res) {
   }
 }
 
-export default handleRequest;
+export default handleRequest;  
