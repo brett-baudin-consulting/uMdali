@@ -132,7 +132,7 @@ const SpeechTab = ({ user, setUser, speechToTextModels, textToSpeechModels }) =>
 
 SelectField.propTypes = {
   label: PropTypes.string.isRequired,
-  value: PropTypes.string.isRequired,
+  value: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   options: PropTypes.node.isRequired,
 };

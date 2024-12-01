@@ -1,18 +1,8 @@
-import express from 'express';
-import { logger } from '../logger.mjs';
-import SpeechToTextModel from '../models/SpeechToTextModel.mjs';
+import express from 'express';  
+import SpeechToTextController from '../controllers/speechToTextModelController.mjs';
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
-  try {
-    const models = await SpeechToTextModel.find({ available: true }).sort({ name: 1 });
-    res.send(models);
-  } catch (error) {
-    logger.error(error);
-    res.status(400).send({ error: error.message });
-  }
-});
+router.get('/', SpeechToTextController.getSpeechToTextModels);
 
-const speechToTextModelRoutes = router;
-export default speechToTextModelRoutes;
+export default router;  

@@ -12,10 +12,10 @@ const fetchTextToSpeechModels = async () => {
             throw new Error("Unexpected response structure");  
         }  
         return models;  
-    } catch (error) {  
-        console.error("Error fetching models:", error);  
-        throw error;  
-    }  
+    } catch (error) {
+        console.error("Error fetching models:", error);
+        return []; // Return empty array instead of throwing  
+    }
 };
 
 const convertTextToSpeech = async (textToSpeechModel, text, voice_id, vendor) => {  
