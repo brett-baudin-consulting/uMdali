@@ -10,7 +10,6 @@ const fetchSpeechToTextModels = async () => {
             throw new Error(response.message || 'Error fetching speech to text models.');
         }
         const models = Array.isArray(response.data) ? response.data : [];
-        console.log(JSON.stringify(models));
         return models;
     } catch (error) {
         console.error("Error fetching models:", error);

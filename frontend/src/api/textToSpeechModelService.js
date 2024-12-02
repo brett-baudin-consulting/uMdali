@@ -7,11 +7,12 @@ const API_ENDPOINTS = {
 
 const fetchTextToSpeechModels = async () => {  
     try {  
-        const models = await apiClient.fetch(API_ENDPOINTS.TEXT_TO_SPEECH_MODEL);  
-        if (!models) {  
-            throw new Error("Unexpected response structure");  
-        }  
-        return models;  
+        const response = await apiClient.fetch(API_ENDPOINTS.TEXT_TO_SPEECH_MODEL);  
+        if (!response.success) {
+            throw new Error(response.message || 'Error fetching text to speech models.');
+        }
+        const models = Array.isArray(response.data) ? response.data : [];
+        return models;
     } catch (error) {
         console.error("Error fetching models:", error);
         return []; // Return empty array instead of throwing  

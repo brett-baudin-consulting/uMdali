@@ -8,8 +8,12 @@ import { speechToTextModelShape } from "../../../model/speechToTextModelPropType
 import SelectField from "./SelectField";
 
 import "./SpeechTab.scss";
-
-const SpeechTab = ({ user, setUser, speechToTextModels, textToSpeechModels }) => {
+const SpeechTab = ({
+  user,
+  setUser,
+  speechToTextModels = [],
+  textToSpeechModels = []
+}) => {
   const { t } = useTranslation();
   const [selectedModelVoices, setSelectedModelVoices] = useState([]);
 
@@ -24,44 +28,56 @@ const SpeechTab = ({ user, setUser, speechToTextModels, textToSpeechModels }) =>
   }, [setUser]);
 
   useEffect(() => {
-    const initialModel = textToSpeechModels.find(
-      (model) => model.id === user.settings.textToSpeechModel.model_id
-    );
-    const initialVoices = initialModel?.voices
-      ?.filter((voice) => voice?.name)
-      .sort((a, b) => a.name.localeCompare(b.name)) || [];
-    setSelectedModelVoices(initialVoices);
-  }, [user.settings.textToSpeechModel.model_id, textToSpeechModels]);
+    if (!textToSpeechModels.length) return;
 
-  const speechToTextOptions = useMemo(() =>
-    speechToTextModels.map((model) => (
+    const initialModel = textToSpeechModels.find(
+      (model) => model.id === user?.settings?.textToSpeechModel?.model_id
+    );
+
+    const initialVoices = initialModel?.voices
+      ?.filter(voice => voice?.name)
+      .sort((a, b) => a.name.localeCompare(b.name)) || [];
+
+    setSelectedModelVoices(initialVoices);
+  }, [user?.settings?.textToSpeechModel?.model_id, textToSpeechModels]);
+
+  const speechToTextOptions = useMemo(() => {
+    if (!speechToTextModels?.length) return [];
+
+    return speechToTextModels.map((model) => (
       <option key={model.name} value={model.name}>
         {model.vendor} / {model.name}
       </option>
-    )),
-    [speechToTextModels]
-  );
+    ));
+  }, [speechToTextModels]);
 
-  const textToSpeechOptions = useMemo(() =>
-    textToSpeechModels.map((model) => (
+  const textToSpeechOptions = useMemo(() => {
+    if (!textToSpeechModels?.length) return [];
+
+    return textToSpeechModels.map((model) => (
       <option key={model.name} value={model.id}>
         {model.vendor} / {model.name}
       </option>
-    )),
-    [textToSpeechModels]
-  );
+    ));
+  }, [textToSpeechModels]);
 
-  const voiceOptions = useMemo(() =>
-    selectedModelVoices.map((voice) => (
+  const voiceOptions = useMemo(() => {
+    if (!selectedModelVoices?.length) return [];
+
+    return selectedModelVoices.map((voice) => (
       <option key={voice.id} value={voice.id}>
         {voice.name}
       </option>
-    )),
-    [selectedModelVoices]
-  );
+    ));
+  }, [selectedModelVoices]);
 
   const handleSpeechToTextModelChange = useCallback((e) => {
-    const selectedModel = speechToTextModels.find((model) => model.name === e.target.value);
+    const selectedModel = speechToTextModels.find(
+      (model) => model.name === e.target.value
+    );
+
+    if (!selectedModel) return;
+
     updateUserSettings({
       speechToTextModel: {
         model: selectedModel.name,
@@ -71,29 +87,31 @@ const SpeechTab = ({ user, setUser, speechToTextModels, textToSpeechModels }) =>
   }, [speechToTextModels, updateUserSettings]);
 
   const handleTextToSpeechModelChange = useCallback((e) => {
-    const selectedModel = textToSpeechModels.find((model) => model.id === e.target.value);
+    const selectedModel = textToSpeechModels.find(
+      (model) => model.id === e.target.value
+    );
 
-    if (selectedModel) {
-      const sortedVoices = selectedModel.voices
-        ?.filter((voice) => voice?.name)
-        .sort((a, b) => a.name.localeCompare(b.name)) || [];
+    if (!selectedModel) return;
 
-      setSelectedModelVoices(sortedVoices);
+    const sortedVoices = selectedModel.voices
+      ?.filter(voice => voice?.name)
+      .sort((a, b) => a.name.localeCompare(b.name)) || [];
 
-      const currentVoiceId = user.settings.textToSpeechModel.voice_id;
-      const defaultVoiceId = sortedVoices[0]?.id || '';
-      const isCurrentVoiceInList = sortedVoices.some(voice => voice.id === currentVoiceId);
+    setSelectedModelVoices(sortedVoices);
 
-      updateUserSettings({
-        textToSpeechModel: {
-          ...user.settings.textToSpeechModel,
-          model_id: e.target.value,
-          voice_id: isCurrentVoiceInList ? currentVoiceId : defaultVoiceId,
-          vendor: selectedModel.vendor,
-        },
-      });
-    }
-  }, [textToSpeechModels, user.settings.textToSpeechModel, updateUserSettings]);
+    const currentVoiceId = user?.settings?.textToSpeechModel?.voice_id;
+    const defaultVoiceId = sortedVoices[0]?.id || '';
+    const isCurrentVoiceInList = sortedVoices.some(voice => voice.id === currentVoiceId);
+
+    updateUserSettings({
+      textToSpeechModel: {
+        ...user.settings.textToSpeechModel,
+        model_id: e.target.value,
+        voice_id: isCurrentVoiceInList ? currentVoiceId : defaultVoiceId,
+        vendor: selectedModel.vendor,
+      },
+    });
+  }, [textToSpeechModels, user?.settings?.textToSpeechModel, updateUserSettings]);
 
   const handleVoiceChange = useCallback((e) => {
     updateUserSettings({
@@ -102,26 +120,30 @@ const SpeechTab = ({ user, setUser, speechToTextModels, textToSpeechModels }) =>
         voice_id: e.target.value,
       },
     });
-  }, [user.settings.textToSpeechModel, updateUserSettings]);
+  }, [user?.settings?.textToSpeechModel, updateUserSettings]);
+
+  if (!user?.settings) {
+    return null; // or return a loading state  
+  }
 
   return (
     <div className="speech-tab">
       <SelectField
         label={t('speech_to_text_model_title')}
-        value={user.settings.speechToTextModel.model}
+        value={user.settings.speechToTextModel?.model || ''}
         onChange={handleSpeechToTextModelChange}
         options={speechToTextOptions}
       />
       <SelectField
         label={t('text_to_speech_model_title')}
-        value={user.settings.textToSpeechModel.model_id}
+        value={user.settings.textToSpeechModel?.model_id || ''}
         onChange={handleTextToSpeechModelChange}
         options={textToSpeechOptions}
       />
       {selectedModelVoices.length > 0 && (
         <SelectField
           label={t('voice_settings_title')}
-          value={user.settings.textToSpeechModel.voice_id || ''}
+          value={user.settings.textToSpeechModel?.voice_id || ''}
           onChange={handleVoiceChange}
           options={voiceOptions}
         />
@@ -130,18 +152,11 @@ const SpeechTab = ({ user, setUser, speechToTextModels, textToSpeechModels }) =>
   );
 };
 
-SelectField.propTypes = {
-  label: PropTypes.string.isRequired,
-  value: PropTypes.string,
-  onChange: PropTypes.func.isRequired,
-  options: PropTypes.node.isRequired,
-};
-
 SpeechTab.propTypes = {
   user: userShape.isRequired,
   setUser: PropTypes.func.isRequired,
-  speechToTextModels: PropTypes.arrayOf(speechToTextModelShape).isRequired,
-  textToSpeechModels: PropTypes.arrayOf(textToSpeechModelShape).isRequired,
+  speechToTextModels: PropTypes.arrayOf(speechToTextModelShape),
+  textToSpeechModels: PropTypes.arrayOf(textToSpeechModelShape),
 };
 
 export default SpeechTab;  

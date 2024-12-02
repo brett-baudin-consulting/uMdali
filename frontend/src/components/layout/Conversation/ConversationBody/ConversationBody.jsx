@@ -35,7 +35,6 @@ const ConversationBody = ({
   };
 
   const deleteMessage = (messageId) => {  
-    console.log("deleteMessage", messageId);
     const updatedConversation = {  
       ...currentConversation,  
       messages: currentConversation.messages.filter(  
