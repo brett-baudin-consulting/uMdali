@@ -1,49 +1,64 @@
-// Modal.scss
-
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  color: black;
-  z-index: 999;
-
-  // Use flexbox for centering
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
-  justify-content: center; // Horizontal centering
-  align-items: center; // Vertical centering
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
 .modal-container {
-  width: 300px;
-  padding: 20px;
-  background: #b5b5b5;
+  background-color: white;
   border-radius: 8px;
-  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
 
-  // Prevent events from propagating to modal-overlay
-  &:hover {
-    cursor: default;
-  }
+.modal-title {
+  margin: 0 0 16px;
+  font-size: 1.5rem;
+}
+
+.modal-content {
+  margin-bottom: 24px;
 }
 
 .modal-button-container {
   display: flex;
-  justify-content: flex-end; // Align buttons to the right
+  justify-content: flex-end;
+  gap: 12px;
 }
 
 .modal-button {
-  background: #353535;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  margin: 5px;
+  padding: 8px 16px;
   border-radius: 4px;
+  border: none;
   cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
 
-  &:hover {
-    background: #454545;
+  &--primary {
+    background-color: #007bff;
+    color: white;
+
+    &:hover {
+      background-color: darken(#007bff, 10%);
+    }
+  }
+
+  &--secondary {
+    background-color: #6c757d;
+    color: white;
+
+    &:hover {
+      background-color: darken(#6c757d, 10%);
+    }
   }
 }

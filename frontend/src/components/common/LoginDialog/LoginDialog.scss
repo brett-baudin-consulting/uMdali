@@ -3,6 +3,7 @@ $text-color: #e0e0e0;
 $input-background-color: #1e1e1e;
 $button-background-color: #333;
 $button-hover-color: #444;
+$focus-color: lighten($button-hover-color, 20%);
 
 .login-container {
   display: flex;
@@ -15,13 +16,13 @@ $button-hover-color: #444;
   color: $text-color;
 
   .login-title {
-    margin-bottom: 20px; // Adjust as needed
+    margin-bottom: 20px;
     text-align: center;
   }
-  
+
   .login-image {
-    margin-bottom: 20px; // Adjust as needed
-    max-width: 100%; // Ensure the image is responsive
+    margin-bottom: 20px;
+    max-width: 100%;
     height: auto;
   }
 
@@ -36,9 +37,14 @@ $button-hover-color: #444;
       background-color: $input-background-color;
       border: none;
       color: $text-color;
+      outline: none;
 
       &::placeholder {
         color: lighten($text-color, 20%);
+      }
+
+      &:focus {
+        border: 2px solid $focus-color;
       }
     }
 
@@ -53,6 +59,10 @@ $button-hover-color: #444;
 
       &:hover {
         background-color: $button-hover-color;
+      }
+
+      &:focus {
+        outline: 2px solid $focus-color;
       }
     }
   }

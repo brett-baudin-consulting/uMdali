@@ -1,19 +1,13 @@
-import express from 'express';
-
-import { logger } from '../logger.mjs';
-import DataImportModel from '../models/DataImportModel.mjs';
+import express from "express";
+import DataImportModelService from "../services/DataImportModelService.mjs";
+import { asyncHandler } from "../middlewares/index.mjs";
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
-  try {
-    const models = await DataImportModel.find({ available: true }).sort({ name: 1 });
-    res.send(models);
-  } catch (error) {
-    logger.error(error);
-    res.status(400).send({ error: error.message });
-  }
-});
+// Routes  
+router.get("/", asyncHandler(async (req, res) => {
+  const dataImports = await DataImportModelService.getAllDataImports();
+  res.json({ success: true, data: dataImports });
+}));
 
-
-export default router;
+export default router;  

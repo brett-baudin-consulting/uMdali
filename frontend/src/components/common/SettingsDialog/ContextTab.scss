@@ -1,6 +1,7 @@
 .context-tab {
   background-color: var(--color-background-primary);
   color: var(--color-text-primary);
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -24,7 +25,7 @@
       scrollbar-width: none; // For Firefox
 
       &::-webkit-scrollbar {
-        display: none; // For WebKit browsers like Chrome and Safari
+        display: none; // For WebKit browsers like Chrome and Safari  
       }
 
       .list {
@@ -34,37 +35,37 @@
         overflow-y: auto;
         max-height: 100%;
         color: var(--color-text-secondary);
-    
+
         .list-item {
           padding: 0.5rem;
           cursor: pointer;
-    
+
           &:hover {
             background-color: var(--color-background-hover);
           }
-    
+
           &.active {
             background-color: var(--color-background-selected);
             color: var(--color-text-selected);
             font-weight: bold;
           }
         }
-    
-        // Scrollbar styles
+
+        // Scrollbar styles  
         &::-webkit-scrollbar {
           width: 8px;
         }
-    
+
         &::-webkit-scrollbar-track {
           background: var(--color-background-secondary);
         }
-    
+
         &::-webkit-scrollbar-thumb {
           background-color: var(--color-background-selected);
           border-radius: 4px;
           border: 2px solid var(--color-background-secondary);
         }
-    
+
         &::-webkit-scrollbar-thumb:hover {
           background: var(--color-background-hover);
         }

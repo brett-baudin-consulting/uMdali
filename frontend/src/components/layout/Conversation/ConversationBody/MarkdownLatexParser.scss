@@ -1,11 +1,23 @@
 // MarkdownLatexParser.scss  
-.markdown-container {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    padding: 1rem;
-}
-
-.markdown-empty {
-    min-height: 1rem;
-}
+.markdown {  
+    &-container {  
+      width: 100%;  
+      max-width: 100%;  
+      overflow-x: auto;  
+      padding: 2px;  
+        
+      // Improve readability  
+      line-height: 1.5;  
+      word-wrap: break-word;  
+        
+      // Better mobile support  
+      @media (max-width: 768px) {  
+        padding: 0.5rem;  
+      }  
+    }
+  
+    &-empty {  
+      min-height: 1rem;  
+      display: block;  
+    }  
+  }  

@@ -1,240 +1,196 @@
+// MistralAIMessageAPI.jsx  
 import { logger } from "../logger.mjs";
-import fetch from "node-fetch";
+import { Mistral } from "@mistralai/mistralai";
 import jsonata from "jsonata";
-import { TextDecoder } from "util";
 import MessageAPI from "./MessageAPI.mjs";
 import { promises as fs } from 'fs';
 import { resolve } from 'path';
 
-async function encodeFileToBase64(relativeFilePath) {
-  try {
-    // Resolve the relative path to an absolute path
-    const absoluteFilePath = resolve(relativeFilePath);
+const transformWithVision = `    
+  $map($, function($message) {    
+    {    
+        "role": $message.role = 'bot' ? 'assistant' :    
+                $message.role = 'context' ? 'system' :    
+                $message.role,    
+        "content": [    
+            {    
+              "type": "text",     
+              "text": $message.content    
+            },    
+            $map($message.files, function($file) {    
+                {    
+                  "type": "image_url",    
+                  "image_url":"data:image/jpeg;base64,"&$file.base64    
+                }    
+            })    
+        ]    
+    }    
+  })[]`;
 
-    // Read the file content as a Buffer
-    const fileBuffer = await fs.readFile(absoluteFilePath);
-
-    // Convert the Buffer to a base64 string
-    const base64String = fileBuffer.toString('base64');
-
-    return base64String;
-  } catch (error) {
-    logger.error('Error encoding file to base64:', error);
-    throw error;
-  }
-}
-async function encodeFiles(messages) {
-  for (const message of messages) {
-    if (message.files) {
-      for (const file of message.files) {
-        file.base64 = await encodeFileToBase64(file.path);
-      }
-    }
-  }
-}
-// JSONata expression
-const transformWithVision = `
-$map($, function($message) {
-  {
-      "role": $message.role = 'bot' ? 'assistant' :
-              $message.role = 'context' ? 'system' :
-              $message.role,
-      "content": [
-          {
-            "type": "text", 
-            "text": $message.content
-          },
-          $map($message.files, function($file) {
-              {"image_url": 
-                {
-                  "url": "data:image/jpeg;base64,"&$file.base64
-                }
-              }
-          })
-      ]
-  }
-})[]
+const transformWithoutVision = `    
+$map($, function($message) {    
+  {    
+      "role": $message.role = 'bot' ? 'assistant' :    
+              $message.role = 'context' ? 'system' :    
+              $message.role,    
+      "content": $message.content    
+  }    
+})[]    
 `;
-const transformWithoutVision = `
-$map($, function($message) {
-  {
-      "role": $message.role = 'bot' ? 'assistant' :
-              $message.role = 'context' ? 'system' :
-              $message.role,
-      "content": $message.content
-  }
-})[]
-`;
-async function messageToMistralAIFormat(messages, isSupportsVision) {
-  if (!isSupportsVision) {
-    const transform = jsonata(transformWithoutVision);
-    const openai = await transform.evaluate(messages);
-    return openai;
-  }
-  const transform = jsonata(transformWithVision);
-  const openai = await transform.evaluate(messages);
-  return openai;
-}
-
-const { MISTRALAI_API_KEY, MISTRALAI_API_URL } =
-  process.env;
-
-const checkEnvVariables = () => {
-  if (!MISTRALAI_API_KEY || !MISTRALAI_API_URL) {
-    throw new Error("Mistral environment variables are not set correctly.");
-  }
-
-};
-
-async function handleApiErrorResponse(response) {
-  const text = await response.text();
-  let parsedText;
-  try {
-    parsedText = JSON.parse(text);
-  } catch (error) {
-    // If JSON parsing fails, use the original text
-    parsedText = text;
-  }
-
-  // Log the error
-  logger.error("Mistral API response error: ", parsedText);
-
-  // Throw an error with a message, checking if parsedText is an object and has an error.message
-  const errorMessage = `Mistral API Error: ${parsedText?.error?.message || parsedText?.message || 'Unknown error occurred'}`;
-  throw new Error(errorMessage);
-}
-
-checkEnvVariables();
 
 class MistralAIMessageAPI extends MessageAPI {
   constructor() {
     super();
-    this.API_KEY = MISTRALAI_API_KEY;
+    if (!process.env.MISTRALAI_API_KEY) {
+      throw new Error("Mistral API key is not set correctly.");
+    }
+    this.client = new Mistral({ apiKey: process.env.MISTRALAI_API_KEY });
+    this.MODEL = 'mistral-tiny';
   }
 
-  _prepareHeaders() {
-    return {
-      Authorization: `Bearer ${this.API_KEY}`,
-      "Content-Type": "application/json",
+  getRequestConfig(userModel, maxTokens, temperature, isSupportsVision, messages) {
+    const config = {
+      model: userModel || this.MODEL,
+      messages,
     };
-  }
 
-  _prepareOptions(body, signal) {
-    return {
-      method: "POST",
-      headers: this._prepareHeaders(),
-      body: JSON.stringify(body),
-      signal: signal,
-    };
+    if (temperature !== undefined) {
+      config.temperature = temperature;
+    }
+
+    if (maxTokens) {
+      config.max_tokens = maxTokens;
+    }
+
+    return config;
   }
 
   async sendRequest(messages, signal, options = {}) {
     const { userModel, maxTokens, temperature, isSupportsVision } = options;
-    if (isSupportsVision) {
-      await encodeFiles(messages);
+
+    if (signal?.aborted) {
+      throw new Error('Request aborted');
     }
-    const updatedMessages = await messageToMistralAIFormat(messages, isSupportsVision);
-    const requestOptions = this._prepareOptions({
-      model: userModel || this.MODEL,
-      messages: updatedMessages,
-      max_tokens: maxTokens,
-      temperature: temperature,
-    }, signal);
+
+    if (isSupportsVision) {
+      await this.encodeFiles(messages);
+    }
+
+    const updatedMessages = await this.messageToMistralAIFormat(messages, isSupportsVision);
 
     try {
-      const response = await fetch(MISTRALAI_API_URL, requestOptions, signal);
+      const abortPromise = new Promise((_, reject) => {
+        signal?.addEventListener('abort', () => reject(new Error('Request aborted')));
+      });
 
-      if (!response.ok) {
-        await handleApiErrorResponse(response);
-      }
+      const config = this.getRequestConfig(
+        userModel,
+        maxTokens,
+        temperature,
+        isSupportsVision,
+        updatedMessages
+      );
 
-      const data = await response.json();
-      const content = data?.choices?.[0]?.message?.content;
-      return content;
+      const responsePromise = this.client.chat.complete(config);
+      const response = await Promise.race([responsePromise, abortPromise]);
+
+      return response.choices[0].message.content;
     } catch (err) {
-      if (err.name === 'AbortError') {
-        logger.error("Fetch aborted:", err);
-      } else {
-        logger.error("Error sending request:", err);
-      }
-      throw err;
+      this.handleError(err);
     }
   }
 
   async sendRequestStreamResponse(messages, resClient, signal, options = {}) {
     const { userModel, maxTokens, temperature, isSupportsVision } = options;
-    if (isSupportsVision) {
-      await encodeFiles(messages);
-    }
-    const updatedMessages = await messageToMistralAIFormat(messages, isSupportsVision);
 
-    const requestOptions = this._prepareOptions({
-      model: userModel,
-      messages: updatedMessages,
-      max_tokens: maxTokens,
-      temperature: temperature,
-      stream: true,
-    }, signal);
+    if (signal?.aborted) {
+      throw new Error('Request aborted');
+    }
+
+    if (isSupportsVision) {
+      await this.encodeFiles(messages);
+    }
+
+    const updatedMessages = await this.messageToMistralAIFormat(messages, isSupportsVision);
 
     try {
-      const response = await fetch(MISTRALAI_API_URL, requestOptions, signal);
+      const config = this.getRequestConfig(
+        userModel,
+        maxTokens,
+        temperature,
+        isSupportsVision,
+        updatedMessages
+      );
+      const stream = await this.client.chat.stream(config);
 
-      if (!response.ok) {
-        await handleApiErrorResponse(response);
+      signal?.addEventListener('abort', () => {
+        resClient.end();
+      });
+
+      for await (const event of stream) {
+        if (signal?.aborted) break;
+
+        const content = event.data?.choices[0]?.delta.content;
+        if (content) {
+          resClient.write(content);
+        }
       }
 
-      await this.processResponseStream(response, resClient);
+      if (!signal?.aborted) {
+        resClient.end();
+      }
     } catch (err) {
       this.handleStreamError(err);
     }
   }
 
-  async processResponseStream(response, resClient) {
-    const textDecoder = new TextDecoder();
-    let lastChunk = "";
-
-    for await (const chunk of response.body) {
-      let decodedChunk = textDecoder.decode(chunk, { stream: true });
-      if (!decodedChunk.startsWith("data:")) {
-        decodedChunk = lastChunk + decodedChunk;
+  async encodeFiles(messages) {
+    for (const message of messages) {
+      if (message.files) {
+        for (const file of message.files) {
+          file.base64 = await this.encodeFileToBase64(file.path);
+        }
       }
-      const lines = decodedChunk.split("\n");
-      lastChunk = this.handleStreamedContent(lines, resClient, lastChunk);
     }
   }
 
-  handleStreamedContent(lines, resClient, lastChunk) {
-    for (const line of lines) {
-      if (line.startsWith("data: ")) {
-        const content = line.replace(/^data: /, "").trim();
-        if (content === "[DONE]") {
-          resClient.end();
-          return ""; // Return an empty string as the lastChunk for the next iteration
-        }
-        try {
-          const parsedLine = JSON.parse(content);
-          if (parsedLine?.choices?.[0]?.delta?.content) {
-            resClient.write(parsedLine.choices[0].delta.content);
-          }
-        } catch (error) {
-          lastChunk = line; // Keep the partial line for the next iteration
-        }
-      }
+  async encodeFileToBase64(relativeFilePath) {
+    try {
+      const absoluteFilePath = resolve(relativeFilePath);
+      const fileBuffer = await fs.readFile(absoluteFilePath);
+      return fileBuffer.toString('base64');
+    } catch (error) {
+      logger.error('Error encoding file to base64:', error);
+      throw error;
     }
-    return lastChunk; // Return the lastChunk for the next iteration
+  }
+
+  async messageToMistralAIFormat(messages, isSupportsVision) {
+    const transform = jsonata(isSupportsVision ? transformWithVision : transformWithoutVision);
+    return await transform.evaluate(messages);
+  }
+
+  handleError(err) {
+    if (err.message === 'Request aborted') {
+      logger.error("Request aborted:", err);
+      const abortError = new Error('AbortError');
+      abortError.name = 'AbortError';
+      throw abortError;
+    }
+    logger.error("Error sending request:", err);
+    throw err;
   }
 
   handleStreamError(err) {
-    if (err.name === 'AbortError') {
-      logger.error("Fetch aborted:", err);
-    } else {
-      logger.error("Error sending stream response:", err);
+    if (err.message === 'Request aborted') {
+      logger.error("Stream aborted:", err);
+      const abortError = new Error('AbortError');
+      abortError.name = 'AbortError';
+      throw abortError;
     }
-    // Do not rethrow the error if it's an AbortError since it's expected behavior
-    if (err.name !== 'AbortError') {
-      throw err;
-    }
+    logger.error("Error sending stream response:", err);
+    throw err;
   }
 }
 
-export default MistralAIMessageAPI;
+export default MistralAIMessageAPI;  

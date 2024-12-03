@@ -1,10 +1,11 @@
-import express from 'express';
+// routes/dataImportRoutes.mjs  
+import express from 'express';  
+import { DataImportController } from '../controllers/DataImportController.mjs';
 
-import handleRequest from '../controllers/dataImportController.mjs';
+const router = express.Router();  
+const dataImportController = new DataImportController();
 
-const router = express.Router();
+// Bind the controller method to maintain correct 'this' context  
+router.post('/', (req, res) => dataImportController.handleImport(req, res));
 
-router.post('/', handleRequest);
-
-
-export default router;
+export default router;  

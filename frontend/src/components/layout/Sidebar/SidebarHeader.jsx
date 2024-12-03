@@ -1,128 +1,118 @@
-import React, { useState, useRef, useEffect } from 'react';
-import PropTypes from 'prop-types';
-import { useTranslation } from 'react-i18next';
-
-import { userShape } from "../../../model/userPropType";
-
+import React, { useCallback } from 'react';  
+import PropTypes from 'prop-types';  
+import { useTranslation } from 'react-i18next';  
+import { userShape } from '../../../model/userPropType';  
+import DropdownMenu from './DropdownMenu';  
+import useClickOutside from './hooks/useClickOutside';  
 import './SidebarHeader.scss';
 
-const SidebarHeader = ({
-    searchText,
-    setSearchText,
-    handleSearchClick,
-    createNewConversation,
-    isSearchDisabled,
-    user,
-    setIsWizardVisible
-}) => {
-    const { t } = useTranslation();
-    const [showInitialOptions, setShowInitialOptions] = useState(false);
-    const [showUserContexts, setShowUserContexts] = useState(false);
-    const containerRef = useRef(null);
-    const initialOptions = ['ai_human_conversation_title', 'ai_ai_conversation_title'].map(key => t(key));
+const SidebarHeader = ({  
+    searchText,  
+    setSearchText,  
+    handleSearchClick,  
+    createNewConversation,  
+    isSearchDisabled,  
+    user,  
+    setIsWizardVisible  
+}) => {  
+    const { t } = useTranslation();  
+    const [showInitialOptions, setShowInitialOptions, containerRef] = useClickOutside();  
+    const [showUserContexts, setShowUserContexts] = useClickOutside();
 
-    const renderOption = (translatedOption, handleClick) => (
-        <li key={translatedOption} onClick={() => handleClick(translatedOption)}>
-            {translatedOption}
-        </li>
+    const initialOptions = [  
+        { id: 'human', label: t('ai_human_conversation_title') },  
+        { id: 'ai', label: t('ai_ai_conversation_title') }  
+    ];
+
+    const handleKeyDown = useCallback((e) => {  
+        if (e.key === 'Enter' && !isSearchDisabled) {  
+            handleSearchClick();  
+        }  
+    }, [handleSearchClick, isSearchDisabled]);
+
+    const handleNewConversationClick = useCallback(() => {  
+        setShowInitialOptions(prev => !prev);  
+        setShowUserContexts(false);  
+    }, [setShowInitialOptions, setShowUserContexts]);
+
+    const handleInitialOptionClick = useCallback((optionId) => {  
+        if (optionId === 'human') {  
+            setShowUserContexts(true);  
+        } else if (optionId === 'ai') {  
+            setIsWizardVisible(true);  
+        }  
+        setShowInitialOptions(false);  
+    }, [setIsWizardVisible, setShowUserContexts, setShowInitialOptions]);
+
+    const handleContextClick = useCallback((contextName) => {  
+        createNewConversation(contextName);  
+        setShowUserContexts(false);  
+    }, [createNewConversation, setShowUserContexts]);
+
+    const sortedContexts = React.useMemo(() =>   
+        [...user.settings.contexts].sort((a, b) => a.name.localeCompare(b.name)),  
+        [user.settings.contexts]  
     );
-    useEffect(() => {
-        function handleClickOutside(event) {
-            if (containerRef.current && !containerRef.current.contains(event.target)) {
-                // Close the appropriate menu based on which one is currently open
-                if (showInitialOptions) setShowInitialOptions(false);
-                if (showUserContexts) setShowUserContexts(false);
-            }
-        }
 
-        // Add event listener when either menu is visible
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            // Cleanup the event listener when the component unmounts or states change
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [showInitialOptions, showUserContexts]);
-
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter') {
-            handleSearchClick();
-        }
-    };
-
-    const handleNewConversationClick = () => {
-        setShowInitialOptions(!showInitialOptions);
-        setShowUserContexts(false); // Reset the display of user contexts
-    };
-
-    const handleInitialOptionClick = (option) => {
-        if (option === t('ai_human_conversation_title')) {
-            setShowUserContexts(true);
-        } else if (option === t('ai_ai_conversation_title')) {
-            setShowUserContexts(false);
-            setIsWizardVisible(true);
-        }
-        setShowInitialOptions(false); // Hide initial options after selection
-    };
-
-    const handleOptionClick = (contextName) => {
-        createNewConversation(contextName);
-        setShowUserContexts(false);
-    };
-
-    const sortedContexts = [...user.settings.contexts].sort((a, b) => a.name.localeCompare(b.name));
-    return (
-        <div className="sidebar-buttons" ref={containerRef}>
-            <div className="new-conversation-container">
-                <button
-                    title={t('new_conversation_title')}
-                    className="new-conversation-btn"
-                    onClick={handleNewConversationClick}
-                >
-                    {t("new_conversation")}
-                </button>
-                {showInitialOptions && (
-                    <ul className="new-conversation-options">
-                        {initialOptions.map(option => renderOption(option, handleInitialOptionClick))}
-                    </ul>
-                )}
-                {showUserContexts && (
-                    <ul className="new-conversation-options">
-                        {sortedContexts.map((context) => (
-                            <li key={context.name} onClick={() => handleOptionClick(context.name)}>
-                                {context.name}
-                            </li>
-                        ))}
-                    </ul>
-                )}
+    return (  
+        <div className="sidebar-buttons" ref={containerRef}>  
+            <div className="new-conversation-container">  
+                <button  
+                    aria-label={t('new_conversation_title')}  
+                    className="new-conversation-btn"  
+                    onClick={handleNewConversationClick}  
+                >  
+                    {t('new_conversation')}  
+                </button>  
+                  
+                {showInitialOptions && (  
+                    <DropdownMenu  
+                        items={initialOptions}  
+                        onSelect={handleInitialOptionClick}  
+                    />  
+                )}  
+                  
+                {showUserContexts && (  
+                    <DropdownMenu  
+                        items={sortedContexts.map(context => ({  
+                            id: context.name,  
+                            label: context.name  
+                        }))}  
+                        onSelect={handleContextClick}  
+                    />  
+                )}  
             </div>
-            <input
-                type="text"
-                className="search-input"
-                placeholder={t('search_placeholder')}
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                onKeyDown={handleKeyDown}
+
+            <input  
+                type="text"  
+                className="sidebar-buttons__search"  
+                placeholder={t('search_placeholder')}  
+                value={searchText}  
+                onChange={(e) => setSearchText(e.target.value)}  
+                onKeyDown={handleKeyDown}  
+                aria-label={t('search_placeholder')}  
             />
-            <button
-                title={t('search_title')}
-                className="search-btn"
-                disabled={isSearchDisabled}
-                onClick={handleSearchClick}
-            >
-                {t('search')}
-            </button>
-        </div>
-    );
+
+            <button  
+                aria-label={t('search_title')}  
+                className="search-btn"  
+                disabled={isSearchDisabled}  
+                onClick={handleSearchClick}  
+            >  
+                {t('search')}  
+            </button>  
+        </div>  
+    );  
 };
 
-SidebarHeader.propTypes = {
-    searchText: PropTypes.string.isRequired,
-    setSearchText: PropTypes.func.isRequired,
-    handleSearchClick: PropTypes.func.isRequired,
-    createNewConversation: PropTypes.func.isRequired,
-    isSearchDisabled: PropTypes.bool.isRequired,
-    user: userShape.isRequired,
-    setIsWizardVisible: PropTypes.func.isRequired,
+SidebarHeader.propTypes = {  
+    searchText: PropTypes.string.isRequired,  
+    setSearchText: PropTypes.func.isRequired,  
+    handleSearchClick: PropTypes.func.isRequired,  
+    createNewConversation: PropTypes.func.isRequired,  
+    isSearchDisabled: PropTypes.bool.isRequired,  
+    user: userShape.isRequired,  
+    setIsWizardVisible: PropTypes.func.isRequired,  
 };
 
-export default SidebarHeader;
+export default SidebarHeader;  

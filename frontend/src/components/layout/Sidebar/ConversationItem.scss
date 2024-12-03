@@ -6,22 +6,7 @@
   justify-content: space-between;
   align-items: center;
 
-
-  .conversation-title {
-    flex: 1;
-    padding: 5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    box-sizing: border-box;
-
-    .text {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    /* Add a new class for the input field that shares properties with .conversation-title */
-  }
+  .conversation-title,
   .conversation-title-input {
     flex: 1;
     padding: 5px;
@@ -29,11 +14,14 @@
     overflow: hidden;
     text-overflow: ellipsis;
     box-sizing: border-box;
+  }
+
+  .conversation-title-input {
     background-color: var(--color-background-selected);
     color: var(--color-text-primary);
     border: none;
   }
-  
+
   .conversation-actions {
     display: block;
     padding: 0px;
@@ -52,8 +40,8 @@
       &:disabled {
         background-color: var(--color-background-secondary);
         color: var(--color-text-secondary);
-        cursor: not-allowed; // Change cursor to indicate the button is not clickable
-        opacity: 0.5; // Optionally add opacity to make the button look "faded out"
+        cursor: not-allowed;
+        opacity: 0.5;
       }
     }
   }

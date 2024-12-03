@@ -1,22 +1,34 @@
-import { SERVER_BASE_URL } from '../config/config';
+import { apiClient } from './apiClient';
+
+const FALLBACK_ICON = '/public/images/fallback_icon.png';
+
+export const fetchBlobUrl = async (path) => {
+  try {
+    const blob = await apiClient.fetch(path, {
+      responseType: 'blob',
+    });
+
+    if (!(blob instanceof Blob)) {
+      console.error('Invalid response type received');
+      return FALLBACK_ICON;
+    }
+
+    return URL.createObjectURL(blob);
+  } catch (error) {
+    console.error('Error fetching blob:', error);
+    return FALLBACK_ICON;
+  }
+};
 
 export const uploadFile = async (userId, file) => {
   try {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch(`${SERVER_BASE_URL}/file/${userId}`, {
+    return await apiClient.fetch(`/file/${userId}`, {
       method: 'POST',
       body: formData,
     });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Error during file upload: ${errorText} (Status: ${response.status})`);
-    }
-
-    const data = await response.json();
-    return data;
   } catch (error) {
     throw new Error(`Error uploading file: ${error.message}`);
   }
@@ -24,43 +36,40 @@ export const uploadFile = async (userId, file) => {
 
 export const deleteFile = async (userId, fileName) => {
   try {
-    const response = await fetch(`${SERVER_BASE_URL}/file/${userId}/${fileName}`, {
+    return await apiClient.fetch(`/file/${userId}/${fileName}`, {
       method: 'DELETE',
     });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Error during file deletion: ${errorText} (Status: ${response.status})`);
-    }
-
-    const data = await response.json();
-    return data;
   } catch (error) {
     throw new Error(`Error deleting file: ${error.message}`);
   }
 };
 
-// Generic function to fetch a blob and return a URL
-const fetchBlobUrl = async (path) => {
-  const response = await fetch(path);
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Error during blob retrieval: ${errorText} (Status: ${response.status})`);
+export const fetchIcon = async (userId, file) => {
+  try {
+    if (file.type.startsWith('image/')) {
+      // Split the filename into name and extension  
+      const lastDotIndex = file.name.lastIndexOf('.');
+      const name = file.name.substring(0, lastDotIndex);
+      const extension = file.name.substring(lastDotIndex);
+
+      // Create new filename with "_icon" before extension  
+      const iconFileName = `${name}_icon${extension}`;
+
+      return fetchBlobUrl(`/file/${userId}/${iconFileName}`);
+    }
   }
-  const blob = await response.blob();
-  return URL.createObjectURL(blob);
+  catch (error) {
+    console.error('Failed to fetch icon:', error);
+    return fetchBlobUrl('/public/images/standard_icon.png');
+  }
 };
 
-export const fetchImage = (userId, fileName) => {
-  return fetchBlobUrl(`${SERVER_BASE_URL}/file/${userId}/image/${fileName}`);
-};
-
-export const fetchIcon = (userId, file) => {
-  if (file.type.startsWith('image/')) {
-    return fetchBlobUrl(`${SERVER_BASE_URL}/file/${userId}/image/${file.name}`);
+export const fetchImageFile = async (userId, file) => {
+  try {
+    return fetchBlobUrl(`/file/${userId}/${file.name}`);
   }
-  else
-  {
-    return fetchBlobUrl(`${SERVER_BASE_URL}/public/images/standard_icon.png`);
+  catch (error) {
+    console.error('Failed to fetch icon:', error);
+    return fetchBlobUrl('/public/images/standard_icon.png');
   }
-};
+}; 

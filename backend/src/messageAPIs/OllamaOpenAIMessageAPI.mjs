@@ -24,9 +24,6 @@ async function messageToOllamaOpenAIFormat(messages, isSupportsVision) {
     const ollama_openai = await transform.evaluate(messages);
     return ollama_openai;
   }
-  const transform = jsonata(transformWithVision);
-  const ollama_openai = await transform.evaluate(messages);
-  return ollama_openai;
 }
 
 const { OLLAMA_OPENAI_API_KEY, OLLAMA_OPENAI_API_URL } =

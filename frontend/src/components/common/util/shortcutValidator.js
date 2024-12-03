@@ -1,97 +1,62 @@
-// utils/shortcutValidator.js or a suitable place in your project structure
+// utils/validators/shortcutValidator.jsx  
+import { SHORTCUT_KEYS, DISALLOWED_SHORTCUTS } from './constants/shortcuts';
 
-const disallowedShortcuts = new Set([
-  // General System Operations
-  "ctrl+c", // Copy
-  "ctrl+v", // Paste
-  "ctrl+x", // Cut
-  "ctrl+z", // Undo
-  "ctrl+y", // Redo
-  "cmd+shift+z", // Redo (macOS alternative)
-  "ctrl+a", // Select all
-  "ctrl+f", // Find
-  "ctrl+s", // Save
-  "ctrl+o", // Open
-  "ctrl+p", // Print
-  "ctrl+n", // New (window or document)
-  "ctrl+w", // Close (window or tab)
-  "alt+f4", // Quit application (Windows)
-  "cmd+q", // Quit application (macOS)
-  "ctrl+shift+n", // New incognito window/private window
-  "ctrl+t", // Open new tab
-  "ctrl+shift+t", // Reopen last closed tab
-  "ctrl+tab", // Switch to the next tab
-  "cmd+option+rightarrow", // Switch to the next tab (macOS)
-  "ctrl+shift+tab", // Switch to the previous tab
-  "cmd+option+leftarrow", // Switch to the previous tab (macOS)
+const KEY_MAPPINGS = {  
+  control: SHORTCUT_KEYS.CTRL,  
+  ctr: SHORTCUT_KEYS.CTRL,  
+  command: SHORTCUT_KEYS.CMD,  
+  option: SHORTCUT_KEYS.ALT,  
+  leftarrow: SHORTCUT_KEYS.ARROWS.LEFT,  
+  rightarrow: SHORTCUT_KEYS.ARROWS.RIGHT,  
+  uparrow: SHORTCUT_KEYS.ARROWS.UP,  
+  downarrow: SHORTCUT_KEYS.ARROWS.DOWN  
+};
 
-  // Navigation
-  "alt+leftarrow", // Back
-  "cmd+[", // Back (macOS)
-  "alt+rightarrow", // Forward
-  "cmd+]", // Forward (macOS)
-  "home", // Scroll to top of the page
-  "cmd+uparrow", // Scroll to top of the page (macOS)
-  "end", // Scroll to bottom of the page
-  "cmd+downarrow", // Scroll to bottom of the page (macOS)
-  "pageup", // Scroll up
-  "pagedown", // Scroll down
+const MODIFIER_ORDER = {  
+  [SHORTCUT_KEYS.CTRL]: 1,  
+  [SHORTCUT_KEYS.CMD]: 1,  
+  [SHORTCUT_KEYS.ALT]: 2,  
+  [SHORTCUT_KEYS.SHIFT]: 3  
+};
 
-  // System Control
-  "ctrl+alt+del", // Task Manager / Force quit applications (Windows)
-  "cmd+option+esc", // Force quit applications (macOS)
-  "printscreen", // Take a screenshot
-  "alt+tab", // Switch between applications
-  "ctrl+shift+esc", // Open Task Manager (Windows)
-  "cmd+space", // Spotlight Search (macOS)
+const normalizeShortcutPart = (part) => {  
+  const normalizedPart = part.trim().toLowerCase();  
+  return KEY_MAPPINGS[normalizedPart] || normalizedPart;  
+};
 
-  // Accessibility
-  "ctrl+plus", // Zoom in
-  "cmd+plus", // Zoom in (macOS)
-  "ctrl+minus", // Zoom out
-  "cmd+minus", // Zoom out (macOS)
-  "ctrl+0", // Reset zoom level
-  "cmd+0", // Reset zoom level (macOS)
-  // Add more shortcuts as needed
-]);
+const sortShortcutParts = (parts) => {  
+  return parts.sort((a, b) => {  
+    const aOrder = MODIFIER_ORDER[a] || 999;  
+    const bOrder = MODIFIER_ORDER[b] || 999;  
+    return aOrder - bOrder;  
+  });  
+};
 
-export const isShortcutAllowed = (shortcut) => {
-  // Trim, convert to lower case, and split to standardize input
-  let parts = shortcut.trim().toLowerCase().split('+');
+const validateShortcutFormat = (normalizedShortcut) => {  
+  const validPattern = /^(ctrl|cmd|alt|shift|\b\w+\b)(\+(ctrl|cmd|alt|shift|\b\w+\b))*$/;  
+  if (!validPattern.test(normalizedShortcut)) {  
+    console.error('Invalid shortcut format. Keys must be separated by \'+\' without spaces.');  
+    return false;  
+  }  
+  return true;  
+};
 
-  // Normalize the shortcut parts
-  parts = parts.map(part => {
-    switch (part) {
-      case 'control':
-      case 'ctr':
-        return 'ctrl';
-      case 'command':
-        return 'cmd';
-      case 'option':
-        return 'alt';
-      case 'leftarrow':
-        return 'left';
-      case 'rightarrow':
-        return 'right';
-      case 'uparrow':
-        return 'up';
-      case 'downarrow':
-        return 'down';
-      default:
-        return part;
-    }
-  });
-
-  // Sort parts to ensure consistent ordering
-  parts.sort();
-
-  const normalizedShortcut = parts.join('+');
-
-  // Ensure the normalizedShortcut matches the expected pattern
-  if (!/^(ctrl|cmd|alt|shift|\b\w\b)(\+(ctrl|cmd|alt|shift|\b\w\b))*$/.test(normalizedShortcut)) {
-    console.error('Invalid shortcut format. Keys must be separated by \'+\' without spaces.');
-    return false;
+export const isShortcutAllowed = (shortcut) => {  
+  if (!shortcut || typeof shortcut !== 'string') {  
+    return false;  
   }
 
-  return !disallowedShortcuts.has(normalizedShortcut);
+  // Split the shortcut into parts and normalize each part  
+  const parts = shortcut  
+    .trim()  
+    .toLowerCase()  
+    .split('+')  
+    .map(normalizeShortcutPart);
+
+  // Sort parts maintaining modifier order  
+  const sortedParts = sortShortcutParts(parts);  
+  const normalizedShortcut = sortedParts.join('+');
+
+  return validateShortcutFormat(normalizedShortcut) &&   
+         !DISALLOWED_SHORTCUTS.has(normalizedShortcut);  
 };

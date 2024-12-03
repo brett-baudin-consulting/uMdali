@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { upsertModel } from '../controllers/textToSpeechModelController.mjs';
+import TextToSpeechModelService from '../services/TextToSpeechModelService.mjs';
 import { logger } from '../logger.mjs';
 
 export default async function loadSpeechToTextModels() {
@@ -24,7 +24,7 @@ export default async function loadSpeechToTextModels() {
     // Process each model in the configuration.
     for (const modelData of modelsConfig) {
       try {
-        await upsertModel(modelData);
+        await TextToSpeechModelService.upsertModel(modelData);
       } catch (error) {
         logger.error(`Error loading model ${modelData.id}:`, error);
       }

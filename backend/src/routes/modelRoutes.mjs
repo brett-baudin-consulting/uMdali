@@ -1,25 +1,13 @@
-import express from 'express';
-import { logger } from '../logger.mjs';
-import Model from '../models/Model.mjs';
+import express from 'express';  
+import { ModelController } from '../controllers/modelController.mjs';
 
-const router = express.Router();
-async function removeOldModels() {
-  try {
-    await Model.deleteMany({ isSupportsContext: null });
-  } catch (error) {
-    logger.error(error);
-  }};
+const router = express.Router();  
+const controller = new ModelController();
 
-router.get('/', async (req, res) => {
-  try {
-    await removeOldModels();
-    const models = await Model.find({ available: true }).sort({ name: 1 }); 
-    res.send(models);
-  } catch (error) {
-    logger.error(error);
-    res.status(400).send({ error: error.message });
-  }
-});
+router.get('/', controller.getAllModels);  
+router.get('/:id', controller.getModelById);  
+router.post('/', controller.createModel);  
+router.put('/:id', controller.updateModel);  
+router.delete('/:id', controller.deleteModel);
 
-const modelRoutes = router;
-export default modelRoutes;
+export default router;  

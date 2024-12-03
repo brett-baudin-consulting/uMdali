@@ -1,35 +1,57 @@
-.file-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-right: 10px;
+// Variables  
+$image-size: 64px;  
+$button-padding: 5px 10px;  
+$border-radius: 5px;  
+$transition-duration: 0.3s;
+
+// Mixins  
+@mixin flex-center {  
+  display: flex;  
+  align-items: center;  
 }
 
-.file-item-content {
-    position: relative;
-    display: flex;
-    align-items: center;
+@mixin button-base {  
+  border: none;  
+  border-radius: $border-radius;  
+  cursor: pointer;  
 }
 
-.file-item-content img {
-    width: 64px;
-    height: 64px;
-}
-
-.file-item-content .delete-button {
-    position: absolute;
-    top: 0;
-    right: 0;
-    background-color: red;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-.file-item-content:hover .delete-button {
-    opacity: 1;
+// Main styles  
+.file-item {  
+  @include flex-center;  
+  justify-content: space-between;  
+  margin-inline-end: 10px; // More modern than margin-right  
+    
+  &-content {  
+    @include flex-center;  
+    position: relative;  
+      
+    img {  
+      width: $image-size;  
+      height: $image-size;  
+      object-fit: cover; // Ensures proper image scaling  
+    }  
+      
+    .delete-button {  
+      @include button-base;  
+      position: absolute;  
+      inset-block-start: 0; // Modern alternative to top  
+      inset-inline-end: 0; // Modern alternative to right  
+      padding: $button-padding;  
+      background-color: rgb(220, 53, 69); // Bootstrap's danger red  
+      color: white;  
+      opacity: 0;  
+      transition: all $transition-duration ease-in-out;  
+        
+      &:hover {  
+        background-color: darken(rgb(220, 53, 69), 10%);  
+      }  
+    }  
+      
+    &:hover {  
+      .delete-button {  
+        opacity: 1;  
+      }  
+    }  
+  }  
 }

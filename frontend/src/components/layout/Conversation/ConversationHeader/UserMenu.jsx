@@ -1,61 +1,67 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, memo } from "react";
 import PropTypes from "prop-types";
-
 import { userShape } from '../../../../model/userPropType';
+import { useClickOutside } from '../../../../hooks/useClickOutside';
 import "./UserMenu.scss";
 
-const UserMenu = ({ user, setIsLoggedIn }) => {
+const UserMenu = memo(({ user, setIsLoggedIn }) => {
   const [showMenu, setShowMenu] = useState(false);
-  const menuRef = useRef(); // Create a ref for the menu
+  const menuRef = useRef();
+
+  useClickOutside(menuRef, () => {
+    if (showMenu) setShowMenu(false);
+  });
 
   const handleUserClick = () => {
-    setShowMenu((current) => !current);
+    setShowMenu(prev => !prev);
   };
 
   const handleLogoff = () => {
     setIsLoggedIn(false);
   };
 
-  const handleClickOutside = (event) => {
-    // If click is outside menuRef, close the menu
-    if (menuRef.current && !menuRef.current.contains(event.target)) {
+  const handleKeyDown = (event) => {
+    if (event.key === 'Escape') {
       setShowMenu(false);
     }
   };
 
-  useEffect(() => {
-    // Add event listener when the component is mounted or when showMenu changes
-    if (showMenu) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
-
-    // Cleanup the event listener when the component is unmounted or before adding a new one
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showMenu]); // Only re-run if showMenu changes
-
   return (
-    <div className="user-menu" ref={menuRef}>
-      <button onClick={handleUserClick} className="user-name-button">
+    <div
+      className="user-menu"
+      ref={menuRef}
+      onKeyDown={handleKeyDown}
+    >
+      <button
+        onClick={handleUserClick}
+        className="user-name-button"
+        aria-expanded={showMenu}
+        aria-haspopup="true"
+      >
         {user.name} ({user.settings.model})
       </button>
       {showMenu && (
-        <div className="user-options">
-          <button onClick={handleLogoff} className="logoff-button">
+        <div
+          className="user-options"
+          role="menu"
+          aria-label="User menu"
+        >
+          <button
+            onClick={handleLogoff}
+            className="logoff-button"
+            role="menuitem"
+          >
             Log off
           </button>
         </div>
       )}
     </div>
   );
-};
+});
 
 UserMenu.propTypes = {
   user: userShape.isRequired,
   setIsLoggedIn: PropTypes.func.isRequired,
 };
 
-export default UserMenu;
+export default UserMenu;  

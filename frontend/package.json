@@ -18,11 +18,11 @@
     "react-scripts": "5.0.1",
     "react-spinners": "^0.14.1",
     "react-syntax-highlighter": "^15.6.1",
-    "react-textarea-autosize": "^8.5.4",
+    "react-textarea-autosize": "^8.5.5",
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.0",
     "remark-math": "^6.0.0",
-    "uuid": "^11.0.2",
+    "uuid": "^11.0.3",
     "web-vitals": "^4.2.4"
   },
   "scripts": {

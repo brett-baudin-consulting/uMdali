@@ -7,25 +7,13 @@
     display: grid;
     grid-template-columns: auto 1fr;
     gap: 2px 5px;
-    margin-top: 0px;
-
   }
 
-  h1 {
-    margin-bottom: 20px;
-  }
-
-  label,
-  >div {
-    // Ensuring it only targets direct child divs
+  .range-group {
     display: flex;
     flex-direction: row;
     align-items: center;
-    margin-bottom: 15px;
-
-    select,
-    input[type="range"] {
-      margin-left: 10px;
-    }
+    gap: 10px;
+    margin-bottom: 10px;
   }
 }

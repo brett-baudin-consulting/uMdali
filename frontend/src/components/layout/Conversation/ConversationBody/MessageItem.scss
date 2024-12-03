@@ -1,121 +1,99 @@
+@mixin flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+@mixin line-clamp($lines) {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  max-height: calc(1.5em * #{$lines});
+}
+
 .message-item {
+  $header-padding: 5px;
+  $content-padding: 2px;
+
   display: flex;
   flex-direction: column;
   width: 100%;
 
-  .message-header {
-    width: 100%;
+  &__header-container {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    padding: 5px;
+    width: 100%;
+    padding: $header-padding;
     box-sizing: border-box;
   }
 
-  .message-type {
+  &__header {
+    display: flex;
+    align-items: baseline;
+  }
+
+  &__type {
     line-height: 1.5;
   }
 
-  .message-actions {
+  &__actions {
     display: flex;
     justify-content: flex-end;
     align-items: baseline;
-
-    .message-tool-bar {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-around;
-      align-items: baseline;
-      height: 100%;
-
-      .action-button {
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: inherit;
-        font: inherit;
-        outline: inherit;
-
-        &:hover {
-          background-color: var(--color-background-hover);
-          color: var(--color-text-accent);
-        }
-      }
-    }
   }
 
-  .message-images img {
-    max-width: 100%;
-    height: auto;
-    display: block; // To prevent inline gaps
-    margin-bottom: 10px;
-  }
-
-  .message-content {
-    width: 100%;
-    max-width: 100%;
-    flex: 8;
-    padding: 5px;
-  }
-  .message-content-shrink {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 4; /* Number of lines */
-    -webkit-box-orient: vertical;
-    max-height: 6em; /* Adjust based on your line-height to fit 4 lines */
-  }
-  
-  table {
-    border-collapse: collapse;
-    width: 100%;
-  }
-
-  th,
-  td {
-    border: 1px solid black;
-    padding: 8px;
-  }
-
-  .code-block-container {
-    position: relative;
-    padding-top: 30px;
-  }
-
-  .code-block-header {
-    position: absolute;
-    top: 0;
-    left: 0;
-    padding: 5px;
-    z-index: 1;
+  &__toolbar {
     display: flex;
-    justify-content: space-between;
-    width: 100%;
-    background: rgba(75, 70, 70, 0.8);
-    box-sizing: border-box;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: baseline;
+    height: 100%;
   }
 
-  .copy-code-button {
+  &__button {  
+    background-color: inherit !important;  
+    border: none !important;  
+    cursor: pointer;  
     padding: 5px 10px;
-    margin-right: 5px;
-    cursor: pointer;
-    background: transparent;
-    border: none;
-    border-radius: 3px;
-    transition: background 0.3s ease;
 
-    &:hover {
-      background: #ccc;
+    &:hover {  
+      background-color: inherit !important;  
+    }  
+  }
+
+  &__content {
+    width: 100%;
+    padding: $content-padding;
+
+    &--shrink {
+      @include line-clamp(4);
     }
   }
 
-  .message-content-edit {
+  &__edit {
     background-color: rgb(212, 209, 209);
     width: 95%;
-    flex: 8;
-    padding: 5px;
+    padding: $content-padding;
     white-space: pre-line;
     resize: none;
     overflow: hidden;
   }
 
+  &__error {
+    color: var(--color-error);
+    padding: $content-padding;
+  }
+
+  &__files {
+    width: 100%;
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin-bottom: 10px;
+    }
+  }
 }

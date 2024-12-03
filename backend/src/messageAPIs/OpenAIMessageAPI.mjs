@@ -1,214 +1,127 @@
-import fetch from "node-fetch";
+import OpenAI from 'openai';
 import jsonata from "jsonata";
-import { TextDecoder } from "util";
-
-import MessageAPI from "./MessageAPI.mjs";
 import { logger } from "../logger.mjs";
 import { encodeFiles } from './FileEncoder.mjs';
+import MessageAPI from "./MessageAPI.mjs";
 
-// JSONata expression
-const transformWithVision = `
-$map($, function($message) {
-  {
-      "role": $message.role = 'bot' ? 'assistant' :
-              $message.role = 'context' ? 'system' :
-              $message.role,
-      "content": [
-          {
-            "type": "text", 
-            "text": $message.content
-          },
-          $map($message.files, function($file) {
-              {
-                "type": "image_url",
-                "image_url": 
-                {
-                  "url": "data:image/jpeg;base64,"&$file.base64
-                }
-              }
-          })
-      ]
-  }
-})[]
+const transformWithVision = `  
+$map($, function($message) {  
+  {  
+      "role": $message.role = 'bot' ? 'assistant' :  
+              $message.role = 'context' ? 'system' :  
+              $message.role,  
+      "content": [  
+          {  
+            "type": "text",   
+            "text": $message.content  
+          },  
+          $map($message.files, function($file) {  
+              {  
+                "type": "image_url",  
+                "image_url":   
+                {  
+                  "url": "data:image/jpeg;base64,"&$file.base64  
+                }  
+              }  
+          })  
+      ]  
+  }  
+})[]  
 `;
-const transformWithoutVision = `
-$map($, function($message) {
-  {
-      "role": $message.role = 'bot' ? 'assistant' :
-              $message.role = 'context' ? 'system' :
-              $message.role,
-      "content": $message.content
-  }
-})[]
+
+const transformWithoutVision = `  
+$map($, function($message) {  
+  {  
+      "role": $message.role = 'bot' ? 'assistant' :  
+              $message.role = 'context' ? 'system' :  
+              $message.role,  
+      "content": $message.content  
+  }  
+})[]  
 `;
+
 async function messageToOpenAIFormat(messages, isSupportsVision) {
-  if (!isSupportsVision) {
-    const transform = jsonata(transformWithoutVision);
-    const openai = await transform.evaluate(messages);
-    return openai;
-  }
-  const transform = jsonata(transformWithVision);
-  const openai = await transform.evaluate(messages);
-  return openai;
+  const transform = jsonata(isSupportsVision ? transformWithVision : transformWithoutVision);
+  return await transform.evaluate(messages);
 }
 
-const { OPENAI_API_KEY, OPENAI_API_URL } =
-  process.env;
+const { OPENAI_API_KEY } = process.env;
 
-const checkEnvVariables = () => {
-  if (!OPENAI_API_KEY || !OPENAI_API_URL) {
-    throw new Error("Open AI Environment variables are not set correctly.");
-  }
-
-};
-
-checkEnvVariables();
-
-async function handleApiErrorResponse(response) {
-  const text = await response.text();
-  let parsedText;
-  try {
-    parsedText = JSON.parse(text);
-  } catch (error) {
-    // If JSON parsing fails, use the original text
-    parsedText = text;
-  }
-
-  // Log the error
-  logger.error("Open AI API response error: ", parsedText);
-
-  // Throw an error with a message, checking if parsedText is an object and has an error.message
-  const errorMessage = `OpenAI API Error: ${parsedText?.error?.message || 'Unknown error occurred'}`;
-  throw new Error(errorMessage);
+if (!OPENAI_API_KEY) {
+  throw new Error("OpenAI API key is not set.");
 }
 
 class OpenAIMessageAPI extends MessageAPI {
   constructor() {
     super();
-    this.API_KEY = OPENAI_API_KEY;
+    this.client = new OpenAI({
+      apiKey: OPENAI_API_KEY,
+    });
   }
-
-  _prepareHeaders() {
-    return {
-      Authorization: `Bearer ${this.API_KEY}`,
-      "Content-Type": "application/json",
-    };
-  }
-
-  _prepareOptions(body, signal) {
-    return {
-      method: "POST",
-      headers: this._prepareHeaders(),
-      body: JSON.stringify(body),
-      signal: signal,
-    };
-  }
-
-
 
   async sendRequest(messages, signal, options = {}) {
     const { userModel, maxTokens, temperature, isSupportsVision } = options;
-    if (isSupportsVision) {
-      await encodeFiles(messages);
-    }
-    const updatedMessages = await messageToOpenAIFormat(messages, isSupportsVision);
-    const requestOptions = this._prepareOptions({
-      model: userModel,
-      messages: updatedMessages,
-      max_tokens: maxTokens,
-      temperature: temperature,
-    }, signal);
 
     try {
-      const response = await fetch(OPENAI_API_URL, requestOptions, signal);
+      if (isSupportsVision) {
+        await encodeFiles(messages);
+      }
 
-      if (!response.ok) {
-        await handleApiErrorResponse(response);
-     }
+      const updatedMessages = await messageToOpenAIFormat(messages, isSupportsVision);
 
-      const data = await response.json();
-      const content = data?.choices?.[0]?.message?.content;
-      return content;
+      const response = await this.client.chat.completions.create({
+        model: userModel,
+        messages: updatedMessages,
+        max_tokens: maxTokens,
+        temperature: temperature,
+      }, { signal });
+
+      return response.choices[0].message.content;
     } catch (err) {
       if (err.name === 'AbortError') {
-        logger.error("Fetch aborted:", err);
-      } else {
-        logger.error("Error sending request:", err);
+        logger.error("Request aborted:", err);
+        throw err;
       }
-      throw err;
+      logger.error("Error sending request:", err);
+      throw new Error(`OpenAI API Error: ${err.message}`);
     }
   }
 
   async sendRequestStreamResponse(messages, resClient, signal, options = {}) {
     const { userModel, maxTokens, temperature, isSupportsVision } = options;
-    if (isSupportsVision) {
-      await encodeFiles(messages);
-    }
-    const updatedMessages = await messageToOpenAIFormat(messages, isSupportsVision);
-    const requestOptions = this._prepareOptions({
-      model: userModel,
-      messages: updatedMessages,
-      max_tokens: maxTokens,
-      temperature: temperature,
-      stream: true,
-    }, signal);
+
     try {
-      const response = await fetch(OPENAI_API_URL, requestOptions, signal);
-      if (!response.ok) {
-         await handleApiErrorResponse(response);
+      if (isSupportsVision) {
+        await encodeFiles(messages);
       }
-      await this.processResponseStream(response, resClient);
+
+      const updatedMessages = await messageToOpenAIFormat(messages, isSupportsVision);
+
+      const stream = await this.client.chat.completions.create({
+        model: userModel,
+        messages: updatedMessages,
+        max_tokens: maxTokens,
+        temperature: temperature,
+        stream: true,
+      }, { signal });
+
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content;
+        if (content) {
+          resClient.write(content);
+        }
+      }
+
+      resClient.end();
     } catch (err) {
-      this.handleStreamError(err);
-    }
-  }
-
-  async processResponseStream(response, resClient) {
-    const textDecoder = new TextDecoder();
-    let lastChunk = "";
-
-    for await (const chunk of response.body) {
-      let decodedChunk = textDecoder.decode(chunk, { stream: true });
-      if (!decodedChunk.startsWith("data:")) {
-        decodedChunk = lastChunk + decodedChunk;
+      if (err.name === 'AbortError') {
+        logger.error("Stream aborted:", err);
+        return; // Don't throw for aborted requests  
       }
-      const lines = decodedChunk.split("\n");
-      lastChunk = this.handleStreamedContent(lines, resClient, lastChunk);
-    }
-  }
-
-  handleStreamedContent(lines, resClient, lastChunk) {
-    for (const line of lines) {
-      if (line.startsWith("data: ")) {
-        const content = line.replace(/^data: /, "").trim();
-        if (content === "[DONE]") {
-          resClient.end();
-          return ""; // Return an empty string as the lastChunk for the next iteration
-        }
-        try {
-          const parsedLine = JSON.parse(content);
-          if (parsedLine?.choices?.[0]?.delta?.content) {
-            resClient.write(parsedLine.choices[0].delta.content);
-          }
-        } catch (error) {
-          lastChunk = line; // Keep the partial line for the next iteration
-        }
-      }
-    }
-    return lastChunk; // Return the lastChunk for the next iteration
-  }
-
-  handleStreamError(err) {
-    if (err.name === 'AbortError') {
-      logger.error("Fetch aborted:", err);
-    } else {
       logger.error("Error sending stream response:", err);
-    }
-    // Do not rethrow the error if it's an AbortError since it's expected behavior
-    if (err.name !== 'AbortError') {
-      throw err;
+      throw new Error(`OpenAI API Stream Error: ${err.message}`);
     }
   }
 }
 
-export default OpenAIMessageAPI;
+export default OpenAIMessageAPI;  

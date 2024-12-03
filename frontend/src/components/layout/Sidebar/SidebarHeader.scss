@@ -1,73 +1,79 @@
-.new-conversation-container {
-    position: relative;
-    display: inline-block;
-    /* Add this to contain the button and the dropdown */
+// Variables  
+$spacing-xs: 5px;  
+$spacing-sm: 5px;  
+$border-radius: 5px;  
+$min-dropdown-width: 200px;
+
+// Mixins  
+@mixin button-base {  
+  background-color: var(--color-background-primary);  
+  color: var(--color-text-primary);  
+  border: 2px;  
+  padding: $spacing-xs;  
+  border-radius: $border-radius;  
+  cursor: pointer;
+
+  &:disabled {  
+    background-color: var(--color-background-secondary);  
+    cursor: not-allowed;  
+  }  
 }
 
-.new-conversation-options {
-    position: absolute;
-    background-color: var(--color-background-primary);
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    border: solid var(--color-border-light);
-    border-radius: 5px;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    width: auto;
-    /* Set width to auto or a specific value if needed */
-    min-width: 200px;
-    /* Adjust this value to your preference */
+// Styles  
+.sidebar-buttons {  
+  display: flex;  
+  justify-content: space-between;  
+  gap: $spacing-sm;  
+  margin-bottom: 2px;
+
+  &__search {  
+    background-color: var(--color-background-primary);  
+    color: var(--color-text-primary);  
+    flex-grow: 1;  
+    padding: $spacing-sm;  
+    border: 1px solid var(--color-border-light);  
+    border-radius: $border-radius;  
+    outline: none;
+
+    &:focus {  
+      border-color: var(--color-background-primary);  
+    }  
+  }
+
+  .new-conversation-btn,  
+  .search-btn {  
+    @include button-base;  
+    flex: 1;  
+  }  
 }
 
-.new-conversation-options li {
-    padding: 5px 10px;
-    cursor: pointer;
+.new-conversation {  
+  &-container {  
+    position: relative;  
+    display: inline-block;  
+  }
 
-    &:hover {
-        background-color: var(--color-background-secondary);
-    }
-}
+  &-options {  
+    position: absolute;  
+    background-color: var(--color-background-primary);  
+    list-style: none;  
+    padding: 0;  
+    margin: 0;  
+    border: 1px solid var(--color-border-light);  
+    border-radius: $border-radius;  
+    left: 0;  
+    right: 0;  
+    z-index: 100;  
+    min-width: $min-dropdown-width;
 
-.sidebar-buttons {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 2px;
+    li {  
+      padding: $spacing-xs $spacing-sm;  
+      cursor: pointer;  
+      transition: background-color 0.2s ease;
 
-
-    .new-conversation-btn,
-    .search-btn {
-        flex: 1;
-        background-color: var(--color-background-primary);
-        color: var(--color-text-primary);
-        border: none;
-        padding: 5px 5px;
-        border-radius: 5px;
-        cursor: pointer;
-
-        &:not(:last-child) {
-            margin-right: 10px;
-        }
-
-        &:disabled {
-            background-color: var(--color-background-secondary);
-            cursor: not-allowed;
-        }
-    }
-
-    .search-input {
-        background-color: var(--color-background-primary);
-        color: var(--color-text-primary);
-        flex-grow: 1;
-        margin-right: 10px;
-        padding: 10px;
-        border: 1px solid var(--color-border-light);
-        border-radius: 5px;
-        outline: none;
-
-        &:focus {
-            border-color: var(--color-background-primary);
-        }
-    }
-}
+      &:hover {  
+        background-color: var(--color-background-secondary);  
+      }  
+    }  
+  }  
+}  

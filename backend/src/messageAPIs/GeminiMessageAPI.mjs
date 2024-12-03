@@ -1,286 +1,122 @@
-import jsonata from "jsonata";
-
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { logger } from "../logger.mjs";
 import MessageAPI from "./MessageAPI.mjs";
 import { encodeFiles } from './FileEncoder.mjs';
 
-const { GEMINI_API_KEY, GEMINI_API_URL } =
-  process.env;
+const API_KEY = process.env.GEMINI_API_KEY;
+const DEFAULT_MODEL = "gemini-1.5-pro";
 
-const SAFETY_SETTINGS = [
-  { "category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE" },
-  { "category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE" },
-  { "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE" },
-  { "category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE" },
-  { "category": "HARM_CATEGORY_CIVIC_INTEGRITY", "threshold": "BLOCK_NONE" },
-];
-
-async function handleApiErrorResponse(response) {
-  const text = await response.text();
-  let parsedText;
-  try {
-    parsedText = JSON.parse(text);
-  } catch (error) {
-    // If JSON parsing fails, use the original text  
-    parsedText = text;
-  }
-
-  // Log the error  
-  logger.error("Gemini API response error: ", parsedText);
-
-  // Throw an error with a message, checking if parsedText is an object and has an error.message  
-  const errorMessage = `Gemini API Error: ${parsedText[0]?.error?.message || 'Unknown error occurred'}`;
-  throw new Error(errorMessage);
+if (!API_KEY) {
+  throw new Error("Gemini API key environment variable is not set.");
 }
 
-// JSONata expression  
-const transformWithVision = `  
-{  
-  "contents": $map(*[role != 'context'], function($v, $i, $a) {  
-    {  
-      "role": $v.role = 'bot' ? 'model' : $v.role,  
-      "parts":[   
-          $map($v.files, function($file) {  
-              {  
-                "inlineData": {  
-                  "mimeType": $file.type,  
-                  "data": $file.base64  
-                }  
-              }  
-          }),{  
-        "text": $v.content  
-      }  
-    ]  
-    }  
-  }),  
-    "systemInstruction": $map(*[role = 'context'], function($v, $i, $a) {  
-    {  
-      "role": $v.role = 'bot' ? 'model' : $v.role,  
-      "parts":[   
-          $map($v.files, function($file) {  
-              {  
-                "inlineData": {  
-                  "mimeType": $file.type,  
-                  "data": $file.base64  
-                }  
-              }  
-          }),{  
-        "text": $v.content  
-      }  
-    ]  
-    }  
-  }),  
-  "generation_config": {}  
-}  
-`;
-const transformWithoutVision = `  
-{  
-  "contents": $map(*[role != 'context'], function($v, $i, $a) {  
-    {  
-      "role": $v.role = 'bot' ? 'model' : $v.role,  
-      "parts": {  
-        "text": $v.content  
-      }  
-    }  
-  }),  
-  "generation_config": {}  
-}  
-`;
-
-async function messageToGeminiFormat(messages, isSupportsVision) {
-  if (!isSupportsVision) {
-    const transform = jsonata(transformWithoutVision);
-    const gemini = await transform.evaluate(messages);
-    return gemini;
-  }
-  const transform = jsonata(transformWithVision);
-  const gemini = await transform.evaluate(messages);
-  return gemini;
-}
-
-const checkEnvVariables = () => {
-  if (!GEMINI_API_URL || !GEMINI_API_KEY) {
-    throw new Error("Gemini environment variables are not set correctly.");
-  }
-}
+const genAI = new GoogleGenerativeAI(API_KEY);
 
 class GeminiMessageAPI extends MessageAPI {
-  constructor() {
-    super();
-    checkEnvVariables();
-    this.API_KEY = GEMINI_API_KEY;
-    this.MODEL = 'models/gemini-1'; // Set a default model  
+  async _getModel(options) {
+    const modelName = options.userModel || DEFAULT_MODEL;
+    return genAI.getGenerativeModel({ model: modelName });
   }
 
-  _prepareHeaders() {
-    return {
-      "Content-Type": "application/json",
-    };
+  _createMessageParts(message) {
+    const parts = [];
+
+    // Add files if they exist  
+    if (message.files?.length) {
+      message.files.forEach(file => {
+        parts.push({
+          inlineData: {
+            mimeType: file.type,
+            data: file.base64
+          }
+        });
+      });
+    }
+
+    // Add text content if it exists  
+    if (message.content) {
+      parts.push({ text: message.content });
+    }
+
+    return parts;
   }
 
-  _prepareOptions(body, signal) {
+  async _prepareContent(messages, options) {
+    const { isSupportsVision } = options;
+    if (isSupportsVision) {
+      await encodeFiles(messages);
+    }
+
+    // Separate context/system messages from regular messages  
+    const systemMessages = messages.filter(msg => msg.role === 'context');
+    const chatMessages = messages.filter(msg => msg.role !== 'context');
+
     return {
-      method: "POST",
-      headers: this._prepareHeaders(),
-      body: JSON.stringify(body),
-      signal: signal,
+      systemPrompt: systemMessages.map(msg => msg.content).join('\n'),
+      history: chatMessages.map(message => ({
+        role: message.role === 'bot' ? 'model' : message.role === 'user' ? 'user' : 'system',
+        parts: this._createMessageParts(message)
+      }))
     };
   }
 
   async sendRequest(messages, signal, options = {}) {
-    const { userModel, maxTokens, temperature, isSupportsVision } = options;
-    if (isSupportsVision) {
-      await encodeFiles(messages);
-    }
-    const updatedMessages = await messageToGeminiFormat(messages, isSupportsVision);
-
-    const requestOptions = this._prepareOptions({
-      contents: updatedMessages.contents,
-      systemInstruction: updatedMessages.systemInstruction,
-      "safetySettings": SAFETY_SETTINGS,
-      generation_config: {
-        temperature: temperature,
-        maxOutputTokens: maxTokens,
-      }
-    }, signal);
-
     try {
-      const FULL_URL = `${GEMINI_API_URL}${userModel || this.MODEL}:generateContent?key=${this.API_KEY}`;
-      const response = await fetch(FULL_URL, requestOptions);
-      if (!response.ok) {
-        await handleApiErrorResponse(response);
-      }
+      const { temperature = 0.7 } = options;
+      const { systemPrompt, history } = await this._prepareContent(messages, options);
+      const model = await this._getModel(options);
 
-      const data = await response.json();
-      const content = data?.candidates[0]?.content?.parts[0]?.text;
-      return content;
+      const chat = model.startChat({
+        history,
+        generationConfig: {
+          temperature,
+        },
+        ...(systemPrompt && { context: systemPrompt })
+      });
+
+      // Get the last message's parts  
+      const lastMessage = history[history.length - 1];
+      const result = await chat.sendMessage(lastMessage.parts);
+      return result.response.text();
     } catch (err) {
       logger.error("Error in sendRequest:", err);
-      throw err; // Re-throw the error to be handled by the caller  
+      throw err;
     }
   }
 
   async sendRequestStreamResponse(messages, resClient, signal, options = {}) {
     try {
-      const requestOptions = await this._prepareRequestOptions(messages, options, signal);
-      const response = await this._fetchStreamResponse(requestOptions, options.userModel, signal);
+      const { temperature = 0.7 } = options;
+      const { systemPrompt, history } = await this._prepareContent(messages, options);
+      const model = await this._getModel(options);
 
-      await this._processStreamResponse(response, resClient);
-    } catch (err) {
-      this._handleStreamResponseError(err);
-    }
-  }
+      const chat = model.startChat({
+        history,
+        generationConfig: {
+          temperature,
+        },
+        ...(systemPrompt && { context: systemPrompt })
+      });
 
-  async _prepareRequestOptions(messages, options, signal) {
-    const { maxTokens, temperature, isSupportsVision } = options;
-    if (isSupportsVision) {
-      await encodeFiles(messages);
-    }
-    const updatedMessages = await messageToGeminiFormat(messages, isSupportsVision);
+      // Get the last message's parts  
+      const lastMessage = history[history.length - 1];
+      const result = await chat.sendMessageStream(lastMessage.parts);
 
-    return this._prepareOptions({
-      contents: updatedMessages.contents,
-      systemInstruction: updatedMessages.systemInstruction,
-      "safetySettings": SAFETY_SETTINGS,
-      generation_config: {
-        temperature: temperature,
-        maxOutputTokens: maxTokens,
-      }
-    }, signal);
-  }
-
-  async _fetchStreamResponse(requestOptions, userModel, signal) {
-    const FULL_URL = `${GEMINI_API_URL}${userModel || this.MODEL}:streamGenerateContent?key=${this.API_KEY}`;
-    console.log("requestOptions:", requestOptions);
-    const response = await fetch(FULL_URL, requestOptions);
-    if (!response.ok) {
-      await handleApiErrorResponse(response);
-    }
-
-    return response;
-  }
-
-  async _processStreamResponse(response, resClient) {
-    const textDecoder = new TextDecoder();
-    let lastChunk = "";
-
-    try {
-      for await (const chunk of response.body) {
-        let decodedChunk = textDecoder.decode(chunk, { stream: true });
-        decodedChunk = lastChunk + decodedChunk;
-
-        // Split decodedChunk into lines  
-        const lines = decodedChunk.split("\n");
-
-        // Handle incomplete lines  
-        if (!decodedChunk.endsWith("\n")) {
-          lastChunk = lines.pop();
-        } else {
-          lastChunk = "";
-        }
-
-        for (const line of lines) {
-          const text = this._extractTextFromLine(line);
-          if (text) {
-            resClient.write(text);
-          }
+      for await (const chunk of result.stream) {
+        const chunkText = chunk.text();
+        if (chunkText) {
+          await new Promise(resolve => resClient.write(chunkText, resolve));
         }
       }
 
-      // Process any remaining data in lastChunk  
-      if (lastChunk) {
-        const text = this._extractTextFromLine(lastChunk);
-        if (text) {
-          resClient.write(text);
-        }
-      }
-    } catch (err) {
-      this._handleStreamResponseError(err);
-    } finally {
       resClient.end();
-    }
-  }
-
-  _extractTextFromLine(line) {
-    try {
-      if (!line.trim()) return null;
-
-      // Parse the JSON line if it's valid JSON    
-      const data = JSON.parse(line);
-
-      // Extract text from Gemini's response structure    
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-      if (text) {
-        // Handle escaped characters properly    
-        return JSON.parse(`"${text}"`); // This properly unescapes the string    
-      }
     } catch (err) {
-      // Fallback to regex method if JSON parsing fails    
-      try {
-        const regex = /"text"\s*:\s*"((?:\\.|[^"\\])*?)"/;
-        const match = regex.exec(line);
-        if (match && match[1]) {
-          return JSON.parse(`"${match[1]}"`); // Properly unescapes the string    
-        }
-      } catch (regexErr) {
-        logger.error("Failed to extract text from line:", regexErr);
+      logger.error("Error in sendRequestStreamResponse:", err);
+      if (err.name !== 'AbortError') {
+        throw err;
       }
-    }
-    return null;
-  }
-
-  _handleStreamResponseError(err) {
-    if (err.name === 'AbortError') {
-      logger.error("Fetch aborted:", err);
-    } else {
-      logger.error("Error sending stream response:", err);
-    }
-    // Do not rethrow the error if it's an AbortError since it's expected behavior  
-    if (err.name !== 'AbortError') {
-      throw err;
     }
   }
 }
 
-export default GeminiMessageAPI;
+export default GeminiMessageAPI;  

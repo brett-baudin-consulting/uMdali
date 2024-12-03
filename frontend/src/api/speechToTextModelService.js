@@ -1,19 +1,20 @@
-import { SERVER_BASE_URL } from '../config/config';
+import { apiClient } from './apiClient';
 
 const fetchSpeechToTextModels = async () => {
     try {
-        const response = await fetch(`${SERVER_BASE_URL}/speechToText`);
-        if (!response.ok) {
-            throw new Error("Network response was not ok");
+        const response = await apiClient.fetch('/speechToText', {
+            method: 'GET'
+        });
+
+        if (!response.success) {
+            throw new Error(response.message || 'Error fetching speech to text models.');
         }
-        const models = await response.json();
-        if (!models) {
-            throw new Error("Unexpected response structure");
-        }
+        const models = Array.isArray(response.data) ? response.data : [];
         return models;
     } catch (error) {
         console.error("Error fetching models:", error);
-        throw error;
+        return []; // Return empty array instead of throwing  
     }
 };
-export { fetchSpeechToTextModels };
+
+export { fetchSpeechToTextModels };  

@@ -1,125 +1,109 @@
-import React, { useMemo, useRef, useState } from "react";
-import PropTypes from "prop-types";
+// DataTab.jsx  
+import React, { useMemo, useRef, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-
-import { userShape } from "../../../model/userPropType";
+import SelectField from "./SelectField";
 import { importData } from "../../../api/dataImportModelService";
 import "./DataTab.scss";
 
-const DataTab = ({ user, setUser, dataImportModels }) => {
+const DataTab = ({ user, setUser, dataImportModels = [] }) => {
   const { t } = useTranslation();
   const fileInputRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const sortedDataImportModels = useMemo(() => {
-    return dataImportModels
-      ? [...dataImportModels].sort((a, b) => a.name.localeCompare(b.name))
-      : [];
-  }, [dataImportModels]);
+  const sortedDataImportModels = useMemo(() =>
+    [...dataImportModels].sort((a, b) => a.name.localeCompare(b.name)),
+    [dataImportModels]
+  );
 
-  const handleDataChange = (e) => {
+  const handleDataChange = useCallback((e) => {
     const dataImportId = e.target.value;
     setUser((prevUser) => ({
       ...prevUser,
       settings: {
         ...prevUser.settings,
         dataImport: {
-          ...prevUser.settings.dataImport,
-          dataImportId: dataImportId,
+          ...prevUser.settings?.dataImport,
+          dataImportId,
         },
       },
     }));
-  };
+  }, [setUser]);
 
-  const handleImport = () => {
-    fileInputRef.current.click();
-  };
+  const handleImport = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setIsLoading(true);
-      const reader = new FileReader();
+  const handleFileChange = useCallback(async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-      reader.onload = async (event) => {
-        try {
-          const content = event.target.result;
-          const jsonData = JSON.parse(content);
+    setIsLoading(true);
+    setError(null);
 
-          await importData(user, jsonData);
-
-          // Add success feedback here  
-        } catch (error) {
-          if (error instanceof SyntaxError) {
-            console.error("Invalid JSON format:", error);
-            // Add specific feedback for invalid JSON  
-          } else {
-            console.error("Error importing data:", error);
-            // Add general error feedback  
-          }
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
-      reader.onerror = (error) => {
-        console.error("Error reading file:", error);
-        setIsLoading(false);
-        // Add error feedback for file reading issues  
-      };
-
-      reader.readAsText(file);
+    try {
+      const text = await file.text();
+      const jsonData = JSON.parse(text);
+      await importData(user, jsonData);
+    } catch (error) {
+      setError(
+        error instanceof SyntaxError
+          ? t('invalid_json_error')
+          : t('general_import_error')
+      );
+      console.error('Import error:', error);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [user, t]);
 
-  const isImportEnabled = user?.settings?.dataImport?.dataImportId !== "";
+  const selectOptions = useMemo(() => (
+    sortedDataImportModels.length > 0 ? (
+      sortedDataImportModels.map(({ id, name }) => (
+        <option key={id} value={id}>
+          {name}
+        </option>
+      ))
+    ) : (
+      <option value="">{t('no_data_available')}</option>
+    )
+  ), [sortedDataImportModels, t]);
+
+  const isImportEnabled = Boolean(user?.settings?.dataImport?.dataImportId);
 
   return (
     <div className="data-tab">
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <label>
-          {t('data_import_title')}:
-          <select
-            value={user?.settings?.dataImport?.dataImportId}
+      <div className="data-tab__container">
+        <div className="data-tab__field-group">
+          <SelectField
+            label={`${t('data_import_title')}:`}
+            value={user?.settings?.dataImport?.dataImportId || ''}
             onChange={handleDataChange}
-            disabled={sortedDataImportModels.length === 0}
+            options={selectOptions}
+          />
+
+          <button
+            className="data-tab__button"
+            onClick={handleImport}
+            disabled={!isImportEnabled || isLoading}
           >
-            {sortedDataImportModels.length > 0 ? (
-              sortedDataImportModels.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))
-            ) : (
-              <option value="">{t('no_data_available')}</option>
-            )}
-          </select>
-        </label>
-        <button
-          onClick={handleImport}
-          disabled={!isImportEnabled || isLoading}
-        >
-          {isLoading ? t('importing') : t('import')}
-        </button>
+            {isLoading ? t('importing') : t('import')}
+          </button>
+        </div>
+
         <input
           type="file"
           ref={fileInputRef}
-          style={{ display: 'none' }}
+          className="data-tab__file-input"
           onChange={handleFileChange}
-          accept=".json" // Specify accepted file types  
+          accept=".json"
+          aria-label={t('choose_file')}
         />
       </div>
+
+      {error && <p className="data-tab__error">{error}</p>}
     </div>
   );
-};
-
-DataTab.propTypes = {
-  user: userShape.isRequired,
-  setUser: PropTypes.func.isRequired,
-  dataImportModels: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-  })),
 };
 
 export default DataTab;  

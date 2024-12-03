@@ -1,181 +1,148 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import PropTypes from 'prop-types';
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { BeatLoader } from "react-spinners";
+import PropTypes from "prop-types";
 import hljs from 'highlight.js';
 
-import { uploadFile, deleteFile } from "../../../../api/fileService";
 import FileItem from './FileItem';
 import { conversationShape } from "../../../../model/conversationPropType";
 import { userShape } from "../../../../model/userPropType";
 import { handleKeyDown as handleKeyDownUtility } from "../../../common/util/useTextareaKeyHandlers";
-import {modelShape} from "../../../../model/modelPropType";
-import SpeechToText from "./SpeechToText";
+import { modelShape } from "../../../../model/modelPropType";
+import AudioRecorder from "./AudioRecorder";
+import { useTextArea } from "./hooks/useTextArea";
+import { useFileUpload } from "./hooks/useFileUpload";
+import { useFileHandling } from "./hooks/useFileHandling";
+import SendButton from "./components/SendButton";
+import FileUploadButton from "./components/FileUploadButton";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 import "./ConversationFooter.scss";
 
-const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
-  onSendMessage, onResendMessage, isStreaming, setIsStreaming, abortFetch, 
-  isWaitingForResponse, setError, models }) => {
+const BOT_ROLE = "bot";
+
+const ConversationFooter = ({
+  user,
+  currentConversation = null,
+  setCurrentConversation,
+  onSendMessage,
+  onResendMessage,
+  isStreaming = false,
+  setIsStreaming,
+  abortFetch,
+  isWaitingForResponse = false,
+  setError,
+  models
+}) => {
   const { t } = useTranslation();
-  const [input, setInput] = useState("");
-  const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
   const [lastMessageRole, setLastMessageRole] = useState(null);
-  const [fileList, setFileList] = useState([]);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [lastHeight, setLastHeight] = useState('auto');
 
-  const toggleHeight = () => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      if (isExpanded) {
-        // If currently expanded, reset to last known height
-        textarea.style.height = lastHeight;
-        setIsExpanded(false);
-      } else {
-        // If not expanded, expand to the full height of the screen
-        setLastHeight(textarea.style.height); // Remember last height before expanding
+  const {
+    value: input,
+    setValue: setInput,
+    textareaRef,
+    isExpanded,
+    setIsExpanded,
+    toggleExpand
+  } = useTextArea("");
 
-        // Set height to the full height of the viewport
-        let fullScreenHeight = `${window.innerHeight}px`;
-        textarea.style.height = fullScreenHeight;
-        setIsExpanded(true);
-      }
-    }
-    focusOnTextArea();
-  };
+  const {
+    fileList,
+    setFileList,
+    handleUpload
+  } = useFileUpload(currentConversation?.userId, setError);
+
+  const {
+    handleDeleteFile,
+    handleFileChange,
+    handleDrop,
+    handleDragEnter,
+    handleDragLeave,
+    handleDragOver,
+    isDragging
+  } = useFileHandling(
+    currentConversation,
+    setError,
+    handleUpload,
+    setFileList
+  );
+
   useEffect(() => {
     setError(null);
-    const textarea = textareaRef.current;
-    if (textarea) {
-      if (!isExpanded) {
-        textarea.style.height = 'auto';
-        let newHeight = `${Math.min(textarea.scrollHeight, 200)}px`;
-        textarea.style.height = newHeight;
-        setLastHeight(newHeight);
-      } else {
-        textarea.style.height = `${window.innerHeight}px`;
-      }
-    }
-  }, [input, isExpanded, setError]); // Re-run whenever input or isExpanded changes
-
-
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.focus();
-    }
-  }, []); // The empty array means this effect runs once on mount
-
-  const focusOnTextArea = () => {
-    // Check if the ref is currently pointing to an element
-    if (textareaRef.current) {
-      // If so, focus the element
-      textareaRef.current.focus();
-    }
-  };
+  }, [setError]);
 
   useEffect(() => {
     if (!isStreaming) {
-      focusOnTextArea();
+      textareaRef.current?.focus();
     }
-  }, [isStreaming]);
+  }, [isStreaming, textareaRef]);
 
   useEffect(() => {
     if (currentConversation?.messages?.length > 0) {
-      setLastMessageRole(currentConversation.messages[currentConversation.messages.length - 1].role);
+      setLastMessageRole(currentConversation.messages.slice(-1)[0].role);
     }
   }, [currentConversation?.messages]);
 
-
   const handleSend = useCallback(async () => {
-
     if (!currentConversation) return;
+
     const trimmedInput = input.trim();
-    if (trimmedInput || fileList) {
+    if (trimmedInput || fileList.length > 0) {
       try {
         await onSendMessage(trimmedInput, fileList, user.settings.model);
-        focusOnTextArea();
         setInput("");
-        setFileList([]); // Clear file list after sending a message
+        setFileList([]);
         setIsExpanded(false);
+        textareaRef.current?.focus();
       } catch (error) {
+        setError(error);
         console.error('Failed to send message:', error);
       }
     }
-  }, [currentConversation, input, fileList, onSendMessage, user.settings.model]);
+  }, [currentConversation, input, fileList, onSendMessage, user.settings.model, setInput, setFileList, setIsExpanded, setError, textareaRef]);
 
-  function handleAbort() {
-    setIsStreaming(false);
+  const handleAbort = useCallback(() => {
     abortFetch();
-    focusOnTextArea();
-  };
+    setIsStreaming(false);
+    textareaRef.current?.focus();
+  }, [abortFetch, setIsStreaming, textareaRef]);
 
-  async function handleRetry() {
-    const newMessages = [...currentConversation.messages.slice(0, -1)];
+  const handleRetry = useCallback(async () => {
+    if (!currentConversation) return;
+    const newMessages = currentConversation.messages.slice(0, -1);
     setCurrentConversation(prevState => ({ ...prevState, messages: newMessages }));
-    await onResendMessage(user.settings.model);
-    focusOnTextArea();
-  };
+    try {
+      await onResendMessage(user.settings.model);
+      textareaRef.current?.focus();
+    } catch (error) {
+      setError(error);
+      console.error("Failed to resend message:", error);
+    }
+  }, [currentConversation, setCurrentConversation, onResendMessage, user.settings.model, setError, textareaRef]);
 
-  async function handlePaste() {
+  const handlePaste = useCallback(async () => {
     try {
       const clipboardText = await navigator.clipboard.readText();
-
-      // Use highlight.js to detect the language
       const detectedLanguage = hljs.highlightAuto(clipboardText);
       const language = detectedLanguage.language || 'plaintext';
-
       const formattedText = `\n\`\`\`${language}\n${clipboardText}\n\`\`\`\n`;
+      setInput(prevInput => {
+        const cursorPosition = textareaRef.current.selectionStart;
+        const textBeforeCursor = prevInput.substring(0, cursorPosition);
+        const textAfterCursor = prevInput.substring(cursorPosition);
+        const newText = textBeforeCursor + formattedText + textAfterCursor;
 
-      const cursorPosition = textareaRef.current.selectionStart;
-      const textBeforeCursor = input.substring(0, cursorPosition);
-      const textAfterCursor = input.substring(cursorPosition);
-
-      // Set the new input value
-      setInput(textBeforeCursor + formattedText + textAfterCursor);
-
-      // Use a timeout to ensure the DOM has updated before trying to set the selection range
-      setTimeout(() => {
-        // Focus the textarea and set the cursor to the end of the pasted text
-        const textarea = textareaRef.current;
-        if (textarea) {
-          textarea.focus();
+        requestAnimationFrame(() => {
           const newPosition = (textBeforeCursor + formattedText).length;
-          textarea.setSelectionRange(newPosition, newPosition);
-
-          // Scroll the textarea to the cursor position
-          textarea.scrollTop = textarea.scrollHeight;
-        }
-      }, 0);
+          textareaRef.current?.setSelectionRange(newPosition, newPosition);
+        });
+        return newText;
+      });
     } catch (err) {
-      console.error('Failed to read clipboard contents: ', err.message);
+      setError(err);
+      console.error('Failed to read clipboard:', err);
     }
-  }
-
-  const handleDeleteFile = useCallback((fileToDelete) => {
-    if (!currentConversation?.userId) return;
-    deleteFile(currentConversation.userId, fileToDelete.name)
-    setFileList(fileList.filter(file => file.name !== fileToDelete.name));
-    focusOnTextArea();
-  }, [fileList, currentConversation?.userId]);
-
-  // Update handleFileChange function
-  const handleFileChange = async (event) => {
-    const file = event.target.files[0];
-    if (!file) {
-      return;
-    }
-    try {
-      const fileDetails = await uploadFile(currentConversation.userId, file);
-      setFileList(prevList => [...prevList, fileDetails.file]); // Add new file name to the list
-    } catch (error) {
-      console.error('Error uploading file:', error);
-    } finally {
-      // Reset the file input after handling the file change
-      event.target.value = ''; // This line is crucial
-    }
-  }
+  }, [setInput, setError, textareaRef]);
 
   const handleKeyDown = useCallback((e) => {
     handleKeyDownUtility(e, setInput, input, textareaRef, user.settings.macros);
@@ -183,102 +150,128 @@ const ConversationFooter = ({ user, currentConversation, setCurrentConversation,
       e.preventDefault();
       handleSend();
     }
-  }, [input, user.settings.macros, handleSend]);
+  }, [input, user.settings.macros, handleSend, setInput, textareaRef]);
 
-  const handlePasteTimeoutRef = useRef(null); // Add a ref to store the timeout ID
-  useEffect(() => {
-    const timeoutId = handlePasteTimeoutRef.current;
-    return () => {
-      // Clear the timeout when the component unmounts
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
+  const doesModelSupportFiles = useCallback((models, modelName) => {
+    const [vendor, name] = modelName.split('/');
+    const model = models.find((m) => m.vendor === vendor && m.name === name);
+    return model ? (model.isSupportsVision || model.isSupportsAudio || model.isSupportsVideo) : false;
   }, []);
 
-  const BOT_ROLE = "bot";
-  const doesModelSupportFiles = (models, modelName) => {
+  const handleFileButtonClick = useCallback(() => {
+    fileInputRef.current?.click();
+  }, [fileInputRef]);
 
-    const [vendor, name] = modelName.split('/');
-    const model = models.find((model) => model.vendor === vendor && model.name === name);
-
-    if (!model) {
-      return false;
-    }
-    return model.isSupportsVision | 
-    model.isSupportsAudio | 
-    model.isSupportsVideo;
-  };
-
-  const handleFileButtonClick = () => fileInputRef.current?.click();
+  const isDisabled = isStreaming || isWaitingForResponse || !doesModelSupportFiles(models, user?.settings?.model);
 
   return (
-    <div className="conversation-footer">
+    <ErrorBoundary>
+      <div
+        className={`  
+          conversation-footer  
+          ${isDragging ? 'conversation-footer--dragging' : ''}  
+          ${isDisabled ? 'conversation-footer--disabled' : ''}  
+        `}
+        onDragEnter={!isDisabled ? handleDragEnter : undefined}
+        onDragOver={!isDisabled ? handleDragOver : undefined}
+        onDragLeave={!isDisabled ? handleDragLeave : undefined}
+        onDrop={!isDisabled ? handleDrop : undefined}
+      >
+        <div className="conversation-footer__top-menu">
+          {(isStreaming || isWaitingForResponse) && (
+            <button
+              className="conversation-footer__abort-button"
+              title={t("abort_title")}
+              onClick={handleAbort}
+            >
+              {t("abort")}
+            </button>
+          )}
+          {!isStreaming && lastMessageRole === BOT_ROLE && (
+            <button
+              className="conversation-footer__retry-button"
+              title={t("retry_title")}
+              onClick={handleRetry}
+            >
+              {t("retry")}
+            </button>
+          )}
+        </div>
 
-      <div className="top-footer-menu">
-        {isStreaming || isWaitingForResponse ? (
-          <button title={t("abort_title")} onClick={handleAbort}>{t("abort")}</button>
-        ) : null}
-        {!isStreaming && lastMessageRole === BOT_ROLE && (
-          <button title={t("retry_title")} onClick={handleRetry}>
-            {t("retry")}
+        <div className="conversation-footer__file-list">
+          {fileList.map((file) => (
+            <FileItem
+              key={file.name}
+              file={file}
+              onDelete={handleDeleteFile}
+              currentConversation={currentConversation}
+            />
+          ))}
+        </div>
+
+        <div className="conversation-footer__input-container">
+          <FileUploadButton
+            className="conversation-footer__file-upload"
+            disabled={isDisabled}
+            onClick={handleFileButtonClick}
+          />
+
+          <textarea
+            ref={textareaRef}
+            className={`  
+              conversation-footer__textarea  
+              ${isExpanded ? 'conversation-footer__textarea--expanded' : ''}  
+            `}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={t("type_a_message")}
+            disabled={isStreaming || isWaitingForResponse}
+          />
+
+          <SendButton
+            className="conversation-footer__send-button"
+            disabled={!input.trim() && fileList.length === 0}
+            isStreaming={isStreaming}
+            isWaitingForResponse={isWaitingForResponse}
+            onClick={handleSend}
+          />
+
+          <button
+            className="conversation-footer__paste-button"
+            title={t("paste_title")}
+            onClick={handlePaste}
+            disabled={isStreaming}
+          >
+            {t("paste")}
           </button>
-        )}
+
+          <button
+            className="conversation-footer__expand-button"
+            onClick={toggleExpand}
+            title={t("toggle_height_title")}
+          >
+            {!isExpanded ? t("shrink") : t("expand")}
+          </button>
+
+          <AudioRecorder
+            className="conversation-footer__audio-recorder"
+            isStreaming={isStreaming}
+            setInput={setInput}
+            setError={setError}
+          />
+
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="conversation-footer__file-input"
+            onChange={handleFileChange}
+            disabled={isStreaming}
+            style={{ display: 'none' }}
+          />
+        </div>
       </div>
-      <div className="file-list">
-        {fileList.map((file) => (
-          <FileItem key={file.name} file={file} onDelete={handleDeleteFile} currentConversation={currentConversation} />
-        ))}
-      </div>
-      <div className="footer-body" >
-        <button
-          title={t("attach_title")}
-          onClick={handleFileButtonClick}
-          disabled={isStreaming || isWaitingForResponse || !doesModelSupportFiles(models, user?.settings?.model)}
-        >
-          {t("attach")}
-        </button>
-        <textarea
-          ref={textareaRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={t("type_a_message")}
-          rows={1}
-          disabled={isStreaming || isWaitingForResponse}
-        />
-        <button
-          title={t("send_title")}
-          onClick={handleSend}
-          disabled={!input.trim() || isStreaming || isWaitingForResponse}
-        >
-          {isStreaming | isWaitingForResponse ? <BeatLoader color="white" size="6px" /> : "➢"}
-        </button>
-        <div className="spacer" />
-        <button
-          title={t("paste_title")}
-          onClick={handlePaste}
-          disabled={isStreaming}
-        >
-          {t("paste")}
-        </button>
-        <button onClick={toggleHeight} title={t("toggle_height_title")}>
-          {isExpanded ? t("expand") : t("shrink")}
-        </button>
-        <SpeechToText 
-        isStreaming={isStreaming} 
-        setInput={setInput}
-        setError={setError}
-        />  
-        <input
-          type="file"
-          onChange={handleFileChange}
-          disabled={isStreaming}
-          style={{ display: 'none' }} // Hide the file input, but you can style it as needed
-          ref={fileInputRef} // Add a ref to the file input
-        />
-      </div>
-    </div>
+    </ErrorBoundary>
   );
 };
 
@@ -288,11 +281,12 @@ ConversationFooter.propTypes = {
   setCurrentConversation: PropTypes.func.isRequired,
   onSendMessage: PropTypes.func.isRequired,
   onResendMessage: PropTypes.func.isRequired,
-  isStreaming: PropTypes.bool.isRequired,
+  isStreaming: PropTypes.bool,
   setIsStreaming: PropTypes.func.isRequired,
   abortFetch: PropTypes.func.isRequired,
-  isWaitingForResponse: PropTypes.bool.isRequired,
+  isWaitingForResponse: PropTypes.bool,
   setError: PropTypes.func.isRequired,
   models: PropTypes.arrayOf(modelShape).isRequired,
 };
-export default ConversationFooter;
+
+export default ConversationFooter;  
