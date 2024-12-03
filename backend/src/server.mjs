@@ -103,8 +103,7 @@ server.listen(PORT, '0.0.0.0', () => {
   logger.info(`${PROTOCOL.toUpperCase()} server running on port ${PORT}`);
 });
 
-const wss = new WebSocketServer({ server });
-setupWebSocket(wss);
+const wsHandler = setupWebSocket(server);
 
 initDatabase();
 
