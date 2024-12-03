@@ -44,7 +44,6 @@ export class TextToSpeechModelService {
                 .sort({ name: 1 })
                 .lean()
                 .exec() || [];
-            console.log(JSON.stringify(models));
             return Array.isArray(models) ? models : [];
         } catch (error) {
             logger.error('Error fetching available models:', error);

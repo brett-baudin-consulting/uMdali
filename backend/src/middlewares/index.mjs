@@ -1,13 +1,16 @@
-// middleware/index.mjs  
-export { errorHandler } from './errorHandler.mjs';
+import { logger } from "../logger.mjs";
 
-// You can add other middleware exports here  
 export const asyncHandler = (fn) => (req, res, next) =>  
   Promise.resolve(fn(req, res, next)).catch(next);
 
-export const errorResponse = (res, status, message) => {  
-  return res.status(status).json({   
-    success: false,  
-    message   
-  });  
+export const errorHandler = (err, req, res, next) => {
+  logger.error(`Error processing ${req.method} ${req.url}: ${err.message}`);
+  logger.error(err.stack);
+
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal server error',
+    errors: err.errors || null,
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
 };  

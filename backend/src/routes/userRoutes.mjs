@@ -1,7 +1,7 @@
 import express from "express";
 import { logger } from "../logger.mjs";
 import userSchema from "../models/UserJoi.mjs";
-import { asyncHandler, errorResponse } from "../middlewares/index.mjs";
+import { asyncHandler, errorHandler } from "../middlewares/index.mjs";
 import {
   createUser,
   getAllUsers,
@@ -17,7 +17,7 @@ const validateUser = (req, res, next) => {
   const { error } = userSchema.validate(req.body, { abortEarly: false });
   if (error) {
     logger.error(`Validation error: ${error.details[0].message}`);
-    return errorResponse(res, 400, error.details[0].message);
+    return errorHandler(res, 400, error.details[0].message);
   }
   next();
 };

@@ -1,5 +1,5 @@
 import UserService from "../services/UserService.mjs";
-import { errorResponse } from "../middlewares/index.mjs";
+import { errorHandler } from "../middlewares/index.mjs";
 
 const userService = new UserService();
 
@@ -16,7 +16,7 @@ export const getAllUsers = async (req, res) => {
 export const getUser = async (req, res) => {
     const user = await userService.getUser(req.params.userId);
     if (!user) {
-        return errorResponse(res, 404, "User not found");
+        return errorHandler(res, 404, "User not found");
     }
     res.json({ success: true, data: user });
 };
@@ -24,7 +24,7 @@ export const getUser = async (req, res) => {
 export const updateUser = async (req, res) => {
     const user = await userService.updateUser(req.params.userId, req.body);
     if (!user) {
-        return errorResponse(res, 404, "User not found");
+        return errorHandler(res, 404, "User not found");
     }
     res.json({ success: true, data: user });
 };
@@ -32,7 +32,7 @@ export const updateUser = async (req, res) => {
 export const deleteUser = async (req, res) => {
     const user = await userService.deleteUser(req.params.userId);
     if (!user) {
-        return errorResponse(res, 404, "User not found");
+        return errorHandler(res, 404, "User not found");
     }
     res.sendStatus(204);
 };  

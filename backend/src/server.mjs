@@ -11,7 +11,7 @@ import { WebSocketServer } from 'ws';
 // Custom modules and routes  
 import initDatabase from './initDatabase.mjs';
 import { logger } from './logger.mjs';
-import {errorHandler} from './middlewares/errorHandler.mjs';
+import {errorHandler} from './middlewares/index.mjs';
 import ldapOpts from './config/ldapOpts.mjs';
 import userRoutes from './routes/userRoutes.mjs';
 import messageRoutes from './routes/messageRoutes.mjs';

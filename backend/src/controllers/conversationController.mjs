@@ -1,5 +1,5 @@
 import conversationService from "../services/ConversationService.mjs";
-import { errorResponse } from "../middlewares/index.mjs";
+import { errorHandler } from "../middlewares/index.mjs";
 
 const conversationController = {
     async createConversation(req, res) {
@@ -9,7 +9,7 @@ const conversationController = {
 
     async importConversations(req, res) {
         if (!Array.isArray(req.body)) {
-            return errorResponse(res, 400, "Request body must be an array of conversations");
+            return errorHandler(res, 400, "Request body must be an array of conversations");
         }
         await conversationService.importConversations(req.body);
         res.status(201).json({ success: true, message: "Conversations imported successfully" });
@@ -23,7 +23,7 @@ const conversationController = {
     async searchConversations(req, res) {
         const { query } = req.query;
         if (!query) {
-            return errorResponse(res, 400, "Query parameter is required");
+            return errorHandler(res, 400, "Query parameter is required");
         }
         const conversations = await conversationService.searchConversations(query);
         res.json({
@@ -35,7 +35,7 @@ const conversationController = {
     async getConversationById(req, res) {
         const conversation = await conversationService.getConversationById(req.params.conversationId);
         if (!conversation) {
-            return errorResponse(res, 404, "Conversation not found");
+            return errorHandler(res, 404, "Conversation not found");
         }
         res.json({ success: true, data: conversation });
     },
@@ -46,7 +46,7 @@ const conversationController = {
             req.body
         );
         if (!conversation) {
-            return errorResponse(res, 404, "Conversation not found");
+            return errorHandler(res, 404, "Conversation not found");
         }
         res.json({ success: true, data: conversation });
     },
@@ -54,7 +54,7 @@ const conversationController = {
     async deleteConversation(req, res) {
         const conversation = await conversationService.deleteConversation(req.params.conversationId);
         if (!conversation) {
-            return errorResponse(res, 404, "Conversation not found");
+            return errorHandler(res, 404, "Conversation not found");
         }
         res.sendStatus(204);
     }

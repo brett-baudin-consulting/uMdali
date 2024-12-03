@@ -2,7 +2,7 @@ import express from "express";
 import conversationController from "../controllers/conversationController.mjs";
 import { logger } from "../logger.mjs";
 import conversationSchemaJoi from "../models/ConversationJoi.mjs";
-import { asyncHandler, errorResponse } from "../middlewares/index.mjs";
+import { asyncHandler, errorHandler } from "../middlewares/index.mjs";
 
 const router = express.Router();
 
@@ -11,7 +11,7 @@ const validateConversation = (req, res, next) => {
   const { error } = conversationSchemaJoi.validate(req.body);
   if (error) {
     logger.error(`Validation error: ${error.details[0].message}`);
-    return errorResponse(res, 400, error.details[0].message);
+    return errorHandler(res, 400, error.details[0].message);
   }
   next();
 };
@@ -19,7 +19,7 @@ const validateConversation = (req, res, next) => {
 const validateUserId = (req, res, next) => {
   const { userId } = req.query;
   if (!userId) {
-    return errorResponse(res, 400, "UserId query parameter is required");
+    return errorHandler(res, 400, "UserId query parameter is required");
   }
   next();
 };
