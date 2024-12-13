@@ -81,7 +81,6 @@ export class MessageService {
 
     async streamMessage(messageAPI, messages, options, res, signal) {
         const cleanup = () => {
-            signal.abort();
             if (!res.writableEnded) {
                 res.end();
             }
