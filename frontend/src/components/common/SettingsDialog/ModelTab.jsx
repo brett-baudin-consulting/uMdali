@@ -33,12 +33,13 @@ const ModelTab = ({ user, setUser, models }) => {
                 key={`${model.vendor}/${model.name}`}
                 value={`${model.vendor}/${model.name}`}
             >
-                {`${model.vendor}/${model.name}`}
+                {`${model.vendor}/${model.name} [`}
                 {model.isSupportsVision ? 'I ' : ''}
                 {model.isSupportsAudio ? 'A ' : ''}
                 {model.isSupportsVideo ? 'V ' : ''}
                 {model.isSupportsContext ? 'C ' : ''}
                 {model.isSupportsStreaming ? 'S' : ''}
+                {`]`}
             </option>
         ))
     ), [sortedModels]);
